@@ -25,6 +25,7 @@ public class Worker implements Runnable{
     private List<AbstractFtsQuery> queries;
     private Bucket bucket;
     private int id;
+    private Client clientDB;
 
     public Worker(int workerId, Client client) {
         TestProperties workload = client.getWorkload();
@@ -34,6 +35,7 @@ public class Worker implements Runnable{
         latencyLogger = new LatencyLogger(statsLimit, workerId);
         throughputLogger = new ThroughputLogger(statsLimit, workerId, aggregationStep);
         statusLogger = new StatusLogger("worker_" + workerId + "_status.log", workload.isDebugMode());
+        clientDB = client;
 
         statusLogger.logMessage("worker " + workerId + " initilized");
         id = workerId;
@@ -41,7 +43,13 @@ public class Worker implements Runnable{
 
     @Override
     public void run(){
-        statusLogger.logMessage("worker " + id + " started");
+        //statusLogger.logMessage("worker " + id + " started");
+        while (true) {
+            //String res = clientDB.queryAndResponse();
+            //statusLogger.logMessage("worker " + id + " " + res);
+            clientDB.query();
+        }
+
     }
 
 

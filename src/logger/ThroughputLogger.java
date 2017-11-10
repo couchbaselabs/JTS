@@ -1,6 +1,7 @@
 package logger;
 
-import java.io.Flushable;
+import utils.LogPair;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

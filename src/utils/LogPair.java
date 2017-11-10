@@ -1,9 +1,9 @@
-package logger;
+package utils;
 
 /**
  * Created by oleksandr.gyryk on 10/2/17.
  */
-class LogPair {
+public class LogPair {
     public Long k;
     public String v;
 

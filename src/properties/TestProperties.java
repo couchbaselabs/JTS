@@ -14,6 +14,10 @@ import org.apache.commons.cli.ParseException;
  */
 public class TestProperties {
 
+    //static const
+    public static final String CONSTANT_QUERY_TYPE_TERM = "term";
+
+
 
     // General test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
@@ -23,7 +27,7 @@ public class TestProperties {
     private static final String TESTSPEC_THREADS_DEFAULT = "10";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
-    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "low.txt";
+    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
 
     public static final String TESTSPEC_DATASET_MULTIPLIER = "test_dataset_multiplier";
     private static final String TESTSPEC_DATASET_MULTIPLIER_DEFAULT = "10";
@@ -40,15 +44,23 @@ public class TestProperties {
     public static final String TESTSPEC_TEST_DEBUGMODE = "test_debug";
     private static final String TESTSPEC_TEST_DEBUGMODE_DEFAULT = "true";
 
+    public static final String TESTSPEC_QUERY_TYPE = "test_query_type";
+    private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
+
+    public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
+    private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
+
+    public static final String TESTSPEC_QUERY_FIELD = "test_query_field";
+    private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "text";
+
+
+
     // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
-    private static final String CBSPEC_INDEX_NAME_DEFAILT = "fts_perf";
-
-    public static final String CBSPEC_QUERY_TYPE = "couchbase_query_type";
-    private static final String CBSPEC_QUERY_TYPE_DEFAULT = "term";
+    private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
 
     public static final String CBSPEC_SERVER = "couchbase_servers_list";
-    private static final String CBSPEC_SERVER_DEFAULT = "localhost";
+    private static final String CBSPEC_SERVER_DEFAULT = "172.23.99.211";
 
     public static final String CBSPEC_CBBUCKET = "couchbase_bucket";
     private static final String CBSPEC_CBBUCKET_DEFAULT = "bucket-1";
@@ -83,9 +95,11 @@ public class TestProperties {
         options.addOption(new Option(TESTSPEC_STATS_LIMIT, ""));
         options.addOption(new Option(TESTSPEC_STATS_AGGR_STEP, ""));
         options.addOption(new Option(TESTSPEC_TEST_DEBUGMODE, ""));
+        options.addOption(new Option(TESTSPEC_QUERY_TYPE, ""));
+        options.addOption(new Option(TESTSPEC_QUERY_LIMIT, ""));
+        options.addOption(new Option(TESTSPEC_QUERY_FIELD, ""));
 
         options.addOption(new Option(CBSPEC_INDEX_NAME, ""));
-        options.addOption(new Option(CBSPEC_QUERY_TYPE, ""));
         options.addOption(new Option(CBSPEC_SERVER, ""));
         options.addOption(new Option(CBSPEC_CBBUCKET, ""));
         options.addOption(new Option(CBSPEC_USER, ""));
@@ -115,8 +129,11 @@ public class TestProperties {
         prop.put(TESTSPEC_STATS_AGGR_STEP, cmd.getOptionValue(TESTSPEC_STATS_AGGR_STEP,
                 TESTSPEC_STATS_AGGR_STEP_DEFAULT));
 
+        prop.put(TESTSPEC_QUERY_TYPE, cmd.getOptionValue(TESTSPEC_QUERY_TYPE, TESTSPEC_QUERY_TYPE_DEFAULT));
+        prop.put(TESTSPEC_QUERY_LIMIT, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_LIMIT_DEFAULT));
+        prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_FIELD_DEFAULT));
+
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
-        prop.put(CBSPEC_QUERY_TYPE, cmd.getOptionValue(CBSPEC_QUERY_TYPE, CBSPEC_QUERY_TYPE_DEFAULT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));
         prop.put(CBSPEC_CBBUCKET, cmd.getOptionValue(CBSPEC_CBBUCKET, CBSPEC_CBBUCKET_DEFAULT));
         prop.put(CBSPEC_USER, cmd.getOptionValue(CBSPEC_USER, CBSPEC_USER_DEFAULT));

@@ -45,7 +45,7 @@ public class WorkerManager {
             Constructor<?> ctor = clientClass.getConstructor(TestProperties.class);
             object = (Client) ctor.newInstance(workload);
         } catch (Exception ex) {
-            logWriter.logMessage("Error: " + ex.getMessage());
+            logWriter.logMessage("Error creating DB driver: " + ex.getMessage() + "\n" + ex.getStackTrace());
             ex.printStackTrace();
             System.exit(1);
         }
