@@ -16,8 +16,8 @@ public class LatencyLogger extends Logger{
         filename = "worker_" + loggerId + "_latency.log";
     }
 
-    public void logLatency(String message){
-        drop(message);
+    public void logLatency(float latency){
+        drop(latency);
     }
 
     public void dump() throws IOException{

@@ -14,6 +14,7 @@ public class WorkerManager {
     private StatusLogger logWriter;
     private TestProperties workload;
     private List<Worker> workers;
+    private List<Thread> workerThreads;
 
     public WorkerManager(TestProperties props) {
         workload = props;
@@ -29,11 +30,21 @@ public class WorkerManager {
 
         logWriter.logMessage("Starting workers");
         for (Worker worker: workers) {
-            new Thread(worker).start();
+            workerThreads.add(new Thread(worker));
         }
-        // wait untill all finished
-        // call ShutDown method for all workers
-        //gather logs
+
+        for (Thread workerThread: workerThreads) {
+            workerThread.start();
+        }
+
+        for (Thread workerThread: workerThreads) {
+            try {
+                workerThread.join();
+            } catch (InterruptedException ex) {
+                logWriter.logMessage(ex.getMessage());
+            }
+        }
+
         logWriter.close();
 
     }
@@ -59,7 +70,7 @@ public class WorkerManager {
 
         for (int i=0; i<threads; i++) {
             Client client = buildNewDriverObject(driverClassName);
-            workersList.add(new Worker(i, client));
+            workersList.add(new DefaultWorker(i, client));
         }
         return workersList;
     }

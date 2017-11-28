@@ -57,6 +57,7 @@ public class  CouchbaseClient extends Client{
 
     private Random rand = new Random();
     private int totalQueries = 0;
+    private SearchQuery queryToRun;
 
 
     public CouchbaseClient(TestProperties workload) throws Exception{
@@ -161,22 +162,22 @@ public class  CouchbaseClient extends Client{
     }
 
 
-
     private String getProp(String name) {
         return getWorkload().get(name);
     }
 
-    public boolean query() {
-        bucket.query(queries[rand.nextInt(totalQueries)]);
-        return true;
+    public float queryAndLatency() {
+        queryToRun = queries[rand.nextInt(totalQueries)];
+        long st = System.nanoTime();
+        bucket.query(queryToRun);
+        long en = System.nanoTime();
+        return (en - st) / 1000;
     }
 
     public String queryAndResponse(){
-
         SearchQueryResult res =  bucket.query(queries[rand.nextInt(totalQueries)]);
         return res.toString();
    }
-
 
 
 
@@ -187,47 +188,49 @@ public class  CouchbaseClient extends Client{
     }
 
 
-}
 
 
-
-
-
-class BackoffSelectStrategyFactory implements SelectStrategyFactory {
-    @Override
-    public SelectStrategy newSelectStrategy() {
-        return new BackoffSelectStrategy();
-    }
-}
-
-
-class BackoffSelectStrategy implements SelectStrategy {
-
-    private int counter = 0;
-
-    @Override
-    public int calculateStrategy(final IntSupplier supplier, final boolean hasTasks) throws Exception {
-        int selectNowResult = supplier.get();
-        if (hasTasks || selectNowResult != 0) {
-            counter = 0;
-            return selectNowResult;
+    class BackoffSelectStrategyFactory implements SelectStrategyFactory {
+        @Override
+        public SelectStrategy newSelectStrategy() {
+            return new BackoffSelectStrategy();
         }
-        counter++;
-
-        if (counter > 2000) {
-            LockSupport.parkNanos(1);
-        } else if (counter > 3000) {
-            Thread.yield();
-        } else if (counter > 4000) {
-            LockSupport.parkNanos(1000);
-        } else if (counter > 5000) {
-            // defer to blocking select
-            counter = 0;
-            return SelectStrategy.SELECT;
-        }
-
-        return SelectStrategy.CONTINUE;
     }
+
+
+    class BackoffSelectStrategy implements SelectStrategy {
+
+        private int counter = 0;
+
+        @Override
+        public int calculateStrategy(final IntSupplier supplier, final boolean hasTasks) throws Exception {
+            int selectNowResult = supplier.get();
+            if (hasTasks || selectNowResult != 0) {
+                counter = 0;
+                return selectNowResult;
+            }
+            counter++;
+
+            if (counter > 2000) {
+                LockSupport.parkNanos(1);
+            } else if (counter > 3000) {
+                Thread.yield();
+            } else if (counter > 4000) {
+                LockSupport.parkNanos(1000);
+            } else if (counter > 5000) {
+                // defer to blocking select
+                counter = 0;
+                return SelectStrategy.SELECT;
+            }
+
+            return SelectStrategy.CONTINUE;
+        }
+    }
+
+
+
+
 }
+
 
 

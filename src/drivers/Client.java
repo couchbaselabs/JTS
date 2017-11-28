@@ -36,6 +36,6 @@ abstract public class Client {
         return response;
     }
 
-    abstract public boolean query();
+    abstract public float queryAndLatency();
     abstract public String queryAndResponse();
 }

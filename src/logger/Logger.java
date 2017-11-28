@@ -32,7 +32,7 @@ public class Logger {
         id = loggerId;
     }
 
-    protected void drop(String message){
+    protected void drop(float value){
         int id = 0;
         if (overflow) {
             id = RAND.nextInt(limit);
@@ -43,7 +43,7 @@ public class Logger {
                 overflow = true;
             }
         }
-        pool[id] = new LogPair(timeStamp(),message);
+        pool[id] = new LogPair(timeStamp(), value);
     }
 
     public void dump(String filename, LogPair[] customPool) throws IOException {
@@ -59,7 +59,7 @@ public class Logger {
         }
     }
 
-    protected long timeStamp() {
+    private long timeStamp() {
         return System.currentTimeMillis();
     }
 

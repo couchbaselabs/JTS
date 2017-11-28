@@ -5,10 +5,10 @@ package utils;
  */
 public class LogPair {
     public Long k;
-    public String v;
+    public Float v;
 
-    public LogPair(long timeStamp, String message) {
+    public LogPair(long timeStamp, float value) {
         k = timeStamp;
-        v = message;
+        v = value;
     }
 }
