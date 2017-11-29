@@ -27,7 +27,7 @@ public class TestProperties {
     private static final String TESTSPEC_THREADS_DEFAULT = "200";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
-    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
+    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/med.txt";
 
     public static final String TESTSPEC_DATASET_MULTIPLIER = "test_dataset_multiplier";
     private static final String TESTSPEC_DATASET_MULTIPLIER_DEFAULT = "10";
