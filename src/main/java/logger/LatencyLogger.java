@@ -1,12 +1,10 @@
 package main.java.logger;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import main.java.utils.LogPair;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.stream.*;
 import java.nio.file.*;
 import java.util.List;
