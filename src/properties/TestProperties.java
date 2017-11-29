@@ -21,10 +21,10 @@ public class TestProperties {
 
     // General test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
-    private static final String TESTSPEC_TEST_DURATION_DEFAULT = "600";
+    private static final String TESTSPEC_TEST_DURATION_DEFAULT = "120";
 
     public static final String TESTSPEC_THREADS = "test_threads";
-    private static final String TESTSPEC_THREADS_DEFAULT = "10";
+    private static final String TESTSPEC_THREADS_DEFAULT = "100";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
     private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
@@ -36,7 +36,7 @@ public class TestProperties {
     private static final String TESTSPEC_DRIVER_DEFAULT = "couchbase";
 
     public static final String TESTSPEC_STATS_LIMIT = "test_stats_limit";
-    private static final String TESTSPEC_STATS_LIMIT_DEFAULT = "1000000";
+    private static final String TESTSPEC_STATS_LIMIT_DEFAULT = "100000";
 
     public static final String TESTSPEC_STATS_AGGR_STEP = "test_stats_aggregation_step";
     private static final String TESTSPEC_STATS_AGGR_STEP_DEFAULT = "1000";

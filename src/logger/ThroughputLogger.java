@@ -50,7 +50,7 @@ public class ThroughputLogger extends Logger{
 
         try {
             LogPair[] averagesArr = new LogPair[averages.size()];
-            dump(filename, averages.toArray(averagesArr));
+            dump(filename, averages.toArray(averagesArr), averages.size());
         } catch (IOException e) {
             throw e;
         }

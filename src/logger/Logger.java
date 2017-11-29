@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
  */
 public class Logger {
 
+
     protected LogPair[] pool;
     protected int counter = 0;
     protected boolean overflow = false;
@@ -46,11 +47,17 @@ public class Logger {
         pool[id] = new LogPair(timeStamp(), value);
     }
 
-    public void dump(String filename, LogPair[] customPool) throws IOException {
-        Arrays.sort(customPool, (a, b) -> a.k.compareTo(b.k));
+    public static void dump(String filename, LogPair[] customPool, int count) throws IOException {
+        LogPair[] nonEmpty = new LogPair[count];
+
+        for (int i = 0; i< count; i++) {
+            nonEmpty[i] = customPool[i];
+        }
+
+        Arrays.sort(nonEmpty, (a, b) -> a.k.compareTo(b.k));
         try {
-            PrintWriter dumpFile = new PrintWriter(id + filename + ".log", "UTF-8");
-            for (LogPair pair:customPool){
+            PrintWriter dumpFile = new PrintWriter(filename, "UTF-8");
+            for (LogPair pair:nonEmpty){
                 dumpFile.println("" + pair.k + ":" + pair.v);
             }
             dumpFile.close();
@@ -68,4 +75,6 @@ public class Logger {
         Date resultdate = new Date(System.currentTimeMillis());
         return sdf.format(resultdate);
     }
+
+
 }

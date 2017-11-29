@@ -1,9 +1,11 @@
 package worker;
 
 import drivers.Client;
+import logger.LatencyLogger;
 import logger.StatusLogger;
 import properties.TestProperties;
 
+import javax.imageio.IIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class WorkerManager {
     private StatusLogger logWriter;
     private TestProperties workload;
     private List<Worker> workers;
-    private List<Thread> workerThreads;
+    private List<Thread> workerThreads = new ArrayList<Thread>();
 
     public WorkerManager(TestProperties props) {
         workload = props;
@@ -44,9 +46,13 @@ public class WorkerManager {
                 logWriter.logMessage(ex.getMessage());
             }
         }
-
+        logWriter.logMessage("All workers are done, gathering results from workers");
+        try {
+            LatencyLogger.aggregate(workers.size());
+        } catch (Exception ex) {
+            logWriter.logMessage(ex.getMessage());
+        }
         logWriter.close();
-
     }
 
     private Client buildNewDriverObject(String className) {

@@ -21,11 +21,6 @@ public abstract class Worker implements Runnable{
     protected LatencyLogger latencyLogger;
     protected ThroughputLogger throughputLogger;
     protected StatusLogger statusLogger;
-
-    private int requestsCounter;
-    private List<AbstractFtsQuery> queries;
-    private Bucket bucket;
-    private int id;
     protected Client clientDB;
     private volatile Criteria testCompletedCriteria = new Criteria(false);
     private TestProperties workload;
@@ -42,14 +37,11 @@ public abstract class Worker implements Runnable{
         clientDB = client;
 
         statusLogger.logMessage("worker " + workerId + " initilized");
-        id = workerId;
-
     }
 
     @Override
     public void run(){
 
-        long queryCounter = 0;
         testCompletedCriteria.setIsSatisfied(false);
         int testDuration = Integer.parseInt(workload.get(TestProperties.TESTSPEC_TEST_DURATION));
         Thread timer = new Thread(new Timer(testDuration, testCompletedCriteria));
@@ -73,13 +65,14 @@ public abstract class Worker implements Runnable{
         } catch (IOException e) {
             statusLogger.logMessage("ERROR Failed to dump latency stats to disk: " + e.getMessage());
         }
-
+        statusLogger.close();
+        /*
         try {
             throughputLogger.dump();
         } catch (IOException e) {
             statusLogger.logMessage("ERROR Failed to dump throughput stats to disk: " + e.getMessage());
-        }
-        bucket.close();
+        }*/
+
     }
 
 
@@ -115,7 +108,7 @@ public abstract class Worker implements Runnable{
         @Override
         public void run() {
             try {
-                Thread.sleep(timeout);
+                Thread.sleep(timeout * 1000);
                 this.timedout.setIsSatisfied(true);
             } catch (InterruptedException e) {
                 // Do nothing.

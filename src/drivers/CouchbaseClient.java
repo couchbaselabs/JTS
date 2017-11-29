@@ -49,7 +49,9 @@ public class  CouchbaseClient extends Client{
     private int kvEndpoints = 1;
     private int boost = 3;
     private boolean epoll = false;
-    private long kvTimeout;
+    private int kvTimeout = 10000;
+    private int connectTimeout = 10000;
+    private int socketTimeout = 10000;
 
     private Cluster cluster;
     private Bucket bucket;
@@ -90,9 +92,9 @@ public class  CouchbaseClient extends Client{
                             .callbacksOnIoPool(true)
                             .runtimeMetricsCollectorConfig(runtimeConfig)
                             .networkLatencyMetricsCollectorConfig(latencyConfig)
-                            .socketConnectTimeout(10000)
-                            .connectTimeout(30000)
-                            .kvTimeout(10000)
+                            .socketConnectTimeout(socketTimeout)
+                            .connectTimeout(connectTimeout)
+                            .kvTimeout(kvTimeout)
                             .kvEndpoints(kvEndpoints);
 
                     // Tune boosting and epoll based on settings
@@ -115,7 +117,6 @@ public class  CouchbaseClient extends Client{
             cluster = CouchbaseCluster.create(env, getProp(TestProperties.CBSPEC_SERVER));
             cluster.authenticate(getProp(TestProperties.CBSPEC_USER), getProp(TestProperties.CBSPEC_PASSWORD));
             bucket = cluster.openBucket(getProp(TestProperties.CBSPEC_CBBUCKET));
-            kvTimeout = env.kvTimeout();
         } catch (Exception ex) {
             throw new Exception("Could not connect to Couchbase Bucket.", ex);
         }
@@ -171,7 +172,7 @@ public class  CouchbaseClient extends Client{
         long st = System.nanoTime();
         bucket.query(queryToRun);
         long en = System.nanoTime();
-        return (en - st) / 1000;
+        return (float) (en - st) / 1000000;
     }
 
     public String queryAndResponse(){

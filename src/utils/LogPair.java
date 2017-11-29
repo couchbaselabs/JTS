@@ -11,4 +11,10 @@ public class LogPair {
         k = timeStamp;
         v = value;
     }
+
+    public LogPair(String str){
+        String[] pairStr = str.split(":");
+        k = Long.parseLong(pairStr[0]);
+        v = (pairStr.length > 1) ? Float.parseFloat(pairStr[1]) : 0;
+    }
 }
