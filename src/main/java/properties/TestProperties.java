@@ -24,7 +24,7 @@ public class TestProperties {
     private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
 
     public static final String TESTSPEC_THREADS = "test_threads";
-    private static final String TESTSPEC_THREADS_DEFAULT = "5";
+    private static final String TESTSPEC_THREADS_DEFAULT = "200";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
     private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
