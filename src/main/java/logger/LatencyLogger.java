@@ -1,7 +1,7 @@
-package logger;
+package main.java.logger;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import utils.LogPair;
+import main.java.utils.LogPair;
 
 import java.io.IOException;
 import java.util.ArrayList;

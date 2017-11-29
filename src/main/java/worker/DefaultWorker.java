@@ -1,6 +1,6 @@
-package worker;
+package main.java.worker;
 
-import drivers.Client;
+import main.java.drivers.Client;
 
 /**
  * Created by oleksandr.gyryk on 11/10/17.
@@ -13,6 +13,7 @@ public class DefaultWorker extends Worker {
 
     public void runQuery(){
         latencyLogger.logLatency(clientDB.queryAndLatency());
+        throughputLogger.logTotalRequests(1);
     }
 
 

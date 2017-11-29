@@ -1,6 +1,6 @@
-package logger;
+package main.java.logger;
 
-import utils.LogPair;
+import main.java.utils.LogPair;
 
 import java.io.IOException;
 import java.io.PrintWriter;

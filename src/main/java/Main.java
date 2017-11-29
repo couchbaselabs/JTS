@@ -1,6 +1,8 @@
+package main.java;
 
-import properties.TestProperties;
-import worker.WorkerManager;
+
+import main.java.properties.TestProperties;
+import main.java.worker.WorkerManager;
 
 /**
  * Created by oleksandr.gyryk on 10/2/17.

@@ -1,4 +1,4 @@
-package properties;
+package main.java.properties;
 
 import java.util.HashMap;
 import org.apache.commons.cli.Option;
@@ -21,10 +21,10 @@ public class TestProperties {
 
     // General test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
-    private static final String TESTSPEC_TEST_DURATION_DEFAULT = "120";
+    private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
 
     public static final String TESTSPEC_THREADS = "test_threads";
-    private static final String TESTSPEC_THREADS_DEFAULT = "100";
+    private static final String TESTSPEC_THREADS_DEFAULT = "5";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
     private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
@@ -79,12 +79,12 @@ public class TestProperties {
 
     public TestProperties(String[] args) {
 
-        driversMapping.put("couchbase", "drivers.CouchbaseClient");
-        driversMapping.put("couchbase-sdk", "drivers.CouchbaseClient");
-        driversMapping.put("couchbase-rest", "drivers.CouchbaseClientREST");
-        driversMapping.put("mongodb", "drivers.MongodbClient");
-        driversMapping.put("elasticsearch", "drivers.ElasticClient");
-        driversMapping.put("elastic", "drivers.ElasticClient");
+        driversMapping.put("couchbase", "main.java.drivers.CouchbaseClient");
+        driversMapping.put("couchbase-sdk", "main.java.drivers.CouchbaseClient");
+        driversMapping.put("couchbase-rest", "main.java.drivers.CouchbaseClientREST");
+        driversMapping.put("mongodb", "main.java.drivers.MongodbClient");
+        driversMapping.put("elasticsearch", "main.java.drivers.ElasticClient");
+        driversMapping.put("elastic", "main.java.drivers.ElasticClient");
 
         Options options = new Options();
         options.addOption(new Option(TESTSPEC_TEST_DURATION, ""));

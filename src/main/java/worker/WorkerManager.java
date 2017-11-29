@@ -1,9 +1,9 @@
-package worker;
+package main.java.worker;
 
-import drivers.Client;
-import logger.LatencyLogger;
-import logger.StatusLogger;
-import properties.TestProperties;
+import main.java.drivers.Client;
+import main.java.logger.LatencyLogger;
+import main.java.logger.StatusLogger;
+import main.java.properties.TestProperties;
 
 import javax.imageio.IIOException;
 import java.util.ArrayList;

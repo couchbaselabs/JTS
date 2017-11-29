@@ -1,4 +1,4 @@
-package drivers;
+package main.java.drivers;
 
 /**
  * Created by oleksandr.gyryk on 10/3/17.

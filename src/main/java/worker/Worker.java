@@ -1,13 +1,13 @@
-package worker;
+package main.java.worker;
 
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.search.queries.*;
-import drivers.Client;
-import logger.StatusLogger;
-import logger.LatencyLogger;
-import logger.ThroughputLogger;
-import properties.TestProperties;
+import main.java.drivers.Client;
+import main.java.logger.StatusLogger;
+import main.java.logger.LatencyLogger;
+import main.java.logger.ThroughputLogger;
+import main.java.properties.TestProperties;
 
 
 import java.io.IOException;

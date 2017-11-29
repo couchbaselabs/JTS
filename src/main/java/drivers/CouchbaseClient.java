@@ -1,4 +1,4 @@
-package drivers;
+package main.java.drivers;
 
 import com.couchbase.client.core.env.DefaultCoreEnvironment;
 import com.couchbase.client.core.env.resources.IoPoolShutdownHook;
@@ -22,7 +22,7 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 
 import com.couchbase.client.java.search.SearchQuery;
 import com.couchbase.client.java.search.result.SearchQueryResult;
-import properties.TestProperties;
+import main.java.properties.TestProperties;
 
 
 import java.nio.channels.spi.SelectorProvider;

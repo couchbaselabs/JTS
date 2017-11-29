@@ -1,4 +1,4 @@
-package logger;
+package main.java.logger;
 
 import java.io.File;
 import java.io.FileWriter;

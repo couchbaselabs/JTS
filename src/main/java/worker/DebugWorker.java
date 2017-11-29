@@ -1,5 +1,5 @@
-package worker;
-import drivers.Client;
+package main.java.worker;
+import main.java.drivers.Client;
 /**
  * Created by oleksandr.gyryk on 11/10/17.
  */
