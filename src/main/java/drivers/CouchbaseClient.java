@@ -169,16 +169,30 @@ public class  CouchbaseClient extends Client{
     public float queryAndLatency() {
         queryToRun = queries[rand.nextInt(totalQueries)];
         long st = System.nanoTime();
-        bucket.query(queryToRun);
+        SearchQueryResult res = bucket.query(queryToRun);
         long en = System.nanoTime();
-        return (float) (en - st) / 1000000;
+        float latency = (float) (en - st) / 1000000;
+
+        if ((res != null) && (res.metrics().totalHits() > 0)) { return latency; }
+        fileError(res.toString());
+        return 0;
+
     }
 
-    public String queryAndResponse(){
+    public String queryDebug(){
         SearchQueryResult res =  bucket.query(queries[rand.nextInt(totalQueries)]);
         return res.toString();
-   }
+    }
 
+
+    public void query() {
+        bucket.query(queries[rand.nextInt(totalQueries)]);
+    }
+
+
+    private void fileError(String err) {
+        System.out.println(err);
+    }
 
 
    // Query builders

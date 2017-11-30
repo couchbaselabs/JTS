@@ -7,16 +7,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 
-public class StatusLogger extends Logger{
+public class GlobalStatusLogger{
     private PrintWriter pw;
-    private boolean printMessage = false;
-    private String filename;
+    private String filename = "global.log";
 
-    public StatusLogger(String fileName, boolean isDebugMode) {
-        super(fileName);
-        printMessage = isDebugMode;
-        this.filename = fileName;
-
+    public GlobalStatusLogger() {
         try {
             File file = new File(filename);
             if (!file.exists()) { file.createNewFile(); }
@@ -29,12 +24,10 @@ public class StatusLogger extends Logger{
     }
 
     public void logMessage(String message) {
-        String fullMessage = "" + timeStampFormated() + ": " + message;
+        String fullMessage = "" + Logger.timeStampFormated() + ": " + message;
         pw.println(fullMessage);
         pw.flush();
-        if (printMessage) { System.out.println(fullMessage); }
     }
-
 
     public void close() {
         pw.close();

@@ -24,13 +24,10 @@ public class TestProperties {
     private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
 
     public static final String TESTSPEC_THREADS = "test_threads";
-    private static final String TESTSPEC_THREADS_DEFAULT = "200";
+    private static final String TESTSPEC_THREADS_DEFAULT = "50";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
-    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/med.txt";
-
-    public static final String TESTSPEC_DATASET_MULTIPLIER = "test_dataset_multiplier";
-    private static final String TESTSPEC_DATASET_MULTIPLIER_DEFAULT = "10";
+    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
 
     public static final String TESTSPEC_DRIVER = "test_driver";
     private static final String TESTSPEC_DRIVER_DEFAULT = "couchbase";
@@ -53,6 +50,8 @@ public class TestProperties {
     public static final String TESTSPEC_QUERY_FIELD = "test_query_field";
     private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "text";
 
+    public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "throughput"; //debug, latency, throughput
 
 
     // Couchbase-specific settings
@@ -90,7 +89,6 @@ public class TestProperties {
         options.addOption(new Option(TESTSPEC_TEST_DURATION, ""));
         options.addOption(new Option(TESTSPEC_THREADS, ""));
         options.addOption(new Option(TESTSPEC_TESTDATA_FILE, ""));
-        options.addOption(new Option(TESTSPEC_DATASET_MULTIPLIER, ""));
         options.addOption(new Option(TESTSPEC_DRIVER, ""));
         options.addOption(new Option(TESTSPEC_STATS_LIMIT, ""));
         options.addOption(new Option(TESTSPEC_STATS_AGGR_STEP, ""));
@@ -98,6 +96,7 @@ public class TestProperties {
         options.addOption(new Option(TESTSPEC_QUERY_TYPE, ""));
         options.addOption(new Option(TESTSPEC_QUERY_LIMIT, ""));
         options.addOption(new Option(TESTSPEC_QUERY_FIELD, ""));
+        options.addOption(new Option(TESTSPEC_WORKER_TYPE,""));
 
         options.addOption(new Option(CBSPEC_INDEX_NAME, ""));
         options.addOption(new Option(CBSPEC_SERVER, ""));
@@ -122,16 +121,14 @@ public class TestProperties {
         prop.put(TESTSPEC_THREADS, cmd.getOptionValue(TESTSPEC_THREADS, TESTSPEC_THREADS_DEFAULT));
         prop.put(TESTSPEC_TEST_DEBUGMODE, cmd.getOptionValue(TESTSPEC_TEST_DEBUGMODE, TESTSPEC_TEST_DEBUGMODE_DEFAULT));
         prop.put(TESTSPEC_TESTDATA_FILE, cmd.getOptionValue(TESTSPEC_TESTDATA_FILE, TESTSPEC_TESTDATA_FILE_DEFAULT));
-        prop.put(TESTSPEC_DATASET_MULTIPLIER, cmd.getOptionValue(TESTSPEC_DATASET_MULTIPLIER,
-                TESTSPEC_DATASET_MULTIPLIER_DEFAULT));
         prop.put(TESTSPEC_DRIVER, getDriverClassName(cmd.getOptionValue(TESTSPEC_DRIVER, TESTSPEC_DRIVER_DEFAULT)));
         prop.put(TESTSPEC_STATS_LIMIT, cmd.getOptionValue(TESTSPEC_STATS_LIMIT, TESTSPEC_STATS_LIMIT_DEFAULT));
         prop.put(TESTSPEC_STATS_AGGR_STEP, cmd.getOptionValue(TESTSPEC_STATS_AGGR_STEP,
                 TESTSPEC_STATS_AGGR_STEP_DEFAULT));
-
         prop.put(TESTSPEC_QUERY_TYPE, cmd.getOptionValue(TESTSPEC_QUERY_TYPE, TESTSPEC_QUERY_TYPE_DEFAULT));
         prop.put(TESTSPEC_QUERY_LIMIT, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_LIMIT_DEFAULT));
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_FIELD_DEFAULT));
+        prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
 
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));

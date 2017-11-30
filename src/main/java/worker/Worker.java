@@ -1,17 +1,10 @@
 package main.java.worker;
 
 
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.search.queries.*;
 import main.java.drivers.Client;
-import main.java.logger.StatusLogger;
 import main.java.logger.LatencyLogger;
 import main.java.logger.ThroughputLogger;
 import main.java.properties.TestProperties;
-
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by oleksandr.gyryk on 10/2/17.
@@ -20,33 +13,25 @@ public abstract class Worker implements Runnable{
 
     protected LatencyLogger latencyLogger;
     protected ThroughputLogger throughputLogger;
-    protected StatusLogger statusLogger;
     protected Client clientDB;
     private volatile Criteria testCompletedCriteria = new Criteria(false);
     private TestProperties workload;
+    protected int statsLimit;
 
 
-    public Worker(int workerId, Client client) {
+    public Worker(Client client) {
         workload = client.getWorkload();
-        int statsLimit = Integer.parseInt(workload.get(TestProperties.TESTSPEC_STATS_LIMIT));
-        int aggregationStep = Integer.parseInt(workload.get(TestProperties.TESTSPEC_STATS_AGGR_STEP));
-
-        latencyLogger = new LatencyLogger(statsLimit, workerId);
-        throughputLogger = new ThroughputLogger(statsLimit, workerId, aggregationStep);
-        statusLogger = new StatusLogger("worker_" + workerId + "_status.log", workload.isDebugMode());
+        statsLimit = Integer.parseInt(workload.get(TestProperties.TESTSPEC_STATS_LIMIT));
         clientDB = client;
 
-        statusLogger.logMessage("worker " + workerId + " initilized");
     }
 
     @Override
     public void run(){
-
         testCompletedCriteria.setIsSatisfied(false);
         int testDuration = Integer.parseInt(workload.get(TestProperties.TESTSPEC_TEST_DURATION));
         Thread timer = new Thread(new Timer(testDuration, testCompletedCriteria));
         timer.start();
-
         while (true) {
             if (testCompletedCriteria.isSatisfied()) {
                 shutDown();
@@ -56,25 +41,9 @@ public abstract class Worker implements Runnable{
         }
     }
 
+
     abstract protected void runQuery();
-
-    private void shutDown() {
-        statusLogger.logMessage("Completed, shutting down the worker");
-        try {
-            latencyLogger.dump();
-        } catch (IOException e) {
-            statusLogger.logMessage("ERROR Failed to dump latency stats to disk: " + e.getMessage());
-        }
-        statusLogger.close();
-        /*
-        try {
-            throughputLogger.dump();
-        } catch (IOException e) {
-            statusLogger.logMessage("ERROR Failed to dump throughput stats to disk: " + e.getMessage());
-        }*/
-
-    }
-
+    abstract protected void shutDown();
 
 
     class Criteria {

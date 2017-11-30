@@ -3,57 +3,105 @@ package main.java.logger;
 import main.java.utils.LogPair;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Created by oleksandr.gyryk on 10/2/17.
  */
 public class ThroughputLogger extends Logger{
 
-    private String filename;
-    private int step;
+    private long timeStart = 0;
+    private int requestsSinceLastDrop = 0;
+    private int aggregationBufferMS = 1000;
+    private long samplesCounter = 0;
 
-    public ThroughputLogger(int storageLimit, int loggerId, int aggregationStep){
+    public ThroughputLogger(int storageLimit, int loggerId){
         super(storageLimit, loggerId);
-        step = aggregationStep;
         filename = "worker_" + loggerId + "_throughput.log";
     }
 
-    public void logTotalRequests(float value){
-        drop(value);
+    public void logRequest(){
+        long logTime = Logger.timeStamp();
+        if (timeStart == 0) {
+            timeStart = Logger.timeStamp();
+            requestsSinceLastDrop = 1;
+            samplesCounter = 1;
+        } else if ((logTime - timeStart) < aggregationBufferMS) {
+            requestsSinceLastDrop ++;
+        } else {
+            timeStart = logTime;
+            drop(samplesCounter, requestsSinceLastDrop);
+            samplesCounter++;
+            requestsSinceLastDrop = 1;
+        }
     }
 
-    public void dump() throws IOException {
-        int poolLength = pool.length;
-        if (poolLength == 0) {return;}
-        Arrays.sort(pool, (a, b) -> a.k.compareTo(b.k));
-        List<LogPair> averages = new ArrayList<>();
-        long startedAt = pool[0].k;
-        float startedWith = pool[0].v;
-        int samplesCounter = 0;
-        for  (int i = 1; i < poolLength; i++) {
-            samplesCounter ++;
-            while ((i< poolLength) && (pool[i].k < (startedAt + step ))) {
-                i++;
-            }
-            float finishedWith = pool[i-1].v;
-            float diff = finishedWith - startedWith;
-            if (diff < 0) {
-                diff = 0;
-            }
-            float avgThroughput = 1000 * (diff / step);
-            averages.add(new LogPair(samplesCounter * step / 1000, avgThroughput));
-            startedWith = pool[i-1].v;
-        }
-
+    public void dump() throws IOException{
+        drop(samplesCounter, requestsSinceLastDrop);
         try {
-            LogPair[] averagesArr = new LogPair[averages.size()];
-            dump(filename, averages.toArray(averagesArr), averages.size());
+            Logger.dump(filename, pool, count);
         } catch (IOException e) {
             throw e;
         }
+    }
 
+
+    public static float aggregate(int totalFilesExpected) throws IOException{
+        List<LogPair> lines = new ArrayList<>();
+        for (int i=0; i< totalFilesExpected; i++) {
+            String filename = "worker_" + i + "_throughput.log";
+            Stream<String> strm;
+            try {
+                strm = Files.lines(Paths.get(filename));
+            } catch (IOException ioex) {
+                System.err.println("Aggregating throughput: " + ioex.getMessage());
+                continue;
+            }
+            try (Stream<String> stream = strm) {
+                stream.forEach(x -> lines.add(new LogPair(x)));
+            }
+        }
+
+        LogPair[] pairsArr = lines.toArray(new LogPair[lines.size()]);
+        Arrays.sort(pairsArr, (a, b) -> a.k.compareTo(b.k));
+        Logger.dump("combined_throughput.log", pairsArr, pairsArr.length);
+
+        List<LogPair> aggregates = new ArrayList<>();
+        long lastSample = -1;
+        float totalrequests = 0;
+        for (LogPair pair: pairsArr){
+            if (lastSample < 0) {
+                lastSample = pair.k;
+                totalrequests += pair.v;
+                continue;
+            }
+            if (lastSample == pair.k) {
+                totalrequests += pair.v;
+            } else {
+                aggregates.add(new LogPair(lastSample, totalrequests));
+                lastSample = pair.k;
+                totalrequests = pair.v;
+            }
+        }
+
+        Logger.dump("aggregated_throughput.log", aggregates.toArray(new LogPair[aggregates.size()]),
+                aggregates.size());
+
+        int totalValues = aggregates.size();
+        float sum = 0;
+        for (LogPair pair: aggregates){
+            sum += pair.v;
+        }
+
+        if (totalValues != 0) {
+            return sum/totalValues;
+        }
+
+        return 0;
     }
 }

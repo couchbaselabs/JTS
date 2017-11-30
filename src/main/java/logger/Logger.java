@@ -14,40 +14,43 @@ import java.text.SimpleDateFormat;
  */
 public class Logger {
 
-
     protected LogPair[] pool;
-    protected int counter = 0;
+    protected int count = 0;
     protected boolean overflow = false;
     protected int limit;
     protected final Random RAND = new Random();
-    protected int id;
     protected String filename;
 
-    public Logger(String fileName) {
-        filename = fileName;
-    }
-
-    public Logger(int storageLimit, int loggerId) {
+    public Logger(int storageLimit, int workerId) {
         limit = storageLimit;
         pool = new LogPair[limit];
-        id = loggerId;
+        filename = "worker_" + workerId + "_untitled.log";
     }
 
-    protected void drop(float value){
+    protected void drop(long time, float value){
         int id = 0;
         if (overflow) {
             id = RAND.nextInt(limit);
         } else {
-            id = counter;
-            counter ++;
-            if (counter >= limit) {
+            id = count;
+            count++;
+            if (count >= limit) {
                 overflow = true;
             }
         }
-        pool[id] = new LogPair(timeStamp(), value);
+        pool[id] = new LogPair(time, value);
     }
 
-    public static void dump(String filename, LogPair[] customPool, int count) throws IOException {
+
+    public void dump() throws IOException{
+        try {
+            Logger.dump(filename, pool, count);
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    protected static void dump(String filename, LogPair[] customPool, int count) throws IOException {
         LogPair[] nonEmpty = new LogPair[count];
 
         for (int i = 0; i< count; i++) {
@@ -66,11 +69,11 @@ public class Logger {
         }
     }
 
-    private long timeStamp() {
+    protected static long timeStamp() {
         return System.currentTimeMillis();
     }
 
-    protected String timeStampFormated() {
+    protected static String timeStampFormated() {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         Date resultdate = new Date(System.currentTimeMillis());
         return sdf.format(resultdate);

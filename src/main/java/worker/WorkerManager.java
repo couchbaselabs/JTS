@@ -2,10 +2,10 @@ package main.java.worker;
 
 import main.java.drivers.Client;
 import main.java.logger.LatencyLogger;
-import main.java.logger.StatusLogger;
+import main.java.logger.GlobalStatusLogger;
+import main.java.logger.ThroughputLogger;
 import main.java.properties.TestProperties;
 
-import javax.imageio.IIOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,15 +13,19 @@ import java.lang.reflect.*;
 
 public class WorkerManager {
 
-    private StatusLogger logWriter;
+    private GlobalStatusLogger logWriter;
     private TestProperties workload;
     private List<Worker> workers;
     private List<Thread> workerThreads = new ArrayList<Thread>();
 
+    private int aggregationStep;
+    private String workerType;
+
     public WorkerManager(TestProperties props) {
         workload = props;
-        logWriter = new StatusLogger("global.log", workload.isDebugMode());
-
+        aggregationStep = Integer.parseInt(workload.get(TestProperties.TESTSPEC_STATS_AGGR_STEP));
+        workerType = workload.get(TestProperties.TESTSPEC_WORKER_TYPE);
+        logWriter = new GlobalStatusLogger();
         logWriter.logMessage("Workload Manager started");
         logWriter.logMessage("Workload settings:" + '\n' + workload.getAllPropsAsString());
     }
@@ -47,11 +51,24 @@ public class WorkerManager {
             }
         }
         logWriter.logMessage("All workers are done, gathering results from workers");
+
         try {
-            LatencyLogger.aggregate(workers.size());
+
+            if (workerType.equals("latency")) {
+                float averageLatency = LatencyLogger.aggregate(workers.size(), aggregationStep);
+                logWriter.logMessage("Average Latency: " + averageLatency + " ms");
+                float averageThrougput = ThroughputLogger.aggregate(workers.size());
+                logWriter.logMessage("Average Throughput: " + averageThrougput + " q/sec");
+
+            } else  if (workerType.equals("throughput")) {
+                float averageThrouput = ThroughputLogger.aggregate(workers.size());
+                logWriter.logMessage("Average Throughput: " + averageThrouput + " q/sec");
+            }
+
         } catch (Exception ex) {
             logWriter.logMessage(ex.getMessage());
         }
+        logWriter.logMessage("All done!");
         logWriter.close();
     }
 
@@ -76,12 +93,15 @@ public class WorkerManager {
 
         for (int i=0; i<threads; i++) {
             Client client = buildNewDriverObject(driverClassName);
-            workersList.add(new DefaultWorker(i, client));
+
+            if (workerType.equals("debug")) {
+                workersList.add(new DebugWorker(client));
+            } else if (workerType.equals("latency")) {
+                workersList.add(new LatencyWorker(client, i));
+            } else  if (workerType.equals("throughput")) {
+                workersList.add(new ThroughputWorker(client, i));
+            }
         }
         return workersList;
     }
-
-
-
-
 }

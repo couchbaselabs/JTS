@@ -14,26 +14,16 @@ import java.util.List;
  */
 public class LatencyLogger extends Logger{
 
-    private String filename;
-
-    public LatencyLogger(int storageLimit, int loggerId){
-        super(storageLimit, loggerId);
-        filename = "worker_" + loggerId + "_latency.log";
+    public LatencyLogger(int storageLimit, int workerId){
+        super(storageLimit, workerId);
+        filename = "worker_" + workerId + "_latency.log";
     }
 
     public void logLatency(float latency){
-        drop(latency);
+        drop(Logger.timeStamp(), latency);
     }
 
-    public void dump() throws IOException{
-        try {
-            Logger.dump(filename, pool, counter);
-        } catch (IOException e) {
-            throw e;
-        }
-    }
-
-    public static void aggregate(int totalFilesExpected) throws IOException{
+    public static float aggregate(int totalFilesExpected, int aggregationStep) throws IOException{
         List<LogPair> lines = new ArrayList<>();
         for (int i=0; i< totalFilesExpected; i++) {
             String filename = "worker_" + i + "_latency.log";
@@ -58,7 +48,6 @@ public class LatencyLogger extends Logger{
         int stepCounter = 0;
         float aggStorage = 0;
         long lastTimeStamp = 0;
-        int aggregationStep = 1000;
 
         for (LogPair pair: pairsArr){
             if (lastTimeStamp + aggregationStep > pair.k) {
@@ -75,6 +64,20 @@ public class LatencyLogger extends Logger{
         }
         Logger.dump("aggregated_latency.log", aggregates.toArray(new LogPair[aggregates.size()]),
                 aggregates.size());
+
+
+        int totalValues = aggregates.size();
+        float sum = 0;
+        for (LogPair pair: aggregates){
+            sum += pair.v;
+        }
+
+        if (totalValues != 0) {
+            return sum/totalValues;
+        }
+
+        return 0;
+
     }
 
 }
