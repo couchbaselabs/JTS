@@ -145,7 +145,6 @@ public class  CouchbaseClient extends Client{
     }
 
 
-
     private List<SearchQuery> generateTermQueries(String[][] terms, int limit, String indexName, String fieldName){
         List<SearchQuery> queryList = new ArrayList<>();
         int size = terms.length;
@@ -185,7 +184,7 @@ public class  CouchbaseClient extends Client{
    // Query builders
 
     private SearchQuery buildTermQuery(String term, int limit, String indexName, String fieldName) {
-        return new SearchQuery(indexName, SearchQuery.term(term)).limit(limit).fields(fieldName);
+        return new SearchQuery(indexName, SearchQuery.term(term).field(fieldName)).limit(limit);
     }
 
 
