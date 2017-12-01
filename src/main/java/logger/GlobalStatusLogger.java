@@ -27,6 +27,7 @@ public class GlobalStatusLogger{
         String fullMessage = "" + Logger.timeStampFormated() + ": " + message;
         pw.println(fullMessage);
         pw.flush();
+        System.out.println(fullMessage);
     }
 
     public void close() {

@@ -16,11 +16,9 @@ abstract public class Client {
 
     protected TestProperties settings;
 
-
     public Client(TestProperties workload) {
         settings = workload;
     }
-
 
     public TestProperties getWorkload() {
         return settings;

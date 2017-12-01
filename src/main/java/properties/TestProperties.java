@@ -16,7 +16,15 @@ public class TestProperties {
 
     //static const
     public static final String CONSTANT_QUERY_TYPE_TERM = "term";
-
+    public static final String CONSTANT_QUERY_TYPE_AND = "2_conjuncts"; //(term1 AND term2)
+    public static final String CONSTANT_QUERY_TYPE_OR = "2_disjuncts"; // (term1 OR term2)
+    public static final String CONSTANT_QUERY_TYPE_AND_OR_OR = "1_conjuncts_2_disjuncts"; //(term1 AND (term2 OR term3))
+    public static final String CONSTANT_QUERY_TYPE_FUZZY = "fuzzy";
+    public static final String CONSTANT_QUERY_TYPE_PHRASE = "match_phrase";
+    public static final String CONSTANT_QUERY_TYPE_PREFIX = "prefix";
+    public static final String CONSTANT_QUERY_TYPE_WILDCARD = "wildcard";
+    public static final String CONSTANT_QUERY_TYPE_FACET = "facet";
+    public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
 
 
     // General test settings
@@ -24,10 +32,10 @@ public class TestProperties {
     private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
 
     public static final String TESTSPEC_THREADS = "test_threads";
-    private static final String TESTSPEC_THREADS_DEFAULT = "50";
+    private static final String TESTSPEC_THREADS_DEFAULT = "3";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
-    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/tmp/ftsgen/low.txt";
+    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/Users/oleksandr.gyryk/couchbase/agyryk-perfrunner/perfrunner/tests/fts/data/numeric_range_j.txt";
 
     public static final String TESTSPEC_DRIVER = "test_driver";
     private static final String TESTSPEC_DRIVER_DEFAULT = "couchbase";
@@ -42,16 +50,17 @@ public class TestProperties {
     private static final String TESTSPEC_TEST_DEBUGMODE_DEFAULT = "true";
 
     public static final String TESTSPEC_QUERY_TYPE = "test_query_type";
-    private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
+    private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "numeric";
+
 
     public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
     private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
 
     public static final String TESTSPEC_QUERY_FIELD = "test_query_field";
-    private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "text";
+    private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "time";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
-    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "throughput"; //debug, latency, throughput
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
 
 
     // Couchbase-specific settings
@@ -69,7 +78,6 @@ public class TestProperties {
 
     public static final String CBSPEC_PASSWORD = "couchbase_password";
     private static final String CBSPEC_PASSWORD_DEFAULT = "password";
-
 
 
     private HashMap<String, String> prop = new HashMap<>();
