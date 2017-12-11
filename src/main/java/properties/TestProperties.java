@@ -31,8 +31,17 @@ public class TestProperties {
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
     private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
 
-    public static final String TESTSPEC_THREADS = "test_threads";
-    private static final String TESTSPEC_THREADS_DEFAULT = "3";
+    public static final String TESTSPEC_TOTAL_DOCS = "test_total_docs";
+    private static final String TESTSPEC_TOTAL_DOCS_DEFAULT = "1000000";
+
+    public static final String TESTSPEC_QUERY_WORKERS = "test_query_workers";
+    private static final String TESTSPEC_QUERY_WORKERS_DEFAULT = "10";
+
+    public static final String TESTSPEC_KV_WORKERS = "test_kv_workers";
+    private static final String TESTSPEC_KV_WORKERS_DEFAULT = "0";
+
+    public static final String TESTSPEC_KV_THROUGHPUT_GOAL = "test_kv_throughput_goal";
+    private static final String TESTSPEC_KV_THROUGHPUT_GOAL_DEFAULT = "1000";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
     private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/Users/oleksandr.gyryk/couchbase/agyryk-perfrunner/perfrunner/tests/fts/data/numeric_range_j.txt";
@@ -57,7 +66,10 @@ public class TestProperties {
     private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
 
     public static final String TESTSPEC_QUERY_FIELD = "test_query_field";
-    private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "time";
+    private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "text";
+
+    public static final String TESTSPEC_MUTATION_FIELD = "test_mutation_field";
+    private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "text2";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
     private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
@@ -67,7 +79,7 @@ public class TestProperties {
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
     private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
 
-    public static final String CBSPEC_SERVER = "couchbase_servers_list";
+    public static final String CBSPEC_SERVER = "couchbase_cluster_ip";
     private static final String CBSPEC_SERVER_DEFAULT = "172.23.99.211";
 
     public static final String CBSPEC_CBBUCKET = "couchbase_bucket";
@@ -95,7 +107,10 @@ public class TestProperties {
 
         Options options = new Options();
         options.addOption(new Option(TESTSPEC_TEST_DURATION, ""));
-        options.addOption(new Option(TESTSPEC_THREADS, ""));
+        options.addOption(new Option(TESTSPEC_TOTAL_DOCS, ""));
+        options.addOption(new Option(TESTSPEC_KV_WORKERS, ""));
+        options.addOption(new Option(TESTSPEC_KV_THROUGHPUT_GOAL, ""));
+        options.addOption(new Option(TESTSPEC_QUERY_WORKERS, ""));
         options.addOption(new Option(TESTSPEC_TESTDATA_FILE, ""));
         options.addOption(new Option(TESTSPEC_DRIVER, ""));
         options.addOption(new Option(TESTSPEC_STATS_LIMIT, ""));
@@ -104,6 +119,7 @@ public class TestProperties {
         options.addOption(new Option(TESTSPEC_QUERY_TYPE, ""));
         options.addOption(new Option(TESTSPEC_QUERY_LIMIT, ""));
         options.addOption(new Option(TESTSPEC_QUERY_FIELD, ""));
+        options.addOption(new Option(TESTSPEC_MUTATION_FIELD, ""));
         options.addOption(new Option(TESTSPEC_WORKER_TYPE,""));
 
         options.addOption(new Option(CBSPEC_INDEX_NAME, ""));
@@ -126,7 +142,11 @@ public class TestProperties {
         }
 
         prop.put(TESTSPEC_TEST_DURATION, cmd.getOptionValue(TESTSPEC_TEST_DURATION, TESTSPEC_TEST_DURATION_DEFAULT));
-        prop.put(TESTSPEC_THREADS, cmd.getOptionValue(TESTSPEC_THREADS, TESTSPEC_THREADS_DEFAULT));
+        prop.put(TESTSPEC_TOTAL_DOCS, cmd.getOptionValue(TESTSPEC_TOTAL_DOCS, TESTSPEC_TOTAL_DOCS_DEFAULT));
+        prop.put(TESTSPEC_KV_WORKERS, cmd.getOptionValue(TESTSPEC_KV_WORKERS, TESTSPEC_KV_WORKERS_DEFAULT));
+        prop.put(TESTSPEC_KV_THROUGHPUT_GOAL, cmd.getOptionValue(TESTSPEC_KV_THROUGHPUT_GOAL,
+                TESTSPEC_KV_THROUGHPUT_GOAL_DEFAULT));
+        prop.put(TESTSPEC_QUERY_WORKERS, cmd.getOptionValue(TESTSPEC_QUERY_WORKERS, TESTSPEC_QUERY_WORKERS_DEFAULT));
         prop.put(TESTSPEC_TEST_DEBUGMODE, cmd.getOptionValue(TESTSPEC_TEST_DEBUGMODE, TESTSPEC_TEST_DEBUGMODE_DEFAULT));
         prop.put(TESTSPEC_TESTDATA_FILE, cmd.getOptionValue(TESTSPEC_TESTDATA_FILE, TESTSPEC_TESTDATA_FILE_DEFAULT));
         prop.put(TESTSPEC_DRIVER, getDriverClassName(cmd.getOptionValue(TESTSPEC_DRIVER, TESTSPEC_DRIVER_DEFAULT)));
@@ -136,6 +156,7 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_TYPE, cmd.getOptionValue(TESTSPEC_QUERY_TYPE, TESTSPEC_QUERY_TYPE_DEFAULT));
         prop.put(TESTSPEC_QUERY_LIMIT, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_LIMIT_DEFAULT));
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_FIELD_DEFAULT));
+        prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
 
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));

@@ -20,7 +20,7 @@ public class LatencyWorker extends Worker{
         throughputLogger = new ThroughputLogger(statsLimit, workerId);
     }
 
-    public void runQuery(){
+    public void runAction(){
         float latencyMS = clientDB.queryAndLatency();
         latencyLogger.logLatency(latencyMS);
         throughputLogger.logRequest();

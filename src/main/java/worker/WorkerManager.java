@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.lang.reflect.*;
+import java.util.concurrent.TimeUnit;
 
 public class WorkerManager {
 
@@ -88,12 +89,11 @@ public class WorkerManager {
 
     private List<Worker> initWorkers(){
         List<Worker> workersList = new ArrayList<>();
-        int threads = Integer.parseInt(workload.get(TestProperties.TESTSPEC_THREADS));
         String driverClassName = workload.get(TestProperties.TESTSPEC_DRIVER);
 
-        for (int i=0; i<threads; i++) {
+        int query_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_QUERY_WORKERS));
+        for (int i=0; i<query_workers; i++) {
             Client client = buildNewDriverObject(driverClassName);
-
             if (workerType.equals("debug")) {
                 workersList.add(new DebugWorker(client));
             } else if (workerType.equals("latency")) {
@@ -102,6 +102,17 @@ public class WorkerManager {
                 workersList.add(new ThroughputWorker(client, i));
             }
         }
+
+        int kv_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_KV_WORKERS));
+        int kv_throughput_goal = Integer.parseInt(workload.get(TestProperties.TESTSPEC_KV_THROUGHPUT_GOAL));
+        long  delay = (kv_workers / kv_throughput_goal) * 1000;
+
+
+        for (int i=0; i<kv_workers; i++) {
+            Client client = buildNewDriverObject(driverClassName);
+            workersList.add(new KVWorker(client, i, delay));
+        }
+
         return workersList;
     }
 }

@@ -17,7 +17,7 @@ public class ThroughputWorker extends Worker{
         throughputLogger = new ThroughputLogger(statsLimit, workerId);
     }
 
-    public void runQuery(){
+    public void runAction(){
         clientDB.query();
         throughputLogger.logRequest();
     }

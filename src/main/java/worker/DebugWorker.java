@@ -10,7 +10,7 @@ public class DebugWorker extends Worker {
         super(client);
     }
 
-    public void runQuery(){
+    public void runAction(){
         System.out.println(clientDB.queryDebug());
     }
 

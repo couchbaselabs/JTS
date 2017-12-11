@@ -25,6 +25,11 @@ public class ThroughputLogger extends Logger{
         filename = "worker_" + loggerId + "_throughput.log";
     }
 
+    public ThroughputLogger(int storageLimit, int loggerId, String customPrefix){
+        super(storageLimit, loggerId);
+        filename = customPrefix + "_worker_" + loggerId + "_throughput.log";
+    }
+
     public void logRequest(){
         long logTime = Logger.timeStamp();
         if (timeStart == 0) {

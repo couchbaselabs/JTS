@@ -5,8 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>groupId</groupId>
-    <artifactId>FTSJavaWgen</artifactId>
+    <artifactId>JTS</artifactId>
     <version>1.0</version>
+    <properties>
+        <jar.finalName>loadgen</jar.finalName>
+    </properties>
+
 
     <dependencies>
         <dependency>

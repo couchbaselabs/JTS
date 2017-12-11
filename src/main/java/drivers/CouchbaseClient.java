@@ -17,6 +17,7 @@ import com.couchbase.client.deps.io.netty.util.concurrent.DefaultThreadFactory;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.search.facet.SearchFacet;
@@ -177,7 +178,6 @@ public class  CouchbaseClient extends Client{
         if ((res != null) && (res.metrics().totalHits() > 0)) { return latency; }
         fileError(res.toString());
         return 0;
-
     }
 
     public String queryDebug(){
@@ -189,13 +189,27 @@ public class  CouchbaseClient extends Client{
         bucket.query(queries[rand.nextInt(totalQueries)]);
     }
 
+    public void mutateRandomDoc() {
+        long totalDocs = Long.parseLong(getWorkload().get(TestProperties.TESTSPEC_TOTAL_DOCS));
+        long docIdLong = rand.nextLong() % totalDocs;
+        String docIdHex = Long.toHexString(docIdLong);
+        String originFieldName = getWorkload().get(TestProperties.TESTSPEC_QUERY_FIELD);
+        String replaceFieldName = getWorkload().get(TestProperties.TESTSPEC_MUTATION_FIELD);
+
+        JsonDocument doc = bucket.get(docIdHex);
+        Object origin = doc.content().get(originFieldName);
+        Object replace = doc.content().get(replaceFieldName);
+        doc.content().put(originFieldName, replace);
+        doc.content().put(replaceFieldName, origin);
+        bucket.upsert(doc);
+    }
+
     private void fileError(String err) {
         System.out.println(err);
     }
 
 
    // Query builders
-
     private SearchQuery buildQuery(String[] terms, int limit, String indexName, String fieldName)
             throws IllegalArgumentException, IndexOutOfBoundsException {
 

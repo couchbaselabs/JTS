@@ -37,12 +37,12 @@ public abstract class Worker implements Runnable{
                 shutDown();
                 break;
             }
-            runQuery();
+            runAction();
         }
     }
 
 
-    abstract protected void runQuery();
+    abstract protected void runAction();
     abstract protected void shutDown();
 
 
