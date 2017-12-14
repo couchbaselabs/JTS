@@ -1,8 +1,8 @@
-package main.java.worker;
+package main.worker;
 
-import main.java.drivers.Client;
-import main.java.logger.LatencyLogger;
-import main.java.logger.ThroughputLogger;
+import main.drivers.Client;
+import main.logger.LatencyLogger;
+import main.logger.ThroughputLogger;
 
 import java.io.IOException;
 
@@ -28,13 +28,13 @@ public class LatencyWorker extends Worker{
 
     public void shutDown() {
         try {
-            latencyLogger.dump();
+            latencyLogger.dumpLatency();
         } catch (IOException e) {
             System.err.println("ERROR Failed to dump latency stats to disk: " + e.getMessage());
         }
 
         try {
-            throughputLogger.dump();
+            throughputLogger.dumpThroughput();
         } catch (IOException e) {
             System.err.println("ERROR Failed to dump throughput stats to disk: " + e.getMessage());
         }

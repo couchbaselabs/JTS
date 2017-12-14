@@ -1,4 +1,6 @@
-package main.java.logger;
+package main.logger;
+
+import main.properties.TestProperties;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,11 +11,12 @@ import java.io.IOException;
 
 public class GlobalStatusLogger{
     private PrintWriter pw;
-    private String filename = "global.log";
 
     public GlobalStatusLogger() {
         try {
-            File file = new File(filename);
+            System.out.println("-=-=-=-1");
+            File file = new File("global.log");
+            System.out.println("-=-=-=-");
             if (!file.exists()) { file.createNewFile(); }
             FileWriter fw = new FileWriter(file, true);
             BufferedWriter bw = new BufferedWriter(fw);

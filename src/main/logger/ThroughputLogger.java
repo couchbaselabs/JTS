@@ -1,6 +1,6 @@
-package main.java.logger;
+package main.logger;
 
-import main.java.utils.LogPair;
+import main.utils.LogPair;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,6 +19,7 @@ public class ThroughputLogger extends Logger{
     private int requestsSinceLastDrop = 0;
     private int aggregationBufferMS = 1000;
     private long samplesCounter = 0;
+    private String filename;
 
     public ThroughputLogger(int storageLimit, int loggerId){
         super(storageLimit, loggerId);
@@ -46,13 +47,9 @@ public class ThroughputLogger extends Logger{
         }
     }
 
-    public void dump() throws IOException{
+    public void dumpThroughput() throws IOException{
         drop(samplesCounter, requestsSinceLastDrop);
-        try {
-            Logger.dump(filename, pool, count);
-        } catch (IOException e) {
-            throw e;
-        }
+        dump(filename);
     }
 
 

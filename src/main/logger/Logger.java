@@ -1,6 +1,7 @@
-package main.java.logger;
+package main.logger;
 
-import main.java.utils.LogPair;
+import main.properties.TestProperties;
+import main.utils.LogPair;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,13 +20,12 @@ public class Logger {
     protected boolean overflow = false;
     protected int limit;
     protected final Random RAND = new Random();
-    protected String filename;
 
     public Logger(int storageLimit, int workerId) {
         limit = storageLimit;
         pool = new LogPair[limit];
-        filename = "worker_" + workerId + "_untitled.log";
     }
+
 
     protected void drop(long time, float value){
         int id = 0;
@@ -42,7 +42,7 @@ public class Logger {
     }
 
 
-    public void dump() throws IOException{
+    protected void dump(String filename) throws IOException{
         try {
             Logger.dump(filename, pool, count);
         } catch (IOException e) {
@@ -50,9 +50,9 @@ public class Logger {
         }
     }
 
-    protected static void dump(String filename, LogPair[] customPool, int count) throws IOException {
+    public static void dump(String filename, LogPair[] customPool, int count) throws IOException {
         LogPair[] nonEmpty = new LogPair[count];
-
+        filename = TestProperties.CONSTANT_JTS_LOG_DIR + "/" + filename;
         for (int i = 0; i< count; i++) {
             nonEmpty[i] = customPool[i];
         }

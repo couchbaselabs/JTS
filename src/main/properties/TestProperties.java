@@ -1,6 +1,7 @@
-package main.java.properties;
+package main.properties;
 
 import java.util.HashMap;
+import java.util.UUID;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.CommandLineParser;
@@ -25,9 +26,10 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_WILDCARD = "wildcard";
     public static final String CONSTANT_QUERY_TYPE_FACET = "facet";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
+    public static final String CONSTANT_JTS_LOG_DIR = "logs";//UUID.randomUUID().toString();
 
 
-    // General test settings
+    // Test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
     private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
 

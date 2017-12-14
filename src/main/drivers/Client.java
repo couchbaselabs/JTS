@@ -1,6 +1,6 @@
-package main.java.drivers;
+package main.drivers;
 
-import main.java.properties.TestProperties;
+import main.properties.TestProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;

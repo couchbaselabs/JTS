@@ -1,16 +1,15 @@
-package main.java.worker;
+package main.worker;
 
-import main.java.drivers.Client;
-import main.java.logger.LatencyLogger;
-import main.java.logger.GlobalStatusLogger;
-import main.java.logger.ThroughputLogger;
-import main.java.properties.TestProperties;
+import main.drivers.Client;
+import main.logger.LatencyLogger;
+import main.logger.GlobalStatusLogger;
+import main.logger.ThroughputLogger;
+import main.properties.TestProperties;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import java.lang.reflect.*;
-import java.util.concurrent.TimeUnit;
 
 public class WorkerManager {
 

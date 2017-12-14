@@ -1,7 +1,7 @@
-package main.java.worker;
+package main.worker;
 
-import main.java.drivers.Client;
-import main.java.logger.ThroughputLogger;
+import main.drivers.Client;
+import main.logger.ThroughputLogger;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -31,7 +31,7 @@ public class KVWorker extends Worker {
 
     public void shutDown(){
         try {
-            throughputLogger.dump();
+            throughputLogger.dumpThroughput();
         } catch (IOException e) {
             System.err.println("ERROR Failed to dump kv throughput stats to disk: " + e.getMessage());
         }

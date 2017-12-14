@@ -1,6 +1,7 @@
-package main.java.logger;
+package main.logger;
 
-import main.java.utils.LogPair;
+import main.properties.TestProperties;
+import main.utils.LogPair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,19 +15,24 @@ import java.util.List;
  */
 public class LatencyLogger extends Logger{
 
+    private String filename = "untitled.log";
     public LatencyLogger(int storageLimit, int workerId){
         super(storageLimit, workerId);
         filename = "worker_" + workerId + "_latency.log";
     }
 
     public void logLatency(float latency){
-        drop(Logger.timeStamp(), latency);
+        drop(timeStamp(), latency);
+    }
+
+    public void dumpLatency() throws IOException{
+        dump(filename);
     }
 
     public static float aggregate(int totalFilesExpected, int aggregationStep) throws IOException{
         List<LogPair> lines = new ArrayList<>();
         for (int i=0; i< totalFilesExpected; i++) {
-            String filename = "worker_" + i + "_latency.log";
+            String filename = TestProperties.CONSTANT_JTS_LOG_DIR + "/worker_" + i + "_latency.log";
             Stream<String> strm;
             try {
                 strm = Files.lines(Paths.get(filename));
@@ -41,7 +47,7 @@ public class LatencyLogger extends Logger{
 
         LogPair[] pairsArr = lines.toArray(new LogPair[lines.size()]);
         Arrays.sort(pairsArr, (a, b) -> a.k.compareTo(b.k));
-        Logger.dump("combined_latency.log", pairsArr, pairsArr.length);
+        dump("combined_latency.log", pairsArr, pairsArr.length);
 
         List<LogPair> aggregates = new ArrayList<>();
         int aggCounter = 0;
@@ -62,7 +68,7 @@ public class LatencyLogger extends Logger{
                 aggregates.add(new LogPair(stepCounter, avg));
             }
         }
-        Logger.dump("aggregated_latency.log", aggregates.toArray(new LogPair[aggregates.size()]),
+        dump("aggregated_latency.log", aggregates.toArray(new LogPair[aggregates.size()]),
                 aggregates.size());
 
 
