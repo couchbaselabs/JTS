@@ -35,7 +35,7 @@ public class TestProperties {
     private static final String TESTSPEC_TOTAL_DOCS_DEFAULT = "1000000";
 
     public static final String TESTSPEC_QUERY_WORKERS = "test_query_workers";
-    private static final String TESTSPEC_QUERY_WORKERS_DEFAULT = "10";
+    private static final String TESTSPEC_QUERY_WORKERS_DEFAULT = "1";
 
     public static final String TESTSPEC_KV_WORKERS = "test_kv_workers";
     private static final String TESTSPEC_KV_WORKERS_DEFAULT = "0";
@@ -72,7 +72,7 @@ public class TestProperties {
     private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "text2";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
-    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "throughput"; //debug, latency, throughput
 
 
     // Couchbase-specific settings
@@ -106,37 +106,37 @@ public class TestProperties {
         driversMapping.put("elastic", "main.java.drivers.ElasticClient");
 
         Options options = new Options();
-        options.addOption(new Option(TESTSPEC_TEST_DURATION, ""));
-        options.addOption(new Option(TESTSPEC_TOTAL_DOCS, ""));
-        options.addOption(new Option(TESTSPEC_KV_WORKERS, ""));
-        options.addOption(new Option(TESTSPEC_KV_THROUGHPUT_GOAL, ""));
-        options.addOption(new Option(TESTSPEC_QUERY_WORKERS, ""));
-        options.addOption(new Option(TESTSPEC_TESTDATA_FILE, ""));
-        options.addOption(new Option(TESTSPEC_DRIVER, ""));
-        options.addOption(new Option(TESTSPEC_STATS_LIMIT, ""));
-        options.addOption(new Option(TESTSPEC_STATS_AGGR_STEP, ""));
-        options.addOption(new Option(TESTSPEC_TEST_DEBUGMODE, ""));
-        options.addOption(new Option(TESTSPEC_QUERY_TYPE, ""));
-        options.addOption(new Option(TESTSPEC_QUERY_LIMIT, ""));
-        options.addOption(new Option(TESTSPEC_QUERY_FIELD, ""));
-        options.addOption(new Option(TESTSPEC_MUTATION_FIELD, ""));
-        options.addOption(new Option(TESTSPEC_WORKER_TYPE,""));
+        options.addOption(Option.builder(TESTSPEC_TEST_DURATION).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_TOTAL_DOCS).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_KV_WORKERS).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_KV_THROUGHPUT_GOAL).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_QUERY_WORKERS).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_TESTDATA_FILE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_DRIVER).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_STATS_LIMIT).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_STATS_AGGR_STEP).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_TEST_DEBUGMODE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_QUERY_TYPE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_QUERY_LIMIT).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
 
-        options.addOption(new Option(CBSPEC_INDEX_NAME, ""));
-        options.addOption(new Option(CBSPEC_SERVER, ""));
-        options.addOption(new Option(CBSPEC_CBBUCKET, ""));
-        options.addOption(new Option(CBSPEC_USER, ""));
-        options.addOption(new Option(CBSPEC_PASSWORD, ""));
+        options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_CBBUCKET).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_USER).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_PASSWORD).hasArg().required(false).build());
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
-        CommandLine cmd;
+        CommandLine cmd = null;
 
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
             System.out.println(e.getMessage());
-            formatter.printHelp("fts-javagen", options);
+            formatter.printHelp("JTS", options);
             System.exit(1);
             return;
         }
