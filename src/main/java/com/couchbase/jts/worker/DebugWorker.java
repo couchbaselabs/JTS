@@ -1,5 +1,5 @@
-package main.worker;
-import main.drivers.Client;
+package main.java.com.couchbase.jts.worker;
+import main.java.com.couchbase.jts.drivers.Client;
 
 /**
  * Created by oleksandr.gyryk on 11/10/17.

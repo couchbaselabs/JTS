@@ -1,6 +1,6 @@
-package main.drivers;
+package main.java.com.couchbase.jts.drivers;
 
-import main.properties.TestProperties;
+import main.java.com.couchbase.jts.properties.TestProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;

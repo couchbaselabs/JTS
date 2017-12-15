@@ -1,7 +1,8 @@
-package main.properties;
+package main.java.com.couchbase.jts.properties;
 
 import java.util.HashMap;
 import java.util.UUID;
+
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.CommandLineParser;
@@ -26,12 +27,12 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_WILDCARD = "wildcard";
     public static final String CONSTANT_QUERY_TYPE_FACET = "facet";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
-    public static final String CONSTANT_JTS_LOG_DIR = "logs";//UUID.randomUUID().toString();
+    public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 
     // Test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
-    private static final String TESTSPEC_TEST_DURATION_DEFAULT = "60";
+    private static final String TESTSPEC_TEST_DURATION_DEFAULT = "10";
 
     public static final String TESTSPEC_TOTAL_DOCS = "test_total_docs";
     private static final String TESTSPEC_TOTAL_DOCS_DEFAULT = "1000000";
@@ -74,7 +75,7 @@ public class TestProperties {
     private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "text2";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
-    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "throughput"; //debug, latency, throughput
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
 
 
     // Couchbase-specific settings
@@ -100,12 +101,11 @@ public class TestProperties {
 
     public TestProperties(String[] args) {
 
-        driversMapping.put("couchbase", "main.java.drivers.CouchbaseClient");
-        driversMapping.put("couchbase-sdk", "main.java.drivers.CouchbaseClient");
-        driversMapping.put("couchbase-rest", "main.java.drivers.CouchbaseClientREST");
-        driversMapping.put("mongodb", "main.java.drivers.MongodbClient");
-        driversMapping.put("elasticsearch", "main.java.drivers.ElasticClient");
-        driversMapping.put("elastic", "main.java.drivers.ElasticClient");
+        driversMapping.put("couchbase", "main.java.com.couchbase.jts.drivers.CouchbaseClient");
+        driversMapping.put("couchbase-sdk", "main.java.com.couchbase.jts.drivers.CouchbaseClient");
+        driversMapping.put("mongodb", "main.java.com.couchbase.jts.drivers.MongodbClient");
+        driversMapping.put("elasticsearch", "main.java.com.couchbase.jts.drivers.ElasticClient");
+        driversMapping.put("elastic", "main.java.com.couchbase.jts.drivers.ElasticClient");
 
         Options options = new Options();
         options.addOption(Option.builder(TESTSPEC_TEST_DURATION).hasArg().required(false).build());

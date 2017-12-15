@@ -1,7 +1,7 @@
-package main.logger;
+package main.java.com.couchbase.jts.logger;
 
-import main.properties.TestProperties;
-import main.utils.LogPair;
+import main.java.com.couchbase.jts.properties.TestProperties;
+import main.java.com.couchbase.jts.utils.LogPair;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class LatencyLogger extends Logger{
     public static float aggregate(int totalFilesExpected, int aggregationStep) throws IOException{
         List<LogPair> lines = new ArrayList<>();
         for (int i=0; i< totalFilesExpected; i++) {
-            String filename = TestProperties.CONSTANT_JTS_LOG_DIR + "/worker_" + i + "_latency.log";
+            String filename = "logs/" + TestProperties.CONSTANT_JTS_LOG_DIR + "/worker_" + i + "_latency.log";
             Stream<String> strm;
             try {
                 strm = Files.lines(Paths.get(filename));

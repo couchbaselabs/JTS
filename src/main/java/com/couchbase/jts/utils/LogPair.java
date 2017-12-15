@@ -1,4 +1,4 @@
-package main.utils;
+package main.java.com.couchbase.jts.utils;
 
 /**
  * Created by oleksandr.gyryk on 10/2/17.

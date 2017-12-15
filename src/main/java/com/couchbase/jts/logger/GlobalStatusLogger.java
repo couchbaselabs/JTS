@@ -1,6 +1,6 @@
-package main.logger;
+package main.java.com.couchbase.jts.logger;
 
-import main.properties.TestProperties;
+import main.java.com.couchbase.jts.properties.TestProperties;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,9 +14,7 @@ public class GlobalStatusLogger{
 
     public GlobalStatusLogger() {
         try {
-            System.out.println("-=-=-=-1");
-            File file = new File("global.log");
-            System.out.println("-=-=-=-");
+            File file = new File("logs/" + TestProperties.CONSTANT_JTS_LOG_DIR + "/global.log");
             if (!file.exists()) { file.createNewFile(); }
             FileWriter fw = new FileWriter(file, true);
             BufferedWriter bw = new BufferedWriter(fw);

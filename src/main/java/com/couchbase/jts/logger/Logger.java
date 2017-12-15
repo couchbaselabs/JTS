@@ -1,7 +1,7 @@
-package main.logger;
+package main.java.com.couchbase.jts.logger;
 
-import main.properties.TestProperties;
-import main.utils.LogPair;
+import main.java.com.couchbase.jts.properties.TestProperties;
+import main.java.com.couchbase.jts.utils.LogPair;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -52,7 +52,7 @@ public class Logger {
 
     public static void dump(String filename, LogPair[] customPool, int count) throws IOException {
         LogPair[] nonEmpty = new LogPair[count];
-        filename = TestProperties.CONSTANT_JTS_LOG_DIR + "/" + filename;
+        filename = "logs/" + TestProperties.CONSTANT_JTS_LOG_DIR + "/" + filename;
         for (int i = 0; i< count; i++) {
             nonEmpty[i] = customPool[i];
         }

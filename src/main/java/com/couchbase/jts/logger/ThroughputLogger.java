@@ -1,6 +1,7 @@
-package main.logger;
+package main.java.com.couchbase.jts.logger;
 
-import main.utils.LogPair;
+import main.java.com.couchbase.jts.properties.TestProperties;
+import main.java.com.couchbase.jts.utils.LogPair;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,9 +33,9 @@ public class ThroughputLogger extends Logger{
     }
 
     public void logRequest(){
-        long logTime = Logger.timeStamp();
+        long logTime = timeStamp();
         if (timeStart == 0) {
-            timeStart = Logger.timeStamp();
+            timeStart = timeStamp();
             requestsSinceLastDrop = 1;
             samplesCounter = 1;
         } else if ((logTime - timeStart) < aggregationBufferMS) {
@@ -56,7 +57,7 @@ public class ThroughputLogger extends Logger{
     public static float aggregate(int totalFilesExpected) throws IOException{
         List<LogPair> lines = new ArrayList<>();
         for (int i=0; i< totalFilesExpected; i++) {
-            String filename = "worker_" + i + "_throughput.log";
+            String filename = "logs/"  + TestProperties.CONSTANT_JTS_LOG_DIR + "/worker_" + i + "_throughput.log";
             Stream<String> strm;
             try {
                 strm = Files.lines(Paths.get(filename));
@@ -71,7 +72,7 @@ public class ThroughputLogger extends Logger{
 
         LogPair[] pairsArr = lines.toArray(new LogPair[lines.size()]);
         Arrays.sort(pairsArr, (a, b) -> a.k.compareTo(b.k));
-        Logger.dump("combined_throughput.log", pairsArr, pairsArr.length);
+        dump("combined_throughput.log", pairsArr, pairsArr.length);
 
         List<LogPair> aggregates = new ArrayList<>();
         long lastSample = -1;
@@ -91,7 +92,7 @@ public class ThroughputLogger extends Logger{
             }
         }
 
-        Logger.dump("aggregated_throughput.log", aggregates.toArray(new LogPair[aggregates.size()]),
+        dump("aggregated_throughput.log", aggregates.toArray(new LogPair[aggregates.size()]),
                 aggregates.size());
 
         int totalValues = aggregates.size();

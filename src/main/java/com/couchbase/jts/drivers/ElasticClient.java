@@ -1,4 +1,4 @@
-package main.drivers;
+package main.java.com.couchbase.jts.drivers;
 
 /**
  * Created by oleksandr.gyryk on 10/3/17.
