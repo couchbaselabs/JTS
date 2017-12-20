@@ -1,5 +1,6 @@
 package main.java.com.couchbase.jts.worker;
 
+import com.couchbase.client.java.search.result.SearchQueryResult;
 import main.java.com.couchbase.jts.drivers.Client;
 import main.java.com.couchbase.jts.logger.ThroughputLogger;
 
@@ -11,19 +12,29 @@ import java.util.concurrent.TimeUnit;
  */
 public class KVWorker extends Worker {
 
-    private ThroughputLogger throughputLogger;
-    private long delay;
-    public KVWorker(Client client, int workerId, long delay) {
+    private int totalWorkers;
+    private int throughputGoal;
+
+    public KVWorker(Client client, int workerId, int totalWorkers, int throughputGoal) {
         super(client);
-        this.delay = delay;
-        throughputLogger = new ThroughputLogger(statsLimit, workerId, "kv");
+        this.totalWorkers = totalWorkers;
+        this.throughputGoal = throughputGoal;
     }
 
     public void runAction(){
         try {
-            TimeUnit.MILLISECONDS.sleep(delay);
+            long st = System.nanoTime();
             clientDB.mutateRandomDoc();
-            throughputLogger.logRequest();
+            long en = System.nanoTime();
+            long latency =  (en - st) / 1000000;
+            if (throughputGoal > 0) {
+                float expectedDelayMC = (totalWorkers / (float) throughputGoal) * 1000;
+                if (expectedDelayMC > latency) {
+                    long delayMS = (long) expectedDelayMC - latency;
+                    TimeUnit.MILLISECONDS.sleep(delayMS);
+                }
+            }
+
         } catch (Exception ex) {
             return;
         }

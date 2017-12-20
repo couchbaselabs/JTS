@@ -91,6 +91,7 @@ public class WorkerManager {
         String driverClassName = workload.get(TestProperties.TESTSPEC_DRIVER);
 
         int query_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_QUERY_WORKERS));
+
         for (int i=0; i<query_workers; i++) {
             Client client = buildNewDriverObject(driverClassName);
             if (workerType.equals("debug")) {
@@ -104,12 +105,10 @@ public class WorkerManager {
 
         int kv_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_KV_WORKERS));
         int kv_throughput_goal = Integer.parseInt(workload.get(TestProperties.TESTSPEC_KV_THROUGHPUT_GOAL));
-        long  delay = (kv_workers / kv_throughput_goal) * 1000;
-
 
         for (int i=0; i<kv_workers; i++) {
             Client client = buildNewDriverObject(driverClassName);
-            workersList.add(new KVWorker(client, i, delay));
+            workersList.add(new KVWorker(client, i, kv_workers, kv_throughput_goal));
         }
 
         return workersList;
