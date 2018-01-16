@@ -41,12 +41,7 @@ public class KVWorker extends Worker {
     }
 
     public void shutDown(){
-        try {
-            throughputLogger.dumpThroughput();
-        } catch (IOException e) {
-            System.err.println("ERROR Failed to dump kv throughput stats to disk: " + e.getMessage());
-        }
-
+        return;
     }
 
 }
