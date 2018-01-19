@@ -79,7 +79,7 @@ public class WorkerManager {
             Constructor<?> ctor = clientClass.getConstructor(TestProperties.class);
             object = (Client) ctor.newInstance(workload);
         } catch (Exception ex) {
-            logWriter.logMessage("Error creating DB driver: " + ex.getMessage() + "\n" + ex.getStackTrace());
+            logWriter.logMessage("Error creating DB driver: " + ex.getMessage() + "\n" + ex.getStackTrace().toString());
             ex.printStackTrace();
             System.exit(1);
         }
@@ -100,6 +100,8 @@ public class WorkerManager {
                 workersList.add(new LatencyWorker(client, i));
             } else  if (workerType.equals("throughput")) {
                 workersList.add(new ThroughputWorker(client, i));
+            } else if (workerType.equals("warmup")) {
+                workersList.add(new WarmupWorker(client));
             }
         }
 
