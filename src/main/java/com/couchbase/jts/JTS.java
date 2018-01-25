@@ -4,6 +4,7 @@ package main.java.com.couchbase.jts;
 import main.java.com.couchbase.jts.properties.TestProperties;
 import main.java.com.couchbase.jts.worker.WorkerManager;
 
+import java.util.Properties;
 import java.io.File;
 
 /**
@@ -12,6 +13,9 @@ import java.io.File;
 public class JTS {
 
     public static void main(String[] args) {
+        Properties sysprops = System.getProperties();
+        sysprops.setProperty("com.couchbase.forceIPv4", "false");
+
         TestProperties props = new TestProperties(args);
         if ((new File("logs/" + TestProperties.CONSTANT_JTS_LOG_DIR)).mkdirs()) {
             WorkerManager manager = new WorkerManager(props);
