@@ -89,7 +89,7 @@ public class WorkerManager {
     private List<Worker> initWorkers(){
         int query_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_QUERY_WORKERS));
         if (query_workers < 1) {
-            logWriter.logMessage("No workers to execute. Exiting...")
+            logWriter.logMessage("No workers to execute. Exiting...");
             System.exit(0);
         }
 
