@@ -87,10 +87,14 @@ public class WorkerManager {
     }
 
     private List<Worker> initWorkers(){
+        int query_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_QUERY_WORKERS));
+        if (query_workers < 1) {
+            logWriter.logMessage("No workers to execute. Exiting...")
+            System.exit(0);
+        }
+
         List<Worker> workersList = new ArrayList<>();
         String driverClassName = workload.get(TestProperties.TESTSPEC_DRIVER);
-
-        int query_workers = Integer.parseInt(workload.get(TestProperties.TESTSPEC_QUERY_WORKERS));
 
         for (int i=0; i<query_workers; i++) {
             Client client = buildNewDriverObject(driverClassName);
