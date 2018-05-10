@@ -1,6 +1,6 @@
-package main.java.com.couchbase.jts.logger;
+package com.couchbase.jts.logger;
 
-import main.java.com.couchbase.jts.properties.TestProperties;
+import com.couchbase.jts.properties.TestProperties;
 
 import java.io.File;
 import java.io.FileWriter;

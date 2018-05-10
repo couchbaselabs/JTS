@@ -1,7 +1,7 @@
-package main.java.com.couchbase.jts.worker;
+package com.couchbase.jts.worker;
 
-import main.java.com.couchbase.jts.drivers.Client;
-import main.java.com.couchbase.jts.logger.ThroughputLogger;
+import com.couchbase.jts.drivers.Client;
+import com.couchbase.jts.logger.ThroughputLogger;
 
 import java.io.IOException;
 

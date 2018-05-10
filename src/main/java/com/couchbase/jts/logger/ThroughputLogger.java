@@ -1,7 +1,7 @@
-package main.java.com.couchbase.jts.logger;
+package com.couchbase.jts.logger;
 
-import main.java.com.couchbase.jts.properties.TestProperties;
-import main.java.com.couchbase.jts.utils.LogPair;
+import com.couchbase.jts.properties.TestProperties;
+import com.couchbase.jts.utils.LogPair;
 
 import java.io.IOException;
 import java.nio.file.Files;

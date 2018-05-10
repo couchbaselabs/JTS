@@ -1,4 +1,4 @@
-package main.java.com.couchbase.jts.properties;
+package com.couchbase.jts.properties;
 
 import java.util.HashMap;
 import java.util.UUID;

@@ -1,10 +1,10 @@
-package main.java.com.couchbase.jts.worker;
+package com.couchbase.jts.worker;
 
 
-import main.java.com.couchbase.jts.drivers.Client;
-import main.java.com.couchbase.jts.logger.LatencyLogger;
-import main.java.com.couchbase.jts.logger.ThroughputLogger;
-import main.java.com.couchbase.jts.properties.TestProperties;
+import com.couchbase.jts.drivers.Client;
+import com.couchbase.jts.logger.LatencyLogger;
+import com.couchbase.jts.logger.ThroughputLogger;
+import com.couchbase.jts.properties.TestProperties;
 
 /**
  * Created by oleksandr.gyryk on 10/2/17.

@@ -1,8 +1,8 @@
-package main.java.com.couchbase.jts;
+package com.couchbase.jts;
 
 
-import main.java.com.couchbase.jts.properties.TestProperties;
-import main.java.com.couchbase.jts.worker.WorkerManager;
+import com.couchbase.jts.properties.TestProperties;
+import com.couchbase.jts.worker.WorkerManager;
 
 import java.util.Properties;
 import java.io.File;
