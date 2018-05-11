@@ -47,7 +47,7 @@ public class TestProperties {
     private static final String TESTSPEC_KV_THROUGHPUT_GOAL_DEFAULT = "1000";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
-    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/Users/oleksandr.gyryk/couchbase/agyryk-perfrunner/perfrunner/tests/fts/data/numeric_range_j.txt";
+    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/Users/oleksandr.gyryk/couchbase/agyryk-perfrunner/perfrunner/tests/fts/data/low.txt";
 
     public static final String TESTSPEC_DRIVER = "test_driver";
     private static final String TESTSPEC_DRIVER_DEFAULT = "couchbase";
@@ -62,7 +62,7 @@ public class TestProperties {
     private static final String TESTSPEC_TEST_DEBUGMODE_DEFAULT = "true";
 
     public static final String TESTSPEC_QUERY_TYPE = "test_query_type";
-    private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "numeric";
+    private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
 
 
     public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
@@ -94,6 +94,21 @@ public class TestProperties {
     public static final String CBSPEC_PASSWORD = "couchbase_password";
     private static final String CBSPEC_PASSWORD_DEFAULT = "password";
 
+    // Mongodb-specific settings
+    public static final String MDBSPEC_INDEX_NAME = "mongodb_index_name";
+    private static final String MDBSPEC_INDEX_NAME_DEFAILT = "text_index";
+
+    public static final String MDBSPEC_SERVER = "mongodb_mongos_ip";
+    private static final String MDBSPEC_SERVER_DEFAULT = "172.23.99.210";
+
+    public static final String MDBSPEC_PORT = "mongodb_mongos_port";
+    private static final String MDBSPEC_PORT_DEFAULT = "27021";
+
+    public static final String MDBSPEC_DATABASE = "mongodb_database";
+    private static final String MDBSPEC_DATABASE_DEFAULT = "wiki";
+
+    public static final String MDBSPEC_COLLECTION = "mongodb_collection";
+    private static final String MDBSPEC_COLLECTION_DEFAULT = "bucket1";
 
     private HashMap<String, String> prop = new HashMap<>();
 
@@ -101,11 +116,11 @@ public class TestProperties {
 
     public TestProperties(String[] args) {
 
-        driversMapping.put("couchbase", "main.java.com.couchbase.jts.drivers.CouchbaseClient");
-        driversMapping.put("couchbase-sdk", "main.java.com.couchbase.jts.drivers.CouchbaseClient");
-        driversMapping.put("mongodb", "main.java.com.couchbase.jts.drivers.MongodbClient");
-        driversMapping.put("elasticsearch", "main.java.com.couchbase.jts.drivers.ElasticClient");
-        driversMapping.put("elastic", "main.java.com.couchbase.jts.drivers.ElasticClient");
+        driversMapping.put("couchbase", "com.couchbase.jts.drivers.CouchbaseClient");
+        driversMapping.put("couchbase-sdk", "couchbase.jts.drivers.CouchbaseClient");
+        driversMapping.put("mongodb", "com.couchbase.jts.drivers.MongodbClient");
+        driversMapping.put("elasticsearch", "com.couchbase.jts.drivers.ElasticClient");
+        driversMapping.put("elastic", "com.couchbase.jts.drivers.ElasticClient");
 
         Options options = new Options();
         options.addOption(Option.builder(TESTSPEC_TEST_DURATION).hasArg().required(false).build());
@@ -129,6 +144,13 @@ public class TestProperties {
         options.addOption(Option.builder(CBSPEC_CBBUCKET).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_USER).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_PASSWORD).hasArg().required(false).build());
+
+        options.addOption(Option.builder(MDBSPEC_INDEX_NAME).hasArg().required(false).build());
+        options.addOption(Option.builder(MDBSPEC_SERVER).hasArg().required(false).build());
+        options.addOption(Option.builder(MDBSPEC_PORT).hasArg().required(false).build());
+        options.addOption(Option.builder(MDBSPEC_DATABASE).hasArg().required(false).build());
+        options.addOption(Option.builder(MDBSPEC_COLLECTION).hasArg().required(false).build());
+
 
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
@@ -167,7 +189,11 @@ public class TestProperties {
         prop.put(CBSPEC_USER, cmd.getOptionValue(CBSPEC_USER, CBSPEC_USER_DEFAULT));
         prop.put(CBSPEC_PASSWORD, cmd.getOptionValue(CBSPEC_PASSWORD, CBSPEC_PASSWORD_DEFAULT));
 
-
+        prop.put(MDBSPEC_INDEX_NAME, cmd.getOptionValue(MDBSPEC_INDEX_NAME, MDBSPEC_INDEX_NAME_DEFAILT));
+        prop.put(MDBSPEC_SERVER, cmd.getOptionValue(MDBSPEC_SERVER, MDBSPEC_SERVER_DEFAULT));
+        prop.put(MDBSPEC_PORT, cmd.getOptionValue(MDBSPEC_PORT, MDBSPEC_PORT_DEFAULT));
+        prop.put(MDBSPEC_DATABASE, cmd.getOptionValue(MDBSPEC_DATABASE, MDBSPEC_DATABASE_DEFAULT));
+        prop.put(MDBSPEC_COLLECTION, cmd.getOptionValue(MDBSPEC_COLLECTION, MDBSPEC_COLLECTION_DEFAULT));
     }
 
     public String getDriverClassName(String driverName) {
