@@ -47,7 +47,7 @@ public class TestProperties {
     private static final String TESTSPEC_KV_THROUGHPUT_GOAL_DEFAULT = "1000";
 
     public static final String TESTSPEC_TESTDATA_FILE = "test_data_file";
-    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/Users/oleksandr.gyryk/couchbase/agyryk-perfrunner/perfrunner/tests/fts/data/low.txt";
+    private static final String TESTSPEC_TESTDATA_FILE_DEFAULT = "/res/mdb/low.txt";
 
     public static final String TESTSPEC_DRIVER = "test_driver";
     private static final String TESTSPEC_DRIVER_DEFAULT = "couchbase";
