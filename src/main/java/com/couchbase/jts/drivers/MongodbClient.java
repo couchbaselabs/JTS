@@ -69,7 +69,7 @@ public class MongodbClient extends Client{
     private String buildTerm(String[] termsArray) throws IllegalArgumentException {
         String queryType = settings.get(settings.TESTSPEC_QUERY_TYPE);
         if (queryType.equals(TestProperties.CONSTANT_QUERY_TYPE_TERM)) {
-            return termsArray[0] + " ";
+            return termsArray[0];
         } else if (queryType.equals( TestProperties.CONSTANT_QUERY_TYPE_PHRASE)) {
             return "\"" + String.join(" ", termsArray) + "\"";
         } else if (queryType.equals(TestProperties.CONSTANT_QUERY_TYPE_OR)) {
@@ -200,7 +200,7 @@ class QueryBlocks {
     public QueryBlocks(String term, TestProperties settings){
         limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
         String fieldName = "$" + settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
-        query =  new Document(fieldName, new Document("$search", term + "wkejfljeslfjdklsfkjdhskjfhkjdshfk"));
+        query =  new Document(fieldName, new Document("$search", term));
         projection = new Document();
         projection.put("score", new Document("$meta", "textScore"));
         projection.put("_id", 1);
