@@ -1,23 +1,22 @@
 package com.couchbase.jts.drivers;
 
-import com.couchbase.client.core.message.query.QueryRequest;
 import com.couchbase.jts.properties.TestProperties;
-import com.mongodb.*;
-import com.mongodb.bulk.*;
+
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
+import com.mongodb.MongoClient;
+import com.mongodb.ReadPreference;
+import com.mongodb.WriteConcern;
+import com.mongodb.MongoClientURI;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.connection.QueryResult;
 import org.bson.Document;
 
 /**
