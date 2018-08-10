@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public class ThroughputWorker extends Worker{
 
-    private ThroughputLogger throughputLogger;
+    protected ThroughputLogger throughputLogger;
 
     public ThroughputWorker(Client client, int workerId){
         super(client);

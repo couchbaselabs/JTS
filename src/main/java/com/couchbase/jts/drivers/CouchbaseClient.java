@@ -181,12 +181,16 @@ public class  CouchbaseClient extends Client{
     }
 
     public String queryDebug(){
-        SearchQueryResult res =  bucket.query(queries[rand.nextInt(totalQueries)]);
-        return res.toString();
+        return bucket.query(queries[rand.nextInt(totalQueries)]).toString();
     }
 
     public void query() {
         bucket.query(queries[rand.nextInt(totalQueries)]);
+    }
+
+
+    public Boolean querySuccessOnly(){
+        return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
     }
 
     public void mutateRandomDoc() {

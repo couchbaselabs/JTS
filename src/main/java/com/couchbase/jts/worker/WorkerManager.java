@@ -60,7 +60,7 @@ public class WorkerManager {
                 float averageThrougput = ThroughputLogger.aggregate(workers.size());
                 logWriter.logMessage("Average Throughput: " + averageThrougput + " q/sec");
 
-            } else  if (workerType.equals("throughput")) {
+            } else  if (workerType.equals("throughput") || workerType.equals("validatedThroughput")) {
                 float averageThrouput = ThroughputLogger.aggregate(workers.size());
                 logWriter.logMessage("Average Throughput: " + averageThrouput + " q/sec");
             }
@@ -104,6 +104,8 @@ public class WorkerManager {
                 workersList.add(new LatencyWorker(client, i));
             } else  if (workerType.equals("throughput")) {
                 workersList.add(new ThroughputWorker(client, i));
+            } else  if (workerType.equals("validatedThroughput")) {
+                workersList.add(new ValidatedThroughputWorker(client, i));
             } else if (workerType.equals("warmup")) {
                 workersList.add(new WarmupWorker(client));
             }

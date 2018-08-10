@@ -75,7 +75,8 @@ public class TestProperties {
     private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "text2";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
-    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency";
+        //debug, latency, throughput, validatedThroughput
 
 
     // Couchbase-specific settings

@@ -101,6 +101,11 @@ public class MongodbClient extends Client{
         for (Document doc : findIterable) { continue; }
     }
 
+    // Not implemented
+    public Boolean querySuccessOnly(){
+        return false;
+    }
+
     public String queryDebug() {
         QueryBlocks query = queries[rand.nextInt(totalQueries)];
         MongoCollection<Document> collection = database.getCollection(collectionName);
@@ -118,6 +123,7 @@ public class MongodbClient extends Client{
        return query.searchTerm + " : " + " (" + latency + "ms)" + findIterable.first().toString();
 
     }
+
 
     public void mutateRandomDoc() {
         long totalDocs = Long.parseLong(getWorkload().get(TestProperties.TESTSPEC_TOTAL_DOCS));
