@@ -175,10 +175,11 @@ public class  CouchbaseClient extends Client{
         long en = System.nanoTime();
         float latency = (float) (en - st) / 1000000;
 
-        if ((res != null) && (res.metrics().totalHits() > 0)) { return latency; }
+        if ((res != null) && (res.status().isSuccess()) && (res.metrics().totalHits() > 0)) { return latency; }
         fileError(res.toString());
         return 0;
     }
+
 
     public String queryDebug(){
         return bucket.query(queries[rand.nextInt(totalQueries)]).toString();
@@ -188,8 +189,7 @@ public class  CouchbaseClient extends Client{
         bucket.query(queries[rand.nextInt(totalQueries)]);
     }
 
-
-    public Boolean querySuccessOnly(){
+    public Boolean queryAndSuccess(){
         return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
     }
 

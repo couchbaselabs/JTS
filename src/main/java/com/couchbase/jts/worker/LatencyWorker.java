@@ -11,8 +11,8 @@ import java.io.IOException;
  */
 public class LatencyWorker extends Worker{
 
-    private LatencyLogger latencyLogger;
-    private ThroughputLogger throughputLogger;
+    protected LatencyLogger latencyLogger;
+    protected ThroughputLogger throughputLogger;
 
     public LatencyWorker(Client client, int workerId){
         super(client);

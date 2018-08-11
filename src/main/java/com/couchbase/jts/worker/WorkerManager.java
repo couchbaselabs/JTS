@@ -54,7 +54,7 @@ public class WorkerManager {
 
         try {
 
-            if (workerType.equals("latency")) {
+            if (workerType.equals("latency") || workerType.equals("validatedLatency")) {
                 float averageLatency = LatencyLogger.aggregate(workers.size(), aggregationStep);
                 logWriter.logMessage("Average Latency: " + averageLatency + " ms");
                 float averageThrougput = ThroughputLogger.aggregate(workers.size());
@@ -102,6 +102,8 @@ public class WorkerManager {
                 workersList.add(new DebugWorker(client));
             } else if (workerType.equals("latency")) {
                 workersList.add(new LatencyWorker(client, i));
+            } else if (workerType.equals("validatedLatency")) {
+                workersList.add(new ValidatedLatencyWorker(client, i));
             } else  if (workerType.equals("throughput")) {
                 workersList.add(new ThroughputWorker(client, i));
             } else  if (workerType.equals("validatedThroughput")) {

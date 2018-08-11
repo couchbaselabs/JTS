@@ -1,7 +1,6 @@
 package com.couchbase.jts.worker;
 
 import com.couchbase.jts.drivers.Client;
-import com.couchbase.jts.logger.ThroughputLogger;
 
 public class ValidatedThroughputWorker extends ThroughputWorker {
 
@@ -11,7 +10,7 @@ public class ValidatedThroughputWorker extends ThroughputWorker {
 
     @Override
     public void runAction(){
-        if (clientDB.querySuccessOnly()){
+        if (clientDB.queryAndSuccess()){
             throughputLogger.logRequest();
         }
 

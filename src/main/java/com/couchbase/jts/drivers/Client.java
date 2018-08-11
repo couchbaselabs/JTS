@@ -37,7 +37,7 @@ abstract public class Client {
     abstract public float queryAndLatency();
     abstract public String queryDebug();
     abstract public void query();
-    abstract public Boolean querySuccessOnly();
+    abstract public Boolean queryAndSuccess();
     abstract public void mutateRandomDoc();
 
 }

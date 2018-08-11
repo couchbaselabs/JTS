@@ -102,7 +102,7 @@ public class MongodbClient extends Client{
     }
 
     // Not implemented
-    public Boolean querySuccessOnly(){
+    public Boolean queryAndSuccess(){
         return false;
     }
 
