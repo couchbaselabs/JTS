@@ -10,7 +10,7 @@ public class ValidatedLatencyWorker extends LatencyWorker {
     @Override
     public void runAction(){
         float latencyMS = clientDB.queryAndLatency();
-        if (latencyMS == 0) {
+        if (latencyMS != 0) {
             latencyLogger.logLatency(latencyMS);
             throughputLogger.logRequest();
         }
