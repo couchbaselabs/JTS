@@ -55,8 +55,8 @@ public class  CouchbaseClient extends Client{
     private int boost = 3;
     private boolean epoll = false;
     private int kvTimeout = 10000;
-    private int connectTimeout = 10000;
-    private int socketTimeout = 10000;
+    private int connectTimeout = 100000;
+    private int socketTimeout = 100000;
 
     private Cluster cluster;
     private Bucket bucket;
