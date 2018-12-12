@@ -1,52 +1,27 @@
 package com.couchbase.jts.drivers;
 
-import com.couchbase.client.core.env.DefaultCoreEnvironment;
-import com.couchbase.client.core.env.resources.IoPoolShutdownHook;
-import com.couchbase.client.core.metrics.DefaultLatencyMetricsCollectorConfig;
-import com.couchbase.client.core.metrics.DefaultMetricsCollectorConfig;
-import com.couchbase.client.core.metrics.LatencyMetricsCollectorConfig;
-import com.couchbase.client.core.metrics.MetricsCollectorConfig;
-import com.couchbase.client.deps.io.netty.channel.DefaultSelectStrategyFactory;
-import com.couchbase.client.deps.io.netty.channel.EventLoopGroup;
-import com.couchbase.client.deps.io.netty.channel.SelectStrategy;
-import com.couchbase.client.deps.io.netty.channel.SelectStrategyFactory;
-import com.couchbase.client.deps.io.netty.channel.epoll.EpollEventLoopGroup;
-import com.couchbase.client.deps.io.netty.channel.nio.NioEventLoopGroup;
-import com.couchbase.client.deps.io.netty.util.IntSupplier;
-import com.couchbase.client.deps.io.netty.util.concurrent.DefaultThreadFactory;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+
 import com.couchbase.client.java.search.facet.SearchFacet;
 import com.couchbase.client.java.search.queries.*;
-
-
 import com.couchbase.client.java.search.SearchQuery;
 import com.couchbase.client.java.search.result.SearchQueryResult;
 
 import com.couchbase.jts.properties.TestProperties;
 
-
-import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
-
-/**
- * Created by oleksandr.gyryk on 10/3/17.
- */
 
 
 public class  CouchbaseClient extends Client{
 
     private static volatile CouchbaseEnvironment env = null;
-    private static final Object INIT_COORDINATOR = new Object();
 
     private int kvTimeout = 10000;
     private int connectTimeout = 100000;
@@ -275,48 +250,6 @@ public class  CouchbaseClient extends Client{
                 .min(Double.parseDouble(minmax[1]), true).field(fieldName);
         return new SearchQuery(indexName, nrgSQ).limit(limit);
     }
-
-    // ------------
-    class BackoffSelectStrategyFactory implements SelectStrategyFactory {
-        @Override
-        public SelectStrategy newSelectStrategy() {
-            return new BackoffSelectStrategy();
-        }
-    }
-
-
-    class BackoffSelectStrategy implements SelectStrategy {
-
-        private int counter = 0;
-
-        @Override
-        public int calculateStrategy(final IntSupplier supplier, final boolean hasTasks) throws Exception {
-            int selectNowResult = supplier.get();
-            if (hasTasks || selectNowResult != 0) {
-                counter = 0;
-                return selectNowResult;
-            }
-            counter++;
-
-            if (counter > 2000) {
-                LockSupport.parkNanos(1);
-            } else if (counter > 3000) {
-                Thread.yield();
-            } else if (counter > 4000) {
-                LockSupport.parkNanos(1000);
-            } else if (counter > 5000) {
-                // defer to blocking select
-                counter = 0;
-                return SelectStrategy.SELECT;
-            }
-
-            return SelectStrategy.CONTINUE;
-        }
-    }
-
-
-
-
 }
 
 
