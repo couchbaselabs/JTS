@@ -48,12 +48,6 @@ public class  CouchbaseClient extends Client{
     private static volatile CouchbaseEnvironment env = null;
     private static final Object INIT_COORDINATOR = new Object();
 
-    private int networkMetricsInterval = 0;
-    private int runtimeMetricsInterval = 0;
-    private int queryEndpoints = 1;
-    private int kvEndpoints = 1;
-    private int boost = 3;
-    private boolean epoll = false;
     private int kvTimeout = 10000;
     private int connectTimeout = 100000;
     private int socketTimeout = 100000;
@@ -76,55 +70,24 @@ public class  CouchbaseClient extends Client{
     private void connect() throws Exception{
 
         try {
-            synchronized (INIT_COORDINATOR) {
-                if (env == null) {
 
-                    LatencyMetricsCollectorConfig latencyConfig = networkMetricsInterval <= 0
-                            ? DefaultLatencyMetricsCollectorConfig.disabled()
-                            : DefaultLatencyMetricsCollectorConfig
-                            .builder()
-                            .emitFrequency(networkMetricsInterval)
-                            .emitFrequencyUnit(TimeUnit.SECONDS)
-                            .build();
+            DefaultCouchbaseEnvironment.Builder builder = DefaultCouchbaseEnvironment
+                    .builder()
+                    .callbacksOnIoPool(true)
+                    .socketConnectTimeout(socketTimeout)
+                    .connectTimeout(connectTimeout)
+                    .kvTimeout(kvTimeout);
 
-                    MetricsCollectorConfig runtimeConfig = runtimeMetricsInterval <= 0
-                            ? DefaultMetricsCollectorConfig.disabled()
-                            : DefaultMetricsCollectorConfig.create(runtimeMetricsInterval, TimeUnit.SECONDS);
+            env = builder.build();
 
-                    DefaultCouchbaseEnvironment.Builder builder = DefaultCouchbaseEnvironment
-                            .builder()
-                            .queryEndpoints(queryEndpoints)
-                            .callbacksOnIoPool(true)
-                            .runtimeMetricsCollectorConfig(runtimeConfig)
-                            .networkLatencyMetricsCollectorConfig(latencyConfig)
-                            .socketConnectTimeout(socketTimeout)
-                            .connectTimeout(connectTimeout)
-                            .kvTimeout(kvTimeout)
-                            .kvEndpoints(kvEndpoints);
-
-                    // Tune boosting and epoll based on settings
-                    SelectStrategyFactory factory = boost > 0 ?
-                            new BackoffSelectStrategyFactory() : DefaultSelectStrategyFactory.INSTANCE;
-
-                    int poolSize = boost > 0 ? boost : Integer.parseInt(
-                            System.getProperty("com.couchbase.ioPoolSize",
-                                    Integer.toString(DefaultCoreEnvironment.IO_POOL_SIZE))
-                    );
-                    ThreadFactory threadFactory = new DefaultThreadFactory("cb-io", true);
-
-                    EventLoopGroup group = epoll ? new EpollEventLoopGroup(poolSize, threadFactory, factory)
-                            : new NioEventLoopGroup(poolSize, threadFactory, SelectorProvider.provider(), factory);
-                    builder.ioPool(group, new IoPoolShutdownHook(group));
-
-                    env = builder.build();
-                }
-            }
-            cluster = CouchbaseCluster.create(env, getProp(TestProperties.CBSPEC_SERVER));
-            cluster.authenticate(getProp(TestProperties.CBSPEC_USER), getProp(TestProperties.CBSPEC_PASSWORD));
-            bucket = cluster.openBucket(getProp(TestProperties.CBSPEC_CBBUCKET));
         } catch (Exception ex) {
             throw new Exception("Could not connect to Couchbase Bucket.", ex);
         }
+
+        cluster = CouchbaseCluster.create(env, getProp(TestProperties.CBSPEC_SERVER));
+        cluster.authenticate(getProp(TestProperties.CBSPEC_USER), getProp(TestProperties.CBSPEC_PASSWORD));
+        bucket = cluster.openBucket(getProp(TestProperties.CBSPEC_CBBUCKET));
+
     }
 
     private void generateQueries() throws Exception {
