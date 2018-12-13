@@ -38,6 +38,8 @@ abstract public class Client {
     abstract public String queryDebug();
     abstract public void query();
     abstract public Boolean queryAndSuccess();
-    abstract public void mutateRandomDoc();
+    abstract public void kv();
+    //abstract public void mutateRandomDoc();
+    //abstract public void replaceRandomDoc();
 
 }

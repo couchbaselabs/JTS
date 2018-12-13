@@ -24,7 +24,7 @@ public class KVWorker extends Worker {
     public void runAction(){
         try {
             long st = System.nanoTime();
-            clientDB.mutateRandomDoc();
+            clientDB.kv();
             long en = System.nanoTime();
             long latency =  (en - st) / 1000000;
             if (throughputGoal > 0) {

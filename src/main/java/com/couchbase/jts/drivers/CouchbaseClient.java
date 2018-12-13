@@ -35,6 +35,8 @@ public class  CouchbaseClient extends Client{
     private int totalQueries = 0;
     private SearchQuery queryToRun;
 
+    private JsonDocument replacementDocumentBuffer = null;
+
 
     public CouchbaseClient(TestProperties workload) throws Exception{
         super(workload);
@@ -131,7 +133,15 @@ public class  CouchbaseClient extends Client{
         return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
     }
 
-    public void mutateRandomDoc() {
+    public void kv() {
+        if (getWorkload().get(TestProperties.TESTSPEC_KV_OPERATION) == TestProperties.CONSTANT_KV_OPERATION_MUTATE) {
+            mutateRandomDoc();
+        } else {
+            replaceRandomDoc();
+        }
+    }
+
+    private void mutateRandomDoc() {
         long totalDocs = Long.parseLong(getWorkload().get(TestProperties.TESTSPEC_TOTAL_DOCS));
         long docIdLong = Math.abs(rand.nextLong() % totalDocs);
         String docIdHex = Long.toHexString(docIdLong);
@@ -144,6 +154,19 @@ public class  CouchbaseClient extends Client{
         doc.content().put(originFieldName, replace);
         doc.content().put(replaceFieldName, origin);
         bucket.upsert(doc);
+    }
+
+    private void replaceRandomDoc() {
+        long totalDocs = Long.parseLong(getWorkload().get(TestProperties.TESTSPEC_TOTAL_DOCS));
+        long docIdLong = Math.abs(rand.nextLong() % totalDocs);
+        String docIdHex = Long.toHexString(docIdLong);
+        JsonDocument doc = bucket.get(docIdHex);
+
+        if (replacementDocumentBuffer != null) {
+            bucket.replace(JsonDocument.create(docIdHex, replacementDocumentBuffer.content()));
+        }
+
+        replacementDocumentBuffer = doc;
     }
 
     private void fileError(String err) {

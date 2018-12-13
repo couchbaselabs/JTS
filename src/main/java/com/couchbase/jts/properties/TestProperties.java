@@ -29,6 +29,9 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
+    public static final String CONSTANT_KV_OPERATION_MUTATE = "mutate";
+    public static final String CONSTANT_KV_OPERATION_REPLACE = "replace";
+
 
     // Test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
@@ -77,6 +80,10 @@ public class TestProperties {
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
     private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency";
         //debug, latency, throughput, validatedThroughput
+
+    public static final String TESTSPEC_KV_OPERATION = "test_kv_operation";
+    private static final String TESTSPEC_KV_OPERATION_DEFAULT = "replace";
+        //mutate, replace
 
 
     // Couchbase-specific settings
@@ -139,6 +146,7 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_KV_OPERATION).hasArg().required(false).build());
 
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
@@ -183,6 +191,7 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
+        prop.put(TESTSPEC_KV_OPERATION, cmd.getOptionValue(TESTSPEC_KV_OPERATION, TESTSPEC_KV_OPERATION_DEFAULT));
 
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));

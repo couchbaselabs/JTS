@@ -124,8 +124,17 @@ public class MongodbClient extends Client{
 
     }
 
+    public void kv(){
+        if (getWorkload().get(TestProperties.TESTSPEC_KV_OPERATION) != TestProperties.CONSTANT_KV_OPERATION_MUTATE) {
+            mutateRandomDoc();
+            return;
+        }
 
-    public void mutateRandomDoc() {
+        System.err.println("KV operation " + getWorkload().get(TestProperties.TESTSPEC_KV_OPERATION)
+                + " not implemented!");
+    }
+
+    private void mutateRandomDoc() {
         long totalDocs = Long.parseLong(getWorkload().get(TestProperties.TESTSPEC_TOTAL_DOCS));
         long docIdLong = rand.nextLong() % totalDocs;
         String docIdHex = Long.toHexString(docIdLong);
@@ -154,6 +163,9 @@ public class MongodbClient extends Client{
         }
 
     }
+
+
+
 
     public void init() throws Exception {
         INIT_COUNT.incrementAndGet();
