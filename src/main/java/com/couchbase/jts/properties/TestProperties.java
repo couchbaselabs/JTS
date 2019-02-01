@@ -151,6 +151,10 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_DATA_DATAGEN).hasArg().required(false).build());
 
+        //backward compatability
+        options.addOption(Option.builder("test_query_field").hasArg().required(false).build());
+        options.addOption(Option.builder("test_mutation_field").hasArg().required(false).build());
+
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_CBBUCKET).hasArg().required(false).build());
