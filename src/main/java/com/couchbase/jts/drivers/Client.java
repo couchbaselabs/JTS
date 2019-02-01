@@ -1,10 +1,13 @@
 package com.couchbase.jts.drivers;
 
 import com.couchbase.jts.properties.TestProperties;
+import com.couchbase.jts.utils.DataGen;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.stream.*;
 import java.nio.file.*;
 import java.util.List;
@@ -15,31 +18,39 @@ import java.util.List;
 abstract public class Client {
 
     protected TestProperties settings;
+    protected HashMap<String, String> fieldsMap = new HashMap<>();
+    protected HashMap<String, ArrayList<String>> valuesMap = new HashMap<>();
 
-    public Client(TestProperties workload) {
+    public Client(TestProperties workload) throws IOException {
         settings = workload;
+        importFields();
+        importValues();
     }
 
     public TestProperties getWorkload() {
         return settings;
     }
 
-    protected String[][] importTerms() throws IOException{
-        List<String[]> lines = new ArrayList<>();
-        try (Stream<String> stream = Files.lines(Paths.get(settings.get(TestProperties.TESTSPEC_TESTDATA_FILE)))) {
-            stream.forEach(x -> lines.add(x.split(" ")));
+
+    private void importFields(){
+        String[] tokens = settings.get(TestProperties.TESTSPEC_QUERY_FIELD_MAP).split("\\|");
+        for (int i=0; i < tokens.length-1; i+=2){
+            fieldsMap.put(tokens[i], tokens[i+1]);
         }
-        Collections.shuffle(lines);
-        String[][] response = lines.stream().toArray(String[][]::new);
-        return response;
     }
+
+    private void importValues() throws IOException{
+        DataGen gen = new DataGen(settings);
+        valuesMap = gen.initValues(fieldsMap);
+    }
+
+
 
     abstract public float queryAndLatency();
     abstract public String queryDebug();
     abstract public void query();
     abstract public Boolean queryAndSuccess();
     abstract public void kv();
-    //abstract public void mutateRandomDoc();
-    //abstract public void replaceRandomDoc();
+
 
 }
