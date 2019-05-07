@@ -58,12 +58,12 @@ public class  CouchbaseClient extends Client{
     private int connectTimeout = 100000;
     private int socketTimeout = 100000;
 
-    private Cluster cluster;
-    private Bucket bucket;
+    protected Cluster cluster;
+    protected Bucket bucket;
     private SearchQuery[] queries;
 
-    private Random rand = new Random();
-    private int totalQueries = 0;
+    protected Random rand = new Random();
+    protected int totalQueries = 0;
     private SearchQuery queryToRun;
 
 
@@ -73,7 +73,7 @@ public class  CouchbaseClient extends Client{
         generateQueries();
     }
 
-    private void connect() throws Exception{
+    protected void connect() throws Exception{
 
         try {
             synchronized (INIT_COORDINATOR) {
@@ -208,7 +208,7 @@ public class  CouchbaseClient extends Client{
         bucket.upsert(doc);
     }
 
-    private void fileError(String err) {
+    protected void fileError(String err) {
         System.out.println(err);
     }
 

@@ -29,7 +29,6 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
-
     // Test settings
     public static final String TESTSPEC_TEST_DURATION = "test_duration";
     private static final String TESTSPEC_TEST_DURATION_DEFAULT = "10";
@@ -117,11 +116,10 @@ public class TestProperties {
 
     public TestProperties(String[] args) {
 
+        driversMapping.put("couchbase-n1ql", "com.couchbase.jts.drivers.CouchbaseN1QLClient");
         driversMapping.put("couchbase", "com.couchbase.jts.drivers.CouchbaseClient");
-        driversMapping.put("couchbase-sdk", "couchbase.jts.drivers.CouchbaseClient");
         driversMapping.put("mongodb", "com.couchbase.jts.drivers.MongodbClient");
         driversMapping.put("elasticsearch", "com.couchbase.jts.drivers.ElasticClient");
-        driversMapping.put("elastic", "com.couchbase.jts.drivers.ElasticClient");
 
         Options options = new Options();
         options.addOption(Option.builder(TESTSPEC_TEST_DURATION).hasArg().required(false).build());
