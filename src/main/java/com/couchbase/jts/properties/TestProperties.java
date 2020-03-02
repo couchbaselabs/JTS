@@ -27,6 +27,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_WILDCARD = "wildcard";
     public static final String CONSTANT_QUERY_TYPE_FACET = "facet";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
+    public static final String CONSTANT_QUERY_TYPE_GEO_RADIUS	= "geo_rad"; 
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 
@@ -64,6 +65,8 @@ public class TestProperties {
     public static final String TESTSPEC_QUERY_TYPE = "test_query_type";
     private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
 
+    public static final String TESTSPEC_GEO_DISTANCE = "test_geo_distance";
+    private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10";
 
     public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
     private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
@@ -135,6 +138,7 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_STATS_AGGR_STEP).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_TEST_DEBUGMODE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_TYPE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_LIMIT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
@@ -183,7 +187,7 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
-
+        prop.put(TESTSPEC_GEO_DISTANCE, cmd.getOptionValue(TESTSPEC_GEO_DISTANCE,TESTSPEC_GEO_DISTANCE_DEFAULT));
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));
         prop.put(CBSPEC_CBBUCKET, cmd.getOptionValue(CBSPEC_CBBUCKET, CBSPEC_CBBUCKET_DEFAULT));

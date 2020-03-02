@@ -238,6 +238,9 @@ public class  CouchbaseClient extends Client{
                     return buildFacetQuery(terms, limit, indexName, fieldName);
                 case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
                     return buildNumericQuery(terms, limit, indexName, fieldName);
+                case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
+                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName, TestProperties.TESTSPEC_GEO_DISTANCE);
+                	
             }
             throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
                     + settings.get(settings.TESTSPEC_QUERY_TYPE));
@@ -291,6 +294,16 @@ public class  CouchbaseClient extends Client{
         WildcardQuery wcSQ = SearchQuery.wildcard(terms[0]).field(fieldName);
         return new SearchQuery(indexName, wcSQ).limit(limit);
 
+    }
+    
+    private SearchQuery buildGeoRadiusQuery(String[] terms,int limit,String indexName,String feildName, String dist)
+    {
+    	//double locationLon, double locationLat, String distance
+    	double locationLon= Double.parseDouble(terms[0]);
+    	double locationLat = Double.parseDouble(terms[1]);
+    	String distance = dist;
+    	GeoDistanceQuery geoRad = SearchQuery.geoDistance(locationLon, locationLat, distance);
+    	return new SearchQuery(indexName,geoRad).limit(limit);
     }
 
     private SearchQuery buildFacetQuery(String[] terms, int limit, String indexName, String fieldName) {
