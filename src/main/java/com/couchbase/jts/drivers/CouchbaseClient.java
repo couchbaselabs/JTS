@@ -239,7 +239,7 @@ public class  CouchbaseClient extends Client{
                 case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
                     return buildNumericQuery(terms, limit, indexName, fieldName);
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
-                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName, "10");
+                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName, settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
 
             }
             throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
