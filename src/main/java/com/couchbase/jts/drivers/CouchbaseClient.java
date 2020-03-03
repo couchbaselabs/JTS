@@ -299,8 +299,8 @@ public class  CouchbaseClient extends Client{
     private SearchQuery buildGeoRadiusQuery(String[] terms,int limit,String indexName,String feildName, String dist)
     {
     	//double locationLon, double locationLat, String distance
-    	double locationLon= Double.parseDouble(terms[0]);
-    	double locationLat = Double.parseDouble(terms[1]);
+    	double locationLon= 67.043851 ;
+    	double locationLat = 32.586166;
     	String distance = dist;
     	GeoDistanceQuery geoRad = SearchQuery.geoDistance(locationLon, locationLat, distance);
     	return new SearchQuery(indexName,geoRad).limit(limit);
