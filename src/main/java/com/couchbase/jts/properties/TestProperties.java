@@ -28,6 +28,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_FACET = "facet";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
     public static final String CONSTANT_QUERY_TYPE_GEO_RADIUS	= "geo_rad"; 
+    public static final String CONSTANT_QUERY_TYPE_GEO_BOX ="geo_box";
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 

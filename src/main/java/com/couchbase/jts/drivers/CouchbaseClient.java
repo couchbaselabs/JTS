@@ -240,6 +240,8 @@ public class  CouchbaseClient extends Client{
                     return buildNumericQuery(terms, limit, indexName, fieldName);
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
                 	return buildGeoRadiusQuery(terms,limit,indexName,fieldName, "5mi");
+                case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
+                	return buildGeoBoundingBoxQuery(terms,limit,indexName,fieldName);
 
             }
             throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
@@ -302,10 +304,20 @@ public class  CouchbaseClient extends Client{
     	double locationLon= Double.parseDouble(terms[0]) ;
     	double locationLat = Double.parseDouble(terms[1]);
     	String distance = dist;
-    	GeoDistanceQuery geoRad = SearchQuery.geoDistance(locationLon, locationLat, distance);
+    	GeoDistanceQuery geoRad = SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
     }
-
+    private SearchQuery buildGeoBoundingBoxQuery(String[] terms,int limit,String indexName,String feildName)
+    {
+    	//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
+    	double topLeftLon= Double.parseDouble(terms[0]) ;
+    	double topLeftLat = Double.parseDouble(terms[1]);
+    	int [] dist = new int[] {5,10,15};
+    	double bottomRightLon= topLeftLon + dist[rand.nextInt(dist.length)] ;
+    	double bottomRightLat = topLeftLat + dist[rand.nextInt(dist.length)];
+    	GeoBoundingBoxQuery geoRad = SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(feildName);
+    	return new SearchQuery(indexName,geoRad).limit(limit);
+    }
     private SearchQuery buildFacetQuery(String[] terms, int limit, String indexName, String fieldName) {
         String[] dates = terms[1].split(":");
 
