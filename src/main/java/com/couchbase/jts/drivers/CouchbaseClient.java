@@ -313,8 +313,8 @@ public class  CouchbaseClient extends Client{
     	double topLeftLon= Double.parseDouble(terms[0]) ;
     	double topLeftLat = Double.parseDouble(terms[1]);
     	double [] dist = new double[] {5,10,15};
-    	double bottomRightLon= topLeftLon + dist[rand.nextInt(dist.length)] ;
-    	double bottomRightLat = topLeftLat + dist[rand.nextInt(dist.length)];
+    	double bottomRightLon= topLeftLon - dist[rand.nextInt(dist.length)] ;
+    	double bottomRightLat = topLeftLat - dist[rand.nextInt(dist.length)];
     	GeoBoundingBoxQuery geoRad = SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
     }
