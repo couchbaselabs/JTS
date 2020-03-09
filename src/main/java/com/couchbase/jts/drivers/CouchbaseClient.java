@@ -239,8 +239,9 @@ public class  CouchbaseClient extends Client{
                 case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
                     return buildNumericQuery(terms, limit, indexName, fieldName);
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
-                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName, "5mi");
+                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
+                	
                 	return buildGeoBoundingBoxQuery(terms,limit,indexName,fieldName);
 
             }
@@ -312,9 +313,8 @@ public class  CouchbaseClient extends Client{
     	//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
     	double topLeftLon= Double.parseDouble(terms[0]) ;
     	double topLeftLat = Double.parseDouble(terms[1]);
-    	double [] dist = new double[] {5,10,15};
-    	double bottomRightLon= topLeftLon - dist[rand.nextInt(dist.length)] ;
-    	double bottomRightLat = topLeftLat - dist[rand.nextInt(dist.length)];
+    	double bottomRightLon= topLeftLon - 3.00 ;
+    	double bottomRightLat = topLeftLat - 5.00;
     	GeoBoundingBoxQuery geoRad = SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
     }

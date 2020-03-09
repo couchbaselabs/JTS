@@ -67,7 +67,7 @@ public class TestProperties {
     private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
 
     public static final String TESTSPEC_GEO_DISTANCE = "test_geo_distance";
-    private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10";
+    private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10mi";
 
     public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
     private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
@@ -79,8 +79,7 @@ public class TestProperties {
     private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "text2";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
-    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency";
-        //debug, latency, throughput, validatedThroughput
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
 
 
     // Couchbase-specific settings
