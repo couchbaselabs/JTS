@@ -239,9 +239,11 @@ public class  CouchbaseClient extends Client{
                 case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
                     return buildNumericQuery(terms, limit, indexName, fieldName);
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
-                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName, "5mi");
+                	return buildGeoRadiusQuery(terms,limit,indexName,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
-                	return buildGeoBoundingBoxQuery(terms,limit,indexName,fieldName);
+                	double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
+                	double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
+                	return buildGeoBoundingBoxQuery(terms,limit,indexName,fieldName , latHeight,lonWidth);
 
             }
             throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
@@ -307,14 +309,13 @@ public class  CouchbaseClient extends Client{
     	GeoDistanceQuery geoRad = SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
     }
-    private SearchQuery buildGeoBoundingBoxQuery(String[] terms,int limit,String indexName,String feildName)
+    private SearchQuery buildGeoBoundingBoxQuery(String[] terms,int limit,String indexName,String feildName , double latHeight, double lonWidth)
     {
     	//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
     	double topLeftLon= Double.parseDouble(terms[0]) ;
     	double topLeftLat = Double.parseDouble(terms[1]);
-    	double [] dist = new double[] {5,10,15};
-    	double bottomRightLon= topLeftLon - dist[rand.nextInt(dist.length)] ;
-    	double bottomRightLat = topLeftLat - dist[rand.nextInt(dist.length)];
+    	double bottomRightLon= topLeftLon +lonWidth ;
+    	double bottomRightLat = topLeftLat - latHeight;
     	GeoBoundingBoxQuery geoRad = SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
     }

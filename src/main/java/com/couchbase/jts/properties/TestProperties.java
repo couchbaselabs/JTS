@@ -67,7 +67,13 @@ public class TestProperties {
     private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
 
     public static final String TESTSPEC_GEO_DISTANCE = "test_geo_distance";
-    private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10";
+    private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10mi";
+
+    public static final String TESTSPEC_GEO_LAT_HEIGHT = "test_query_lon_width";
+    private static final String TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ="2";
+    
+    public static final String TESTSPEC_GEO_LON_WIDTH = "test_query_lon_width";
+    private static final String TESTSPEC_GEO_LON_WIDTH_DEFAULT = "2";
 
     public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
     private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
