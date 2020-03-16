@@ -71,7 +71,7 @@ public class TestProperties {
 
     public static final String TESTSPEC_GEO_LAT_HEIGHT = "test_query_lon_width";
     private static final String TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ="2";
-    
+
     public static final String TESTSPEC_GEO_LON_WIDTH = "test_query_lon_width";
     private static final String TESTSPEC_GEO_LON_WIDTH_DEFAULT = "2";
 
@@ -85,8 +85,7 @@ public class TestProperties {
     private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "text2";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
-    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency";
-        //debug, latency, throughput, validatedThroughput
+    private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
 
 
     // Couchbase-specific settings
