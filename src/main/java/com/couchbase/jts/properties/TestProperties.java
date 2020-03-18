@@ -69,11 +69,11 @@ public class TestProperties {
     public static final String TESTSPEC_GEO_DISTANCE = "test_geo_distance";
     private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10mi";
 
-    public static final String TESTSPEC_GEO_LAT_HEIGHT = "test_query_lon_width";
-    private static final String TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ="2";
+    public static final String TESTSPEC_GEO_LAT_HEIGHT = "test_query_lat_height";
+    private static final String TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ="3";
 
     public static final String TESTSPEC_GEO_LON_WIDTH = "test_query_lon_width";
-    private static final String TESTSPEC_GEO_LON_WIDTH_DEFAULT = "2";
+    private static final String TESTSPEC_GEO_LON_WIDTH_DEFAULT = "4";
 
     public static final String TESTSPEC_QUERY_LIMIT = "test_query_limit";
     private static final String TESTSPEC_QUERY_LIMIT_DEFAULT = "10";
@@ -145,6 +145,8 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_TEST_DEBUGMODE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_TYPE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEO_LAT_HEIGHT).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEO_LON_WIDTH).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_LIMIT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
@@ -194,6 +196,8 @@ public class TestProperties {
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
         prop.put(TESTSPEC_GEO_DISTANCE, cmd.getOptionValue(TESTSPEC_GEO_DISTANCE,TESTSPEC_GEO_DISTANCE_DEFAULT));
+        prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));
+        prop.put(TESTSPEC_GEO_LON_WIDTH,cmd.getOptionValue(TESTSPEC_GEO_LON_WIDTH,TESTSPEC_GEO_LON_WIDTH_DEFAULT));
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));
         prop.put(CBSPEC_CBBUCKET, cmd.getOptionValue(CBSPEC_CBBUCKET, CBSPEC_CBBUCKET_DEFAULT));
