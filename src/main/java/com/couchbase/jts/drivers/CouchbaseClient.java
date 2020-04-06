@@ -18,6 +18,7 @@ import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.search.queries.Coordinate;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.search.facet.SearchFacet;
@@ -244,6 +245,10 @@ public class  CouchbaseClient extends Client{
                 	double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
                 	double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
                 	return buildGeoBoundingBoxQuery(terms,limit,indexName,fieldName , latHeight,lonWidth);
+                case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
+                	String ListOfPoints = settings.get(settings.TESTSPEC_GEO_POLYGON_COORD_LIST);
+                	return buildGeoPolygonQuery(terms,limit,indexName,fieldName,ListOfPoints);
+                	
 
             }
             throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
@@ -318,6 +323,21 @@ public class  CouchbaseClient extends Client{
     	double bottomRightLat = topLeftLat - latHeight;
     	GeoBoundingBoxQuery geoRad = SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
+    }
+    private SearchQuery buildGeoPolygonQuery(String[] terms, int limit,String indexName,String fieldName,String ListOfPoints)
+    {
+    	String[] points = ListOfPoints.split("#");
+    	List<Coordinate> listOfPts = new List<Coordinate>();
+    	for(int i = 0; i <points.length;i++)
+    	{
+    		String[] pts = points[i].split("!");
+    		double lon = Double.parseDouble(pts[0]);
+    		double lat = Double.parseDouble(pts[1]);
+    		Coordinate coord = Coordinate.ofLonLat(lon,lat);
+    		listOfPts.add(coord);
+    	}
+    	GeoPolygonQuery geoPol = SearchQuery.geoPolygon(listOfPts);
+    	return new SearchQuery(indexName,geoPol).limit(limit);
     }
     private SearchQuery buildFacetQuery(String[] terms, int limit, String indexName, String fieldName) {
         String[] dates = terms[1].split(":");
