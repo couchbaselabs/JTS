@@ -248,7 +248,7 @@ public class  CouchbaseClient extends Client{
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
                 	String ListOfPoints = settings.get(settings.TESTSPEC_GEO_POLYGON_COORD_LIST);
                 	return buildGeoPolygonQuery(terms,limit,indexName,fieldName,ListOfPoints);
-                	
+
 
             }
             throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
@@ -327,7 +327,7 @@ public class  CouchbaseClient extends Client{
     private SearchQuery buildGeoPolygonQuery(String[] terms, int limit,String indexName,String fieldName,String ListOfPoints)
     {
     	String[] points = ListOfPoints.split("#");
-    	List<Coordinate> listOfPts = new List<Coordinate>();
+    	List<Coordinate> listOfPts = new ArrayList<Coordinate>();
     	for(int i = 0; i <points.length;i++)
     	{
     		String[] pts = points[i].split("!");
