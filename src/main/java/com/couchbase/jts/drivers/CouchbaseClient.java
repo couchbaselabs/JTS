@@ -246,8 +246,7 @@ public class  CouchbaseClient extends Client{
                 	double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
                 	return buildGeoBoundingBoxQuery(terms,limit,indexName,fieldName , latHeight,lonWidth);
                 case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
-                	String ListOfPoints = settings.get(settings.TESTSPEC_GEO_POLYGON_COORD_LIST);
-                	return buildGeoPolygonQuery(terms,limit,indexName,fieldName,ListOfPoints);
+                	return buildGeoPolygonQuery(terms,limit,indexName,fieldName);
 
 
             }
@@ -326,13 +325,11 @@ public class  CouchbaseClient extends Client{
     }
     private SearchQuery buildGeoPolygonQuery(String[] terms, int limit,String indexName,String fieldName,String ListOfPoints)
     {
-    	String[] points = ListOfPoints.split("#");
     	List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
-    	for(int i = 0; i <points.length;i++)
+    	for(int i = 0; i <points.length;i = i+2)
     	{
-    		String[] pts = points[i].split("!");
-    		double lon = Double.parseDouble(pts[0]);
-    		double lat = Double.parseDouble(pts[1]);
+    		double lon = Double.parseDouble(terms[i]);
+    		double lat = Double.parseDouble(terms[i+1]);
     		Coordinate coord = Coordinate.ofLonLat(lon,lat);
     		listOfPts.add(coord);
     	}
