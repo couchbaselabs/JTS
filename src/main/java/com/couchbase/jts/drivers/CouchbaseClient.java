@@ -323,7 +323,7 @@ public class  CouchbaseClient extends Client{
     	GeoBoundingBoxQuery geoRad = SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(feildName);
     	return new SearchQuery(indexName,geoRad).limit(limit);
     }
-    private SearchQuery buildGeoPolygonQuery(String[] terms, int limit,String indexName,String fieldName,String ListOfPoints)
+    private SearchQuery buildGeoPolygonQuery(String[] terms, int limit,String indexName,String fieldName)
     {
     	List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
     	for(int i = 0; i <points.length;i = i+2)
