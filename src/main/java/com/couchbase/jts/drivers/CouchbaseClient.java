@@ -326,7 +326,7 @@ public class  CouchbaseClient extends Client{
     private SearchQuery buildGeoPolygonQuery(String[] terms, int limit,String indexName,String fieldName )
     {
     	List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
-    	for(int i = 0; i <points.length;i = i+2)
+    	for(int i = 0; i <terms.length;i = i+2)
     	{
     		double lon = Double.parseDouble(terms[i]);
     		double lat = Double.parseDouble(terms[i+1]);
