@@ -334,7 +334,7 @@ public class  CouchbaseClient extends Client{
     		listOfPts.add(coord);
     	}
     	
-    	GeoPolygonQuery geoPol = SearchQuery.geoPolygon(listOfPts).field(feildName);
+    	GeoPolygonQuery geoPol = SearchQuery.geoPolygon(listOfPts).field(fieldName);
     	return new SearchQuery(indexName,geoPol).limit(limit);
     }
     private SearchQuery buildFacetQuery(String[] terms, int limit, String indexName, String fieldName) {
