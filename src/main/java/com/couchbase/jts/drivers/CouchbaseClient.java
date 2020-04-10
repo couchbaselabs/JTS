@@ -333,7 +333,8 @@ public class  CouchbaseClient extends Client{
     		Coordinate coord = Coordinate.ofLonLat(lon,lat);
     		listOfPts.add(coord);
     	}
-    	GeoPolygonQuery geoPol = SearchQuery.geoPolygon(listOfPts);
+    	
+    	GeoPolygonQuery geoPol = SearchQuery.geoPolygon(listOfPts).field(feildName);
     	return new SearchQuery(indexName,geoPol).limit(limit);
     }
     private SearchQuery buildFacetQuery(String[] terms, int limit, String indexName, String fieldName) {
