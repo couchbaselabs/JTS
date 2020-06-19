@@ -23,6 +23,9 @@ import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.search.facet.SearchFacet;
 import com.couchbase.client.java.search.queries.*;
+import com.couchbase.client.java.query.*;
+import com.couchbase.client.java.document.json.JsonArray;
+import com.couchbase.client.java.document.json.JsonObject;
 
 
 import com.couchbase.client.java.search.SearchQuery;
@@ -62,10 +65,15 @@ public class  CouchbaseClient extends Client{
     private Cluster cluster;
     private Bucket bucket;
     private SearchQuery[] queries;
+    private String[] flexQueries;
+    
 
     private Random rand = new Random();
     private int totalQueries = 0;
+    private int flexTotalQueries = 0;
     private SearchQuery queryToRun;
+    private String flexQueryToRun;
+    private Boolean flexFlag ;
 
 
     public CouchbaseClient(TestProperties workload) throws Exception{
@@ -123,6 +131,7 @@ public class  CouchbaseClient extends Client{
             cluster = CouchbaseCluster.create(env, getProp(TestProperties.CBSPEC_SERVER));
             cluster.authenticate(getProp(TestProperties.CBSPEC_USER), getProp(TestProperties.CBSPEC_PASSWORD));
             bucket = cluster.openBucket(getProp(TestProperties.CBSPEC_CBBUCKET));
+            
         } catch (Exception ex) {
             throw new Exception("Could not connect to Couchbase Bucket.", ex);
         }
@@ -134,15 +143,25 @@ public class  CouchbaseClient extends Client{
         String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
-
-        queryList = generateTermQueries(terms, limit, indexName, fieldName);
-
-        if ((queryList == null) || (queryList.size() == 0)) {
-            throw new Exception("Query list is empty!");
+        List<String> flexQueryList = null;
+        flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
+        if(flexFlag) {
+        	flexQueryList = generateFlexQueries(terms,limit,indexName);
+        	if ((flexQueryList == null) || (flexQueryList.size() == 0)) {
+                throw new Exception("Flex query list is empty!");
+            }
+        	flexQueries = flexQueryList.stream().toArray(String[]::new);
+        	flexTotalQueries = flexQueries.length;
         }
-
-        queries  = queryList.stream().toArray(SearchQuery[]::new);
-        totalQueries = queries.length;
+        else {
+        	queryList = generateTermQueries(terms, limit, indexName, fieldName);
+        	if ((queryList == null) || (queryList.size() == 0)) {
+                throw new Exception("Query list is empty!");
+            }
+        	queries  = queryList.stream().toArray(SearchQuery[]::new);
+        	totalQueries = queries.length;
+        }       
+        
     }
 
     private List<SearchQuery> generateTermQueries(String[][] terms, int limit, String indexName, String fieldName)
@@ -164,30 +183,77 @@ public class  CouchbaseClient extends Client{
         return queryList;
     }
 
+    private List<String> generateFlexQueries(String[][] terms, int limit, String indexName)
+    		throws IllegalArgumentException {
+    	List<String> queryList = new ArrayList<>();
+    	int size = terms.length;
+    	for (int i = 0; i<size; i++ ) {
+    		int lineSize = terms[i].length;
+    		if(lineSize >0) {
+    			try {
+    				String query = buildFlexQuery(terms[i],limit,indexName);
+    				queryList.add(query);
+    			}catch(IndexOutOfBoundsException ex) {
+    				continue;
+    			}
+    			
+    		}
+    	}
+    	return queryList;
+    	
+    }
 
     private String getProp(String name) {
         return getWorkload().get(name);
     }
 
     public float queryAndLatency() {
-        queryToRun = queries[rand.nextInt(totalQueries)];
-        long st = System.nanoTime();
-        SearchQueryResult res = bucket.query(queryToRun);
+    	long st = System.nanoTime();
+    	SearchQueryResult res = null;
+    	N1qlQueryResult flexRes = null;
+    	if(flexFlag) {
+    		flexQueryToRun = flexQueries[rand.nextInt(flexTotalQueries)];
+    		flexRes = bucket.query(N1qlQuery.simple(flexQueryToRun));
+    	}
+    	else {
+    		queryToRun = queries[rand.nextInt(totalQueries)];
+    		res = bucket.query(queryToRun);
+    	}
+        
+        
+        
         long en = System.nanoTime();
         float latency = (float) (en - st) / 1000000;
-
-        if ((res != null) && (res.status().isSuccess()) && (res.metrics().totalHits() > 0)) { return latency; }
-        fileError(res.toString());
+        if(flexFlag) {
+        	if ( flexRes.parseSuccess() && flexRes.finalSuccess()){return latency; }
+        	fileError(flexRes.toString());
+        		
+        	
+        }else {
+        	if ((res != null) && (res.status().isSuccess()) && (res.metrics().totalHits() > 0)) { return latency; }
+        	fileError(res.toString());
+        }
+        
         return 0;
     }
 
 
     public String queryDebug(){
-        return bucket.query(queries[rand.nextInt(totalQueries)]).toString();
+    	if(flexFlag) {
+    		return bucket.query(N1qlQuery.simple(flexQueries[rand.nextInt(flexTotalQueries)])).toString();
+    	}else {
+    		return bucket.query(queries[rand.nextInt(totalQueries)]).toString();
+    	}
+        
     }
 
     public void query() {
-        bucket.query(queries[rand.nextInt(totalQueries)]);
+    	if (flexFlag) {
+    		bucket.query(N1qlQuery.simple(flexQueries[rand.nextInt(flexTotalQueries)]));
+    	}else {
+    		bucket.query(queries[rand.nextInt(totalQueries)]);
+    	}
+        
     }
 
     public Boolean queryAndSuccess(){
@@ -213,7 +279,16 @@ public class  CouchbaseClient extends Client{
         System.out.println(err);
     }
 
-
+    //FlexQueryBuilders
+    private String buildFlexQuery(String[] terms, int limit,String indexName)
+    		throws IllegalArgumentException{
+    		int val =0;
+    		switch(val) {
+    		case 0 :
+    			return buildComplexObjQuery(terms,limit, indexName);
+    		}
+    		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
+    }
    // Query builders
     private SearchQuery buildQuery(String[] terms, int limit, String indexName, String fieldName)
             throws IllegalArgumentException, IndexOutOfBoundsException {
@@ -356,6 +431,17 @@ public class  CouchbaseClient extends Client{
                 .min(Double.parseDouble(minmax[1]), true).field(fieldName);
         return new SearchQuery(indexName, nrgSQ).limit(limit);
     }
+    
+    private String buildComplexObjQuery(String[] terms, int limit, String indexName) {
+    	return "SELECT devices,company_name,first_name "
+    			+ "FROM `bucket-1` USE INDEX( "+indexName+" USING FTS) "
+    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"F\" END) "
+    			+ "OR (ANY c in children SATISFIES (c.age > 5 AND c.age <15) END ) ) "
+    			+ "AND ((ANY num in devices SATISFIES num>= \"060000-000\" AND num<=\"070000-000\" END) "
+    			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"M\") END))) OR "
+    			+ "(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age > 3 AND c.age <9) END )" ;
+    }
+    
 
     // ------------
     class BackoffSelectStrategyFactory implements SelectStrategyFactory {

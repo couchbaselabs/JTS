@@ -90,7 +90,10 @@ public class TestProperties {
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
     private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
-
+    
+    //FLEX Settings 
+    public static final String TESTSPEC_FLEX="flex";
+    private static final String TESTSPEC_FLEX_DEFAULT ="false";
 
     // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
@@ -156,6 +159,8 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
+        
+        options.addOption(Option.builder(TESTSPEC_FLEX).hasArg().required(false).build());
 
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
@@ -200,6 +205,7 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
+        prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
         prop.put(TESTSPEC_GEO_DISTANCE, cmd.getOptionValue(TESTSPEC_GEO_DISTANCE,TESTSPEC_GEO_DISTANCE_DEFAULT));
         prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));
         prop.put(TESTSPEC_GEO_POLYGON_COORD_LIST, cmd.getOptionValue(TESTSPEC_GEO_POLYGON_COORD_LIST,TESTSPEC_GEO_POLYGON_COORD_LIST_DEFAULT));
