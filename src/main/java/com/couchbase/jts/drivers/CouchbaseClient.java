@@ -258,12 +258,7 @@ public class  CouchbaseClient extends Client{
     }
 
     public Boolean queryAndSuccess(){
-    	if(flexFlag) {
-    		return bucket.query(N1qlQuery.simple(flexQueries[rand.nextInt(flexTotalQueries)])).isSuccess();
-    	}else {
-    		return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
-    	}
-        
+        return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
     }
 
     public void mutateRandomDoc() {
@@ -441,7 +436,7 @@ public class  CouchbaseClient extends Client{
     private String buildComplexObjQuery(String[] terms, int limit, String indexName) {
     	return "SELECT devices,company_name,first_name "
     			+ "FROM `bucket-1` USE INDEX( "+indexName+" USING FTS) "
-    			+ "WHERE(ANY c IN children SATISFIES c.gender = \"F\" END) ";
+    			+" where (ANY c in children SATISFIES (c.age >=5 AND c.age <=7) END )";
     }
 
     // ------------
