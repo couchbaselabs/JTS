@@ -248,6 +248,7 @@ public class  CouchbaseClient extends Client{
     }
 
     public void query() {
+    	flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
     	if (flexFlag) {
     		bucket.query(N1qlQuery.simple(flexQueries[rand.nextInt(flexTotalQueries)]));
     	}else {
@@ -435,13 +436,8 @@ public class  CouchbaseClient extends Client{
     private String buildComplexObjQuery(String[] terms, int limit, String indexName) {
     	return "SELECT devices,company_name,first_name "
     			+ "FROM `bucket-1` USE INDEX( "+indexName+" USING FTS) "
-    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"F\" END) "
-    			+ "OR (ANY c in children SATISFIES (c.age > 5 AND c.age <15) END ) ) "
-    			+ "AND ((ANY num in devices SATISFIES num>= \"060000-000\" AND num<=\"070000-000\" END) "
-    			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"M\") END))) OR "
-    			+ "(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age > 3 AND c.age <9) END )" ;
+    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"F\" END) ";
     }
-    
 
     // ------------
     class BackoffSelectStrategyFactory implements SelectStrategyFactory {
