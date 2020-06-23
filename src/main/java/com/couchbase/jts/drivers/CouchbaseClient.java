@@ -434,9 +434,11 @@ public class  CouchbaseClient extends Client{
     }
     
     private String buildComplexObjQuery(String[] terms, int limit, String indexName) {
+    	String lt = String.valueOf(limit);
     	return "SELECT devices,company_name,first_name "
     			+ "FROM `bucket-1` USE INDEX( "+indexName+" USING FTS) "
-    			+" where (ANY c in children SATISFIES (c.age >=5 AND c.age <=7) END )";
+    			+" where (ANY c in children SATISFIES (c.age >=5 AND c.age <=7) END )"
+    			+ "LIMIT " + limit;
     }
 
     // ------------
