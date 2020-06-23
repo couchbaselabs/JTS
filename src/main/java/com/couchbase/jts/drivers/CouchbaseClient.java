@@ -437,8 +437,9 @@ public class  CouchbaseClient extends Client{
     	String lt = String.valueOf(limit);
     	return "SELECT devices,company_name,first_name "
     			+ "FROM `bucket-1` USE INDEX( "+indexName+" USING FTS) "
-    			+" where (ANY c in children SATISFIES (c.age >=5 AND c.age <=7) END )"
-    			+ "LIMIT " + limit;
+    			+" where (ANY c IN children SATISFIES c.gender = \"F\" END)"
+    			+ "LIMIT " + limit+";";
+    	
     }
 
     // ------------
