@@ -465,7 +465,7 @@ public class  CouchbaseClient extends Client{
     			+ "(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )"
     			+ "AND ((ANY num in devices SATISFIES num>= \"060000-040\" AND num<=\"060000-045\" END) "
     			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"Ab\") END))) "
-    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT 10 ;";
+    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT 5000 ;";
     	return N1qlQuery.simple(query);
     	
     }
