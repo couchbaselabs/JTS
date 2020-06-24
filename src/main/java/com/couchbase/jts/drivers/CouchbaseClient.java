@@ -216,9 +216,9 @@ public class  CouchbaseClient extends Client{
     	long st = System.nanoTime();
     	SearchQueryResult res = null;
     	N1qlQueryResult flexRes = null;
-    	flexFlag = Boolean.parseBoolean(settings.get(settings.TESTSPEC_FLEX));
+    	flexFlag = true;
 
-    	//logWriter.logMessage("In the queryAndLatency function "+ String.valueOf(flexFlag));
+    	logWriter.logMessage("In the queryAndLatency function "+ String.valueOf(flexFlag));
     	if(flexFlag) {
     		logWriter.logMessage("In the flex section in queryAndLatency");
     		flexQueryToRun = flexQueries[rand.nextInt(flexTotalQueries)];
@@ -270,6 +270,7 @@ public class  CouchbaseClient extends Client{
 
     public Boolean queryAndSuccess(){
         logWriter.logMessage("in the queryAndSuccess() and the value of the flexFlag " +String.valueOf(flexFlag));
+        flexFlag = true;
     	if(flexFlag) {
     	     N1qlQueryResult flexRes = bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
     	     if ( flexRes.parseSuccess() && flexRes.finalSuccess()){return true;}
@@ -465,7 +466,7 @@ public class  CouchbaseClient extends Client{
     			+ "(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )"
     			+ "AND ((ANY num in devices SATISFIES num>= \"060000-040\" AND num<=\"060000-045\" END) "
     			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"Ab\") END))) "
-    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT 5000 ;";
+    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT 10 ;";
     	return N1qlQuery.simple(query);
     	
     }
