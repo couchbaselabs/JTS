@@ -145,7 +145,7 @@ public class  CouchbaseClient extends Client{
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
-        flexFlag = Boolean.parseBoolean(settings.get(settings.TESTSPEC_FLEX));
+        flexFlag = true;
         logWriter.logMessage("In the generateQueries function "+ String.valueOf(flexFlag));
         if(flexFlag ) {
         	logWriter.logMessage("In the flex condition of generateQueries function");
