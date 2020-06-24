@@ -145,7 +145,7 @@ public class  CouchbaseClient extends Client{
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
-        flexFlag =true;
+        flexFlag = Boolean.parseBoolean(settings.get(settings.TESTSPEC_FLEX));
         logWriter.logMessage("In the generateQueries function "+ String.valueOf(flexFlag));
         if(flexFlag ) {
         	logWriter.logMessage("In the flex condition of generateQueries function");
@@ -219,7 +219,6 @@ public class  CouchbaseClient extends Client{
     	flexFlag = Boolean.parseBoolean(settings.get(settings.TESTSPEC_FLEX));
 
     	//logWriter.logMessage("In the queryAndLatency function "+ String.valueOf(flexFlag));
-    	flexFlag = true;
     	if(flexFlag) {
     		logWriter.logMessage("In the flex section in queryAndLatency");
     		flexQueryToRun = flexQueries[rand.nextInt(flexTotalQueries)];
@@ -251,7 +250,6 @@ public class  CouchbaseClient extends Client{
 
 
     public String queryDebug(){
-        flexFlag = true;
     	if(flexFlag) {
     		return bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]).toString();
     	}else {
@@ -261,7 +259,6 @@ public class  CouchbaseClient extends Client{
     }
 
     public void query() {
-        flexFlag = true;
         logWriter.logMessage("in query() function");
     	if (flexFlag) {
     		bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
@@ -273,7 +270,6 @@ public class  CouchbaseClient extends Client{
 
     public Boolean queryAndSuccess(){
         logWriter.logMessage("in the queryAndSuccess() and the value of the flexFlag " +String.valueOf(flexFlag));
-        flexFlag = true;
     	if(flexFlag) {
     	     N1qlQueryResult flexRes = bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
     	     if ( flexRes.parseSuccess() && flexRes.finalSuccess()){return true;}
@@ -310,9 +306,8 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildFlexQuery(String[] terms, int limit,String indexName)
     		throws IllegalArgumentException{
     		logWriter.logMessage("In the buildFlexQuery function");
-    		int val =0;
-    		switch(val) {
-    		case 0 :
+    		switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)) {
+    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
     			return buildComplexObjQuery(terms,limit, indexName);
     		}
     		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
@@ -464,13 +459,13 @@ public class  CouchbaseClient extends Client{
 
     	logWriter.logMessage("Workload Manager started; buildComplexObjQuery");
     	String lt = String.valueOf(limit);
-    	String query = "SELECT devices, company_name, first_name
-    	    FROM `bucket-1` USE INDEX( perf_fts_index USING FTS)
-WHERE(((ANY c IN children SATISFIES c.gender = "F" END) OR
-(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )
-AND ((ANY num in devices SATISFIES num>= "060000-040" AND num<="060000-045" END) OR
-(ANY c in children SATISFIES (c.first_name >="A" AND c.first_name <="Ab") END))) OR
-(ANY c IN children SATISFIES c.gender = "F" AND (c.age >=3 AND c.age <=5) END )LIMIT 10 ;
+    	String query = "SELECT devices, company_name, first_name "
+    			+ "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
+    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"F\" END) OR"
+    			+ "(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )"
+    			+ "AND ((ANY num in devices SATISFIES num>= \"060000-040\" AND num<=\"060000-045\" END) "
+    			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"Ab\") END))) "
+    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT 10 ;";
     	return N1qlQuery.simple(query);
     	
     }
