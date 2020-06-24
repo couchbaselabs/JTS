@@ -26,6 +26,7 @@ import com.couchbase.client.java.search.queries.*;
 import com.couchbase.client.java.query.*;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.jts.logger.GlobalStatusLogger;
 
 
 import com.couchbase.client.java.search.SearchQuery;
@@ -48,7 +49,7 @@ import java.util.concurrent.locks.LockSupport;
 
 
 public class  CouchbaseClient extends Client{
-
+	private GlobalStatusLogger logWriter = new GlobalStatusLogger();
     private static volatile CouchbaseEnvironment env = null;
     private static final Object INIT_COORDINATOR = new Object();
 
@@ -65,15 +66,15 @@ public class  CouchbaseClient extends Client{
     private Cluster cluster;
     private Bucket bucket;
     private SearchQuery[] queries;
-    private String[] flexQueries;
+    private N1qlQuery[] flexQueries;
     
 
     private Random rand = new Random();
     private int totalQueries = 0;
     private int flexTotalQueries = 0;
     private SearchQuery queryToRun;
-    private String flexQueryToRun;
-    private Boolean flexFlag ;
+    private N1qlQuery flexQueryToRun;
+    private Boolean flexFlag = true ;
 
 
     public CouchbaseClient(TestProperties workload) throws Exception{
@@ -143,14 +144,16 @@ public class  CouchbaseClient extends Client{
         String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
-        List<String> flexQueryList = null;
-        flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
-        if(flexFlag) {
+        List<N1qlQuery> flexQueryList = null;
+        flexFlag =true;
+        logWriter.logMessage("In the generateQueries function "+ String.valueOf(flexFlag));
+        if(flexFlag ) {
+        	logWriter.logMessage("In the flex condition of generateQueries function");
         	flexQueryList = generateFlexQueries(terms,limit,indexName);
         	if ((flexQueryList == null) || (flexQueryList.size() == 0)) {
                 throw new Exception("Flex query list is empty!");
             }
-        	flexQueries = flexQueryList.stream().toArray(String[]::new);
+        	flexQueries = flexQueryList.stream().toArray(N1qlQuery[]::new);
         	flexTotalQueries = flexQueries.length;
         }
         else {
@@ -183,15 +186,17 @@ public class  CouchbaseClient extends Client{
         return queryList;
     }
 
-    private List<String> generateFlexQueries(String[][] terms, int limit, String indexName)
+    private List<N1qlQuery> generateFlexQueries(String[][] terms, int limit, String indexName)
     		throws IllegalArgumentException {
-    	List<String> queryList = new ArrayList<>();
+    	logWriter.logMessage("In the generateFlexQueries function");
+    	List<N1qlQuery> queryList = new ArrayList<>();
     	int size = terms.length;
     	for (int i = 0; i<size; i++ ) {
     		int lineSize = terms[i].length;
     		if(lineSize >0) {
     			try {
-    				String query = buildFlexQuery(terms[i],limit,indexName);
+    				logWriter.logMessage("In the generateFlexQueries try portion ");
+    				N1qlQuery query = buildFlexQuery(terms[i],limit,indexName);
     				queryList.add(query);
     			}catch(IndexOutOfBoundsException ex) {
     				continue;
@@ -211,9 +216,16 @@ public class  CouchbaseClient extends Client{
     	long st = System.nanoTime();
     	SearchQueryResult res = null;
     	N1qlQueryResult flexRes = null;
+    	flexFlag = Boolean.parseBoolean(settings.get(settings.TESTSPEC_FLEX));
+
+    	//logWriter.logMessage("In the queryAndLatency function "+ String.valueOf(flexFlag));
+    	flexFlag = true;
     	if(flexFlag) {
+    		logWriter.logMessage("In the flex section in queryAndLatency");
     		flexQueryToRun = flexQueries[rand.nextInt(flexTotalQueries)];
-    		flexRes = bucket.query(N1qlQuery.simple(flexQueryToRun));
+    		logWriter.logMessage(String.valueOf(flexQueryToRun));
+    		flexRes = bucket.query(flexQueryToRun);
+    		logWriter.logMessage(String.valueOf(flexRes));
     	}
     	else {
     		queryToRun = queries[rand.nextInt(totalQueries)];
@@ -239,8 +251,9 @@ public class  CouchbaseClient extends Client{
 
 
     public String queryDebug(){
+        flexFlag = true;
     	if(flexFlag) {
-    		return bucket.query(N1qlQuery.simple(flexQueries[rand.nextInt(flexTotalQueries)])).toString();
+    		return bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]).toString();
     	}else {
     		return bucket.query(queries[rand.nextInt(totalQueries)]).toString();
     	}
@@ -248,9 +261,10 @@ public class  CouchbaseClient extends Client{
     }
 
     public void query() {
-    	flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
+        flexFlag = true;
+        logWriter.logMessage("in query() function");
     	if (flexFlag) {
-    		bucket.query(N1qlQuery.simple(flexQueries[rand.nextInt(flexTotalQueries)]));
+    		bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
     	}else {
     		bucket.query(queries[rand.nextInt(totalQueries)]);
     	}
@@ -258,7 +272,19 @@ public class  CouchbaseClient extends Client{
     }
 
     public Boolean queryAndSuccess(){
-        return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
+        logWriter.logMessage("in the queryAndSuccess() and the value of the flexFlag " +String.valueOf(flexFlag));
+        flexFlag = true;
+    	if(flexFlag) {
+    	     N1qlQueryResult flexRes = bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
+    	     if ( flexRes.parseSuccess() && flexRes.finalSuccess()){return true;}
+    	     return false;
+
+    	}else{
+    	    return bucket.query(queries[rand.nextInt(totalQueries)]).status().isSuccess();
+    	}
+    	
+
+    	       
     }
 
     public void mutateRandomDoc() {
@@ -281,8 +307,9 @@ public class  CouchbaseClient extends Client{
     }
 
     //FlexQueryBuilders
-    private String buildFlexQuery(String[] terms, int limit,String indexName)
+    private N1qlQuery buildFlexQuery(String[] terms, int limit,String indexName)
     		throws IllegalArgumentException{
+    		logWriter.logMessage("In the buildFlexQuery function");
     		int val =0;
     		switch(val) {
     		case 0 :
@@ -433,12 +460,18 @@ public class  CouchbaseClient extends Client{
         return new SearchQuery(indexName, nrgSQ).limit(limit);
     }
     
-    private String buildComplexObjQuery(String[] terms, int limit, String indexName) {
+    private N1qlQuery buildComplexObjQuery(String[] terms, int limit, String indexName) {
+
+    	logWriter.logMessage("Workload Manager started; buildComplexObjQuery");
     	String lt = String.valueOf(limit);
-    	return "SELECT devices,company_name,first_name "
-    			+ "FROM `bucket-1` USE INDEX( "+indexName+" USING FTS) "
-    			+" where (ANY c IN children SATISFIES c.gender = \"F\" END)"
-    			+ "LIMIT " + limit+";";
+    	String query = "SELECT devices, company_name, first_name
+    	    FROM `bucket-1` USE INDEX( perf_fts_index USING FTS)
+WHERE(((ANY c IN children SATISFIES c.gender = "F" END) OR
+(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )
+AND ((ANY num in devices SATISFIES num>= "060000-040" AND num<="060000-045" END) OR
+(ANY c in children SATISFIES (c.first_name >="A" AND c.first_name <="Ab") END))) OR
+(ANY c IN children SATISFIES c.gender = "F" AND (c.age >=3 AND c.age <=5) END )LIMIT 10 ;
+    	return N1qlQuery.simple(query);
     	
     }
 
