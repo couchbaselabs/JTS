@@ -146,7 +146,7 @@ public class  CouchbaseClient extends Client{
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
         flexFlag = true;
-        logWriter.logMessage("In the generateQueries function "+ String.valueOf(flexFlag));
+        logWriter.logMessage("In the generateQueries function "+ settings.get(TestProperties.TESTSPEC_FLEX));
         if(flexFlag ) {
         	logWriter.logMessage("In the flex condition of generateQueries function");
         	flexQueryList = generateFlexQueries(terms,limit,indexName);
@@ -310,6 +310,10 @@ public class  CouchbaseClient extends Client{
     		switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)) {
     		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
     			return buildComplexObjQuery(terms,limit, indexName);
+    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED1:
+    			return buildMixedQuery1(terms,limit,indexName);
+    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED2:
+    			return buildMixedQuery2(terms,limit,indexName);
     		}
     		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
     }
@@ -459,18 +463,39 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildComplexObjQuery(String[] terms, int limit, String indexName) {
 
     	logWriter.logMessage("Workload Manager started; buildComplexObjQuery");
-    	String lt = String.valueOf(limit);
     	String query = "SELECT devices, company_name, first_name "
     			+ "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
     			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"F\" END) OR"
     			+ "(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )"
     			+ "AND ((ANY num in devices SATISFIES num>= \"060000-040\" AND num<=\"060000-045\" END) "
     			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"Ab\") END))) "
-    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT 10 ;";
+    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT "+String.valueOf(limit)+" ;";
     	return N1qlQuery.simple(query);
     	
     }
-
+     
+    private N1qlQuery buildMixedQuery1(String[] terms, int limit , String indexName) {
+    	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
+    	
+    	String query = "SELECT name, children, devices FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
+    			+ "WHERE ((company_name>\"A\" AND company_name <=\"Aa\") AND (routing_number>2000 AND routing_number<=8000))"
+    			+ "OR ( SOME v IN children SATISFIES v.first_name LIKE \"R%\" OR (v.age>=2 AND v.age<=15) END) "
+    			+ "ORDER BY first_name LIMIT "+String.valueOf(limit)+" ;";
+    	return N1qlQuery.simple(query);
+    }
+    
+    private N1qlQuery buildMixedQuery2(String[] terms, int limit , String indexName) {
+    	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
+    	
+    	String query = "SELECT devices, company,first_name FROM `bucket-1` "
+    			+ "USE INDEX( perf_fts_index USING FTS) WHERE (((isActive=FALSE ) "
+    			+ "AND (ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >= 5 AND c.age <=15) ) )"
+    			+ "OR(company_code >=\"2\" AND company_code <\"5\"))AND( address.activationDate BETWEEN \"2019-10-10T21:22:00\""
+    			+ " AND \"2020-05-09T20:08:02.462692\")  LIMIT "+String.valueOf(limit)+" ;";
+    	return N1qlQuery.simple(query);
+    }
+    
+    
     // ------------
     class BackoffSelectStrategyFactory implements SelectStrategyFactory {
         @Override

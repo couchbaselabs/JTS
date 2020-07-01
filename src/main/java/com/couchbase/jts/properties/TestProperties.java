@@ -31,6 +31,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_GEO_BOX ="geo_box";
     public static final String CONSTANT_QUERY_TYPE_GEO_POLYGON = "geo_polygon";
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
+    public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED = "mixed1";
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 
