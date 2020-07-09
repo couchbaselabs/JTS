@@ -477,7 +477,7 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildMixedQuery1(String[] terms, int limit , String indexName) {
     	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
     	
-    	String query = "SELECT name, children, devices FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
+    	String query = "SELECT first_name, children, devices FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
     			+ "WHERE ((company_name>\"A\" AND company_name <=\"Aa\") AND (routing_number>2000 AND routing_number<=8000))"
     			+ "OR ( SOME v IN children SATISFIES v.first_name LIKE \"R%\" OR (v.age>=2 AND v.age<=15) END) "
     			+ "ORDER BY first_name LIMIT "+String.valueOf(limit)+" ;";
