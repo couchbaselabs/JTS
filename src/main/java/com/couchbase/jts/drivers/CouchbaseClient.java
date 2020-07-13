@@ -463,13 +463,14 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildComplexObjQuery(String[] terms, int limit, String indexName) {
 
     	logWriter.logMessage("Workload Manager started; buildComplexObjQuery");
-    	String query = "SELECT devices, company_name, first_name "
-    			+ "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
-    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"F\" END) OR"
-    			+ "(ANY c in children SATISFIES (c.age >=5 AND c.age<=8) END ) )"
-    			+ "AND ((ANY num in devices SATISFIES num>= \"060000-040\" AND num<=\"060000-045\" END) "
-    			+ "OR (ANY c in children SATISFIES (c.first_name >=\"A\" AND c.first_name <=\"Ab\") END))) "
-    			+ "OR(ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >=3 AND c.age <=5) END ) LIMIT "+String.valueOf(limit)+" ;";
+    	String query ="SELECT devices, company_name, first_name" 
+    	        + "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS)"
+    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END)"
+    			+ " OR (ANY num in devices SATISFIES num >= \"070842-712\" AND num<=\"070875-000\" END) ) )"
+    			+ "AND ((ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060843-712\" END)" 
+    			+ "OR  (ANY c in children SATISFIES (c.first_name =\"Tyra\" or c.first_name =\"Aaron\") "
+    			+ "AND c.gender = \"F\" AND c.age>=10 AND c.age<=13 END))OR(ANY c IN children SATISFIES c.gender = \"F\" "
+    			+ " AND c.age <=5 AND (first_name=\"Sienna\" OR first_name= \"Pattie\" ) END )"; 
     	return N1qlQuery.simple(query);
     	
     }
