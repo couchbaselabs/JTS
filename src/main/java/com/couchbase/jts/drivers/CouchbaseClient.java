@@ -465,7 +465,7 @@ public class  CouchbaseClient extends Client{
     	logWriter.logMessage("Workload Manager started; buildComplexObjQuery");
     	String query ="SELECT devices, company_name, first_name " 
     	        + "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
-    			+ "WHERE(((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
+    			+ "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
     			+ "OR (ANY num in devices SATISFIES num >= \"070842-712\" AND num<=\"070875-000\" END) ) ) "
     			+ "AND ((ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060843-712\" END) " 
     			+ "OR  (ANY c in children SATISFIES (c.first_name =\"Tyra\" or c.first_name =\"Aaron\") "
@@ -478,21 +478,24 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildMixedQuery1(String[] terms, int limit , String indexName) {
     	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
     	
-    	String query = "SELECT first_name, children, devices FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
-    			+ "WHERE ((company_name>\"A\" AND company_name <=\"Aa\") AND (routing_number>2000 AND routing_number<=8000))"
-    			+ "OR ( SOME v IN children SATISFIES v.first_name LIKE \"R%\" OR (v.age>=2 AND v.age<=15) END) "
-    			+ "ORDER BY first_name LIMIT "+String.valueOf(limit)+" ;";
+    	String query = "select first_name , routing_number, city , country, age " 
+    			+ "from `bucket-1` USE index (using FTS) "  
+    			+"where ((routing_number>=1011 AND routing_number<=1020) " 
+    			+"OR (address.city =\"Schoenview\" OR address.city =\"Doylefurt\" OR address.city = \"Rutherfordbury\" OR address.city =\"North Vanceville\") "  
+    			+"AND ( address.country =\"Senegal\" AND (age =78 OR age=30 )))";
     	return N1qlQuery.simple(query);
     }
     
     private N1qlQuery buildMixedQuery2(String[] terms, int limit , String indexName) {
     	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
     	
-    	String query = "SELECT devices, company,first_name FROM `bucket-1` "
-    			+ "USE INDEX( perf_fts_index USING FTS) WHERE (((isActive=FALSE ) "
-    			+ "AND (ANY c IN children SATISFIES c.gender = \"F\" AND (c.age >= 5 AND c.age <=15) ) )"
-    			+ "OR(company_code >=\"2\" AND company_code <\"5\"))AND( address.activationDate BETWEEN \"2019-10-10T21:22:00\""
-    			+ " AND \"2020-05-09T20:08:02.462692\")  LIMIT "+String.valueOf(limit)+" ;";
+    	String query = "select country , age " 
+    			+"from `bucket-1` " 
+    			+"use index (using FTS) "  
+    			+"where (address.country=\"Nigeria\" AND (age=31 OR age=33)) "  
+    			+"OR (ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060879-902\" END) " 
+    			+"AND (routing_number>=1011 AND routing_number<=1020) " 
+    			+"AND (ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) ";
     	return N1qlQuery.simple(query);
     }
     
