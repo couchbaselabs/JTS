@@ -487,7 +487,7 @@ public class  CouchbaseClient extends Client{
     }
     
     private N1qlQuery buildMixedQuery2(String[] terms, int limit , String indexName) {
-    	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
+    	logWriter.logMessage("Workload Manager started; buildMixedQuery2"); 
     	
     	String query = "select country , age " 
     			+"from `bucket-1` " 
