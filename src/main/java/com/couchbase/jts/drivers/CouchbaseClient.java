@@ -74,7 +74,7 @@ public class  CouchbaseClient extends Client{
     private int flexTotalQueries = 0;
     private SearchQuery queryToRun;
     private N1qlQuery flexQueryToRun;
-    private Boolean flexFlag = true ;
+    private Boolean flexFlag ;
 
 
     public CouchbaseClient(TestProperties workload) throws Exception{
@@ -145,10 +145,9 @@ public class  CouchbaseClient extends Client{
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
-        flexFlag = true;
+        flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_QUERY_FIELD));
         logWriter.logMessage("In the generateQueries function "+ settings.get(TestProperties.TESTSPEC_FLEX));
         if(flexFlag ) {
-        	logWriter.logMessage("In the flex condition of generateQueries function");
         	flexQueryList = generateFlexQueries(terms,limit,indexName);
         	if ((flexQueryList == null) || (flexQueryList.size() == 0)) {
                 throw new Exception("Flex query list is empty!");
@@ -188,14 +187,12 @@ public class  CouchbaseClient extends Client{
 
     private List<N1qlQuery> generateFlexQueries(String[][] terms, int limit, String indexName)
     		throws IllegalArgumentException {
-    	logWriter.logMessage("In the generateFlexQueries function");
     	List<N1qlQuery> queryList = new ArrayList<>();
     	int size = terms.length;
     	for (int i = 0; i<size; i++ ) {
     		int lineSize = terms[i].length;
     		if(lineSize >0) {
     			try {
-    				logWriter.logMessage("In the generateFlexQueries try portion ");
     				N1qlQuery query = buildFlexQuery(terms[i],limit,indexName);
     				queryList.add(query);
     			}catch(IndexOutOfBoundsException ex) {
@@ -216,8 +213,6 @@ public class  CouchbaseClient extends Client{
     	long st = System.nanoTime();
     	SearchQueryResult res = null;
     	N1qlQueryResult flexRes = null;
-    	flexFlag = true;
-
     	logWriter.logMessage("In the queryAndLatency function "+ String.valueOf(flexFlag));
     	if(flexFlag) {
     		logWriter.logMessage("In the flex section in queryAndLatency");
@@ -259,7 +254,6 @@ public class  CouchbaseClient extends Client{
     }
 
     public void query() {
-        logWriter.logMessage("in query() function");
     	if (flexFlag) {
     		bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
     	}else {
@@ -269,8 +263,7 @@ public class  CouchbaseClient extends Client{
     }
 
     public Boolean queryAndSuccess(){
-        logWriter.logMessage("in the queryAndSuccess() and the value of the flexFlag " +String.valueOf(flexFlag));
-        flexFlag = true;
+        
     	if(flexFlag) {
     	     N1qlQueryResult flexRes = bucket.query(flexQueries[rand.nextInt(flexTotalQueries)]);
     	     if ( flexRes.parseSuccess() && flexRes.finalSuccess()){return true;}
@@ -306,7 +299,6 @@ public class  CouchbaseClient extends Client{
     //FlexQueryBuilders
     private N1qlQuery buildFlexQuery(String[] terms, int limit,String indexName)
     		throws IllegalArgumentException{
-    		logWriter.logMessage("In the buildFlexQuery function");
     		switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)) {
     		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
     			return buildComplexObjQuery(terms,limit, indexName);
@@ -462,7 +454,6 @@ public class  CouchbaseClient extends Client{
     
     private N1qlQuery buildComplexObjQuery(String[] terms, int limit, String indexName) {
 
-    	logWriter.logMessage("Workload Manager started; buildComplexObjQuery");
     	String query ="SELECT devices, company_name, first_name " 
     	        + "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
     			+ "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
@@ -476,7 +467,6 @@ public class  CouchbaseClient extends Client{
     }
      
     private N1qlQuery buildMixedQuery1(String[] terms, int limit , String indexName) {
-    	logWriter.logMessage("Workload Manager started; buildMixedQuery1"); 
     	
     	String query = "select first_name , routing_number, city , country, age " 
     			+ "from `bucket-1` USE index (using FTS) "  
@@ -486,8 +476,7 @@ public class  CouchbaseClient extends Client{
     	return N1qlQuery.simple(query);
     }
     
-    private N1qlQuery buildMixedQuery2(String[] terms, int limit , String indexName) {
-    	logWriter.logMessage("Workload Manager started; buildMixedQuery2"); 
+    private N1qlQuery buildMixedQuery2(String[] terms, int limit , String indexName) { 
     	
     	String query = "select country , age " 
     			+"from `bucket-1` " 
