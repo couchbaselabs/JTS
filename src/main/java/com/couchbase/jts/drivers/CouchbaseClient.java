@@ -146,7 +146,6 @@ public class  CouchbaseClient extends Client{
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
         flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_QUERY_FIELD));
-        logWriter.logMessage("In the generateQueries function "+ settings.get(TestProperties.TESTSPEC_FLEX));
         if(flexFlag ) {
         	flexQueryList = generateFlexQueries(terms,limit,indexName);
         	if ((flexQueryList == null) || (flexQueryList.size() == 0)) {
@@ -213,11 +212,8 @@ public class  CouchbaseClient extends Client{
     	long st = System.nanoTime();
     	SearchQueryResult res = null;
     	N1qlQueryResult flexRes = null;
-    	logWriter.logMessage("In the queryAndLatency function "+ String.valueOf(flexFlag));
     	if(flexFlag) {
-    		logWriter.logMessage("In the flex section in queryAndLatency");
     		flexQueryToRun = flexQueries[rand.nextInt(flexTotalQueries)];
-    		logWriter.logMessage(String.valueOf(flexQueryToRun));
     		flexRes = bucket.query(flexQueryToRun);
     		logWriter.logMessage(String.valueOf(flexRes));
     	}

@@ -30,6 +30,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_GEO_RADIUS	= "geo_rad"; 
     public static final String CONSTANT_QUERY_TYPE_GEO_BOX ="geo_box";
     public static final String CONSTANT_QUERY_TYPE_GEO_POLYGON = "geo_polygon";
+    //Flex query types 
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED2 = "mixed2";
@@ -94,7 +95,7 @@ public class TestProperties {
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
     private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
     
-    //FLEX Settings 
+    //FLEX Settings one flag and the other for flexQueryType
     public static final String TESTSPEC_FLEX="test_flex";
     private static final String TESTSPEC_FLEX_DEFAULT ="false";
     
