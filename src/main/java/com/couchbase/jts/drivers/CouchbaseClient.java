@@ -145,7 +145,7 @@ public class  CouchbaseClient extends Client{
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
-        flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_QUERY_FIELD));
+        flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
         if(flexFlag ) {
         	flexQueryList = generateFlexQueries(terms,limit,indexName);
         	if ((flexQueryList == null) || (flexQueryList.size() == 0)) {
