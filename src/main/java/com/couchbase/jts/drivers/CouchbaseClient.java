@@ -24,6 +24,7 @@ import com.couchbase.jts.logger.GlobalStatusLogger;
 import com.couchbase.client.java.env.ClusterEnvironment;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.Scope;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.core.env.IoConfig;
 import com.couchbase.client.java.ClusterOptions;
@@ -71,7 +72,7 @@ public class  CouchbaseClient extends Client{
 	// -1 => no collections
 	// 0 Default collection
 	// >1 N collections
-	private int collectionIndicator;
+	private int collectionIndicator= Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS));
 
 	// for docs generated with custom doc gen (created by JNS87)
 	// the ids of the docs are of type String.valueOf(long ID) , not its hex equivalent
@@ -123,10 +124,7 @@ public class  CouchbaseClient extends Client{
 
 			cluster = Cluster.connect(getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
 			bucket = cluster.bucket(getProp(TestProperties.CBSPEC_CBBUCKET));
-
-			collectionIndicator = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS));
-
-			//adding in logic for collection enabling for CC
+            // adding in logic for collection enabling for CC
 			if(collectionIndicator == -1 || collectionIndicator == 0 ) {
 				// In CC the data is present in the default collection for even the bucket level tests
 				// This is default collections on the KV side
@@ -135,7 +133,6 @@ public class  CouchbaseClient extends Client{
 				// Adding the code for a single non-default scope and non-default collection
 				// need to create a function to randomize the mutations over the collections
 				collection = bucket.scope("scope-1").collection("collection-1");
-				logWriter.logMessage("in the other part of the collections parameter");
 			}
 
 		}catch(Exception ex) {
@@ -212,7 +209,6 @@ public float queryAndLatency() {
 	queryToRun = FTSQueries[rand.nextInt(totalQueries)];
 	SearchOptions opt = SearchOptions.searchOptions().limit(limit);
 	SearchResult res = cluster.searchQuery(indexName,queryToRun,opt);
-	logWriter.logMessage(res.toString());
 	long en = System.nanoTime();
 	float latency = (float) (en - st) / 1000000;
 	int res_size = res.rows().size();
@@ -223,11 +219,9 @@ public float queryAndLatency() {
 
 
 public void mutateRandomDoc() {
-	logWriter.logMessage("In Mutate()");
 	long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
 	long docIdLong = Math.abs(rand.nextLong() % totalDocs);
-	String docIdHex;
-	logWriter.logMessage("value of flag in mutate"+UseDocIdLong);
+	String docIdHex = "";
 	if(UseDocIdLong == 0){
 		docIdHex =  Long.toHexString(docIdLong);
 	}else{
