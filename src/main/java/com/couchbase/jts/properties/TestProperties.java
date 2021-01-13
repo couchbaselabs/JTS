@@ -243,7 +243,7 @@ public class TestProperties {
 
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS,cmd.getOptionValue(TESTSPEC_COLLECTIONS,TESTSPEC_COLLECTIONS_DEFAULT));
-        prop.put(TESTSPEC_DOCID_LONG, cmd.getgetOptionValue(TESTSPEC_DOCID_LONG, TESTSPEC_DOCID_LONG_DEFAULT));
+        prop.put(TESTSPEC_DOCID_LONG, cmd.getOptionValue(TESTSPEC_DOCID_LONG, TESTSPEC_DOCID_LONG_DEFAULT));
 
         // Additional Flex queries parameter
         prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
