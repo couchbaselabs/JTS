@@ -102,6 +102,20 @@ public class TestProperties {
     public static final String TESTSPEC_FLEX_QUERY_TYPE = "test_flex_query_type";
     private static final String TESTSPEC_FLEX_QUERY_TYPE_DEFAULT ="array_predicate";
 
+
+    // Collections setting
+    // -1 => no collections
+ 	  // 0 Default collection
+ 	  // >1 N collections
+
+    public static final String TESTSPEC_COLLECTIONS ="test_collections_flag";
+    private static final String TESTSPEC_COLLECTIONS_DEFAULT = "0";
+
+    // If the docid is long: value = 1 , for Hex equivalent ids of dataset; value = 0
+    // 0 is default
+    public static final String TESTSPEC_DOCID_LONG ="test_docid_use_long";
+    private static final String TESTSPEC_DOCID_LONG_DEFAULT = "0";
+
     // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
     private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
@@ -147,6 +161,7 @@ public class TestProperties {
         driversMapping.put("elastic", "com.couchbase.jts.drivers.ElasticClient");
 
         Options options = new Options();
+
         options.addOption(Option.builder(TESTSPEC_TEST_DURATION).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_TOTAL_DOCS).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_KV_WORKERS).hasArg().required(false).build());
@@ -157,19 +172,29 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_STATS_LIMIT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_STATS_AGGR_STEP).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_TEST_DEBUGMODE).hasArg().required(false).build());
+
+        // Query type and QueryOptions related parameters
         options.addOption(Option.builder(TESTSPEC_QUERY_TYPE).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_GEO_LAT_HEIGHT).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_GEO_LON_WIDTH).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_GEO_POLYGON_COORD_LIST).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_LIMIT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
 
+        // Additional parameters for geo queries
+        options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEO_LAT_HEIGHT).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEO_LON_WIDTH).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEO_POLYGON_COORD_LIST).hasArg().required(false).build());
+
+        // Additional parameters for Flex
         options.addOption(Option.builder(TESTSPEC_FLEX).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FLEX_QUERY_TYPE).hasArg().required(false).build());
 
+        // Additional flags for Collections
+        options.addOption(Option.builder(TESTSPEC_COLLECTIONS).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_DOCID_LONG).hasArg().required(false).build());
+
+        // Couchbase authentication related parameters
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_CBBUCKET).hasArg().required(false).build());
@@ -181,6 +206,8 @@ public class TestProperties {
         options.addOption(Option.builder(MDBSPEC_PORT).hasArg().required(false).build());
         options.addOption(Option.builder(MDBSPEC_DATABASE).hasArg().required(false).build());
         options.addOption(Option.builder(MDBSPEC_COLLECTION).hasArg().required(false).build());
+
+
 
 
         CommandLineParser parser = new DefaultParser();
@@ -214,9 +241,15 @@ public class TestProperties {
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
 
+        // Additional Collection flags
+        prop.put(TESTSPEC_COLLECTIONS,cmd.getOptionValue(TESTSPEC_COLLECTIONS,TESTSPEC_COLLECTIONS_DEFAULT));
+        prop.put(TESTSPEC_DOCID_LONG, cmd.getgetOptionValue(TESTSPEC_DOCID_LONG, TESTSPEC_DOCID_LONG_DEFAULT));
+
+        // Additional Flex queries parameter
         prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
         prop.put(TESTSPEC_FLEX_QUERY_TYPE,cmd.getOptionValue(TESTSPEC_FLEX_QUERY_TYPE,TESTSPEC_FLEX_QUERY_TYPE_DEFAULT));
 
+        // Additional Geo Queries parameter
         prop.put(TESTSPEC_GEO_DISTANCE, cmd.getOptionValue(TESTSPEC_GEO_DISTANCE,TESTSPEC_GEO_DISTANCE_DEFAULT));
         prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));
         prop.put(TESTSPEC_GEO_POLYGON_COORD_LIST, cmd.getOptionValue(TESTSPEC_GEO_POLYGON_COORD_LIST,TESTSPEC_GEO_POLYGON_COORD_LIST_DEFAULT));
