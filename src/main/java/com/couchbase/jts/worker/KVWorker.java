@@ -1,6 +1,5 @@
 package com.couchbase.jts.worker;
 
-import com.couchbase.client.java.search.result.SearchQueryResult;
 import com.couchbase.jts.drivers.Client;
 import com.couchbase.jts.logger.ThroughputLogger;
 
