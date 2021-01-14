@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
 import java.lang.System.* ;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 // Imports for Collections
@@ -31,6 +33,8 @@ import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.MutationResult;
+// Data type for Geo queries
+import com.couchbase.client.java.util.Coordinate;
 
 // Imports of the other dependent services
 import com.couchbase.client.java.kv.*;
@@ -185,6 +189,28 @@ private SearchQuery buildQuery(String[] terms, String fieldName)
 				return buildAndQuery(terms,fieldName);
 		 case TestProperties.CONSTANT_QUERY_TYPE_OR:
 				return buildOrQuery(terms,fieldName);
+		 case TestProperties.CONSTANT_QUERY_TYPE_AND_OR_OR:
+	 			return buildAndOrOrQuery(terms,fieldName);
+		case TestProperties.CONSTANT_QUERY_TYPE_FUZZY:
+			 return buildFuzzyQuery(terms,fieldName);
+		case TestProperties.CONSTANT_QUERY_TYPE_PHRASE:
+			 return buildPhraseQuery(terms, fieldName);
+		case TestProperties.CONSTANT_QUERY_TYPE_PREFIX:
+			 return buildPrefixQuery(terms, fieldName);
+		case TestProperties.CONSTANT_QUERY_TYPE_WILDCARD:
+			 return buildWildcardQuery(terms, fieldName);
+
+		case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
+		   return buildNumericQuery(terms, fieldName);
+		case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
+		   return buildGeoRadiusQuery(terms,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
+		case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
+		   double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
+		   double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
+		   return buildGeoBoundingBoxQuery(terms,fieldName , latHeight,lonWidth);
+		case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
+		   return buildGeoPolygonQuery(terms,fieldName);
+
 	}
 	throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
 									+ settings.get(settings.TESTSPEC_QUERY_TYPE));
@@ -203,6 +229,64 @@ private SearchQuery buildOrQuery(String[] terms, String fieldName) {
 	TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
 	return SearchQuery.disjuncts(lt,rt);
 }
+private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName){
+	TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
+  TermQuery mt = SearchQuery.term(terms[1]).field(fieldName);
+  TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
+  DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
+  return SearchQuery.conjuncts(disSQ, lt);
+}
+private SearchQuery buildFuzzyQuery(String[] terms, String fieldName){
+	return SearchQuery.term(terms[0]).field(fieldName).fuzziness(Integer.parseInt(terms[1]));
+}
+private SearchQuery buildPhraseQuery(String[] terms, String fieldName){
+	return SearchQuery.matchPhrase(terms[0]+ " "+ terms[1]).field(fieldName);
+}
+private SearchQuery buildPrefixQuery(String[] terms, String fieldName){
+	return SearchQuery.prefix(terms[0]).field(fieldName);
+}
+private SearchQuery buildWildcardQuery(String [] terms, String fieldName){
+	return SearchQuery.wildcard(terms[0]).field(fieldName);
+}
+
+private SearchQuery buildNumericQuery(String[] terms, String fieldName){
+	String[] minmax = terms[0].split(":");
+ 	return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
+          .min(Double.parseDouble(minmax[1]), true).field(fieldName);
+
+}
+private SearchQuery buildGeoRadiusQuery(String[] terms,String feildName, String dist){
+	//double locationLon, double locationLat, String distance
+    	double locationLon= Double.parseDouble(terms[0]) ;
+    	double locationLat = Double.parseDouble(terms[1]);
+    	String distance = dist;
+    	return SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
+}
+
+private SearchQuery buildGeoBoundingBoxQuery(String[] terms, String fieldName, double latHeight, double lonWidth){
+	//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
+    	double topLeftLon= Double.parseDouble(terms[0]) ;
+    	double topLeftLat = Double.parseDouble(terms[1]);
+    	double bottomRightLon= topLeftLon +lonWidth ;
+    	double bottomRightLat = topLeftLat - latHeight;
+    	return  SearchQuery.geoBoundingBox​(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(fieldName);
+}
+
+private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName ){
+    	List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
+    	for(int i = 0; i <terms.length;i = i+2)
+    	{
+    		double lon = Double.parseDouble(terms[i]);
+    		double lat = Double.parseDouble(terms[i+1]);
+    		Coordinate coord = Coordinate.ofLonLat(lon,lat);
+    		listOfPts.add(coord);
+    	}
+
+    	return SearchQuery.geoPolygon(listOfPts).field(fieldName);
+
+    }
+
+
 
 public float queryAndLatency() {
 	long st = System.nanoTime();
