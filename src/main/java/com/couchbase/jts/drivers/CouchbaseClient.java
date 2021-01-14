@@ -70,6 +70,7 @@ public class  CouchbaseClient extends Client{
 	private int connectTimeout = 100000;
 	private int socketTimeout = 100000;
 	private boolean enableMutationToken = false;
+	private int collection_len = 0 ;
 	private volatile Collection collection;
 
 	// An indicator to indicate the number of collections present for the test
@@ -86,7 +87,13 @@ public class  CouchbaseClient extends Client{
 	int limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
 	String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
 
+	String scope_prefix = settings.get(TestProperties.TESTSPEC_SCOPE_PREFIX);
+	int scope_number = Integer.parseInt(settings.get(TestProperties.TESTSPEC_SCOPE_NUMBER));
+	String collection_prefix = settings.get(TestProperties.TESTSPEC_COLLECTIONS_PREFIX);
+	int collection_number = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS_NUMBER));
 
+// collection_number = number of collections per scope
+	private volatile Collection[] collection_list = new Collection[scope_number*collection_number];
 	private Cluster cluster;
 	private volatile ClusterOptions clusterOptions;
 	private Bucket bucket;
@@ -129,14 +136,20 @@ public class  CouchbaseClient extends Client{
 			cluster = Cluster.connect(getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
 			bucket = cluster.bucket(getProp(TestProperties.CBSPEC_CBBUCKET));
             // adding in logic for collection enabling for CC
+			logWriter.logMessage("the collectionIndicator is : "+collectionIndicator);
 			if(collectionIndicator == -1 || collectionIndicator == 0 ) {
 				// In CC the data is present in the default collection for even the bucket level tests
 				// This is default collections on the KV side
 				collection = bucket.defaultCollection();
 			}else {
 				// Adding the code for a single non-default scope and non-default collection
-				// need to create a function to randomize the mutations over the collections
-				collection = bucket.scope("scope-1").collection("collection-1");
+				for(int scopeNum = 0 ; scopeNum<scope_number; scopeNum++){
+					for (int collNum = 0; collNum<collection_number; collNum++){
+						collection_list[scopeNum+collNum]=bucket.scope(scope_prefix+String.valueOf(scopeNum+1)).collection(collection_prefix+String.valueOf(collNum+1));
+					}
+				}
+				collection_len = collection_list.length;
+
 			}
 
 		}catch(Exception ex) {
@@ -314,7 +327,15 @@ public void mutateRandomDoc() {
 	String originFieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
 	String replaceFieldName = settings.get(TestProperties.TESTSPEC_MUTATION_FIELD);
 	// Getting the document content
+	if(collection_len == 1){
+		collection = collection_list[0];
+	}
+	if(collection_len > 1){
+		collection = collection_list[rand.nextInt(collection_len)];
+	}
+
 	GetResult doc = collection.get(docIdHex);
+	logWriter.logMessage("this is the doc: "+doc.toString());
 	// converting that to a JSON object
 	JsonObject mutate_doc = doc.contentAsObject();
 	// To get the values we are changing
