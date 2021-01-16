@@ -116,6 +116,24 @@ public class TestProperties {
     public static final String TESTSPEC_DOCID_LONG ="test_docid_use_long";
     private static final String TESTSPEC_DOCID_LONG_DEFAULT = "0";
 
+    // For multiple collections settings
+    public static final String TESTSPEC_COLLECTIONS_NUMBER ="test_collections_number";
+    private static final String TESTSPEC_COLLECTIONS_NUMBER_DEFAULT = "0";
+
+    public static final String TESTSPEC_SCOPE_NUMBER = "test_scope_number";
+    private static final String TESTSPEC_SCOPE_NUMBER_DEFAULT = "0";
+
+    public static final String TESTSPEC_COLLECTIONS_PREFIX = "test_collection_prefix";
+    public static final String TESTSPEC_COLLECTIONS_PREFIX_DEFAULT = "collection-";
+
+    public static final String TESTSPEC_SCOPE_PREFIX = "test_scope_prefix";
+    public static final String TESTSPEC_SCOPE_PREFIX_DEFAULT = "scope-";
+
+    // Collection specific Query parameters
+    public static final String TESTSPEC_COLL_SPECIFIC_FLAG = "test_coll_specific_flag";
+    public static final String TESTSPEC_COLL_SPECIFIC_FLAG_DEFAULT = "0";
+
+
     // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
     private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
@@ -194,6 +212,16 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_COLLECTIONS).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_DOCID_LONG).hasArg().required(false).build());
 
+        // Additional settings for multiple Collections
+        options.addOption(Option.builder(TESTSPEC_COLLECTIONS_NUMBER).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_SCOPE_NUMBER).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_COLLECTIONS_PREFIX).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_SCOPE_PREFIX).hasArg().required(false).build());
+
+        // Additional settings for collectionSpecific Queries
+        options.addOption(Option.builder(TESTSPEC_COLL_SPECIFIC_FLAG).hasArg().required(false).build());
+
+
         // Couchbase authentication related parameters
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
@@ -244,6 +272,17 @@ public class TestProperties {
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS,cmd.getOptionValue(TESTSPEC_COLLECTIONS,TESTSPEC_COLLECTIONS_DEFAULT));
         prop.put(TESTSPEC_DOCID_LONG, cmd.getOptionValue(TESTSPEC_DOCID_LONG, TESTSPEC_DOCID_LONG_DEFAULT));
+
+        //
+        // Additional Collection settings for multiple Collections
+        prop.put(TESTSPEC_COLLECTIONS_NUMBER,cmd.getOptionValue(TESTSPEC_COLLECTIONS_NUMBER ,TESTSPEC_COLLECTIONS_NUMBER_DEFAULT));
+        prop.put(TESTSPEC_SCOPE_NUMBER,cmd.getOptionValue(TESTSPEC_SCOPE_NUMBER ,TESTSPEC_SCOPE_NUMBER_DEFAULT));
+        prop.put(TESTSPEC_COLLECTIONS_PREFIX,cmd.getOptionValue(TESTSPEC_COLLECTIONS_PREFIX ,TESTSPEC_COLLECTIONS_PREFIX_DEFAULT));
+        prop.put(TESTSPEC_SCOPE_PREFIX,cmd.getOptionValue(TESTSPEC_SCOPE_PREFIX ,TESTSPEC_SCOPE_PREFIX_DEFAULT));
+
+        // Additional Collection specific Query parameters
+        prop.put(TESTSPEC_COLL_SPECIFIC_FLAG,cmd.getOptionValue(TESTSPEC_COLL_SPECIFIC_FLAG ,TESTSPEC_COLL_SPECIFIC_FLAG_DEFAULT));
+
 
         // Additional Flex queries parameter
         prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
