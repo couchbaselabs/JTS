@@ -34,6 +34,7 @@ public class TestProperties {
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED2 = "mixed2";
+    public static final String CONSTANT_SCORE_NONE = "score_none";
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 
@@ -133,6 +134,11 @@ public class TestProperties {
     public static final String TESTSPEC_COLLECTIONS_SPECIFIC = "test_collection_specific";
     private static final String TESTSPEC_COLLECTIONS_SPECIFIC_DEFAULT = "false";
 
+    //score-none Settings
+    public static final String TESTSPEC_SCORE_NONE = "test_score_none";
+    private static final String TESTSPEC_SCORE_NONE_DEFAULT = "false";
+
+
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
     private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
 
@@ -217,6 +223,8 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_COLLECTIONS_PREFIX).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_SCOPE_PREFIX).hasArg().required(false).build());
 
+        // Score = none Settings
+        options.addOption(Option.builder(TESTSPEC_SCORE_NONE).hasArg().required(false).build());
 
         // Couchbase authentication related parameters
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
@@ -284,6 +292,7 @@ public class TestProperties {
         prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));
         prop.put(TESTSPEC_GEO_POLYGON_COORD_LIST, cmd.getOptionValue(TESTSPEC_GEO_POLYGON_COORD_LIST,TESTSPEC_GEO_POLYGON_COORD_LIST_DEFAULT));
         prop.put(TESTSPEC_GEO_LON_WIDTH,cmd.getOptionValue(TESTSPEC_GEO_LON_WIDTH,TESTSPEC_GEO_LON_WIDTH_DEFAULT));
+        prop.put(TESTSPEC_SCORE_NONE,cmd.getOptionValue(TESTSPEC_SCORE_NONE,TESTSPEC_SCORE_NONE_DEFAULT));
 
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));
@@ -325,4 +334,3 @@ public class TestProperties {
 
 
 }
-

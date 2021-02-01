@@ -114,8 +114,10 @@ public class  CouchbaseClient extends Client{
 
 	// Collection specific variables
 	private Boolean collectionSpecificFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_SPECIFIC));
+	private Boolean scoreNoneFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_SCORE_NONE));
 
-	private SearchOptions opt = SearchOptions.searchOptions().limit(limit);
+	private SearchOptions opt = SearchOptions.searchOptions().limit(limit).disableScoring(scoreNoneFlag);
+
 
 	private SearchQuery[] FTSQueries;
 	private int totalQueries = 0;
@@ -258,6 +260,8 @@ private SearchQuery buildQuery(String[] terms, String fieldName)
 	 			return buildAndOrOrQuery(terms,fieldName);
 		case TestProperties.CONSTANT_QUERY_TYPE_FUZZY:
 			 return buildFuzzyQuery(terms,fieldName);
+		case TestProperties.CONSTANT_SCORE_NONE:
+			return buildScoreNoneQuery(terms, fieldName);
 		case TestProperties.CONSTANT_QUERY_TYPE_PHRASE:
 			 return buildPhraseQuery(terms, fieldName);
 		case TestProperties.CONSTANT_QUERY_TYPE_PREFIX:
@@ -301,6 +305,18 @@ private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName){
   DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
   return SearchQuery.conjuncts(disSQ, lt);
 }
+
+private SearchQuery buildScoreNoneQuery(String[] terms, String fieldName){
+	TermQuery t1 = SearchQuery.term(terms[0]).field(fieldName);
+	TermQuery t2 = SearchQuery.term(terms[1]).field(fieldName);
+	TermQuery t3 = SearchQuery.term(terms[2]).field(fieldName);
+	TermQuery t4 = SearchQuery.term(terms[3]).field(fieldName);
+	TermQuery t5 = SearchQuery.term(terms[4]).field(fieldName);
+	ConjunctionQuery conjQ = SearchQuery.conjuncts(t4,t5);
+	return SearchQuery.disjuncts(t1,t2,t3,conjQ);
+
+}
+
 private SearchQuery buildFuzzyQuery(String[] terms, String fieldName){
 	return SearchQuery.term(terms[0]).field(fieldName).fuzziness(Integer.parseInt(terms[1]));
 }
@@ -513,4 +529,3 @@ public Boolean queryAndSuccess() {
 
 
 }
-
