@@ -413,7 +413,11 @@ public float queryAndLatency() {
 	long st = 0;
 	long en = 0;
 	queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-	flexQueryToRun = FlexQueries[rand.nextInt(FlexTotalQueries)];
+	flexQueryToRun = "";
+	if(flexFlag){
+		flexQueryToRun = FlexQueries[rand.nextInt(FlexTotalQueries)];
+	}
+
 	if (collectionSpecificFlag){
 		generateCollectionSpecificParameters();
 	}
@@ -430,7 +434,7 @@ public float queryAndLatency() {
 		res = cluster.searchQuery(indexName,queryToRun,opt);
 		en = System.nanoTime();
 	}
-
+	logWriter.logMessage("this is the result: "+res.toString());
 	float latency = (float) (en - st) / 1000000;
 	if (flexFlag){
 		long resultCount = 11;
