@@ -437,14 +437,12 @@ public float queryAndLatency() {
 	logWriter.logMessage("this is the result: "+res.toString());
 	float latency = (float) (en - st) / 1000000;
 	if (flexFlag){
-		long resultCount = 11;
-		logWriter.logMessage("This is the count: "+flexRes.metaData().status());
 		if (String.valueOf(flexRes.metaData().status()) == "SUCCESS"){return latency; }
         	fileError(flexRes.toString());
 	}else{
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return latency;}
+		if (res_size > 0 && metrics.totalRows()!= 0){ return latency;}
 	}
 
 	return 0;
@@ -518,7 +516,7 @@ public Boolean queryAndSuccess() {
 		SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt);
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true;}
+		if (res_size > 0 && metrics.totalRows()!= 0){ return true;}
 		return false;
 	}
 }
