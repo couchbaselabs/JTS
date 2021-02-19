@@ -324,15 +324,19 @@ public class  CouchbaseClient extends Client {
 	}
 
 	public float queryAndLatency() {
-		long st = System.nanoTime();
+		String indexToQuery = indexName;
+		if (index_map_provided) {
+			indexToQuery = getRandomIndex();
+		}
+		SearchOptions opt = genSearchOpts(indexToQuery);
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
+		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexName, queryToRun, opt);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return latency;}
+		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return latency; }
 		return 0;
 	}
 
@@ -345,7 +349,7 @@ public class  CouchbaseClient extends Client {
 		SearchResult res = cluster.searchQuery(indexToQuery, FTSQueries[rand.nextInt(totalQueries)], opt);
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true;}
+		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true; }
 		return false;
 	}
 
