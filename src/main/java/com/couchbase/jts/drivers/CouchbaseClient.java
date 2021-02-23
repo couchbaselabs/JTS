@@ -13,6 +13,11 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+//Imports for JSON
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
 // Imports for Collections
 import com.couchbase.client.java.Collection;
 
@@ -39,6 +44,7 @@ import com.couchbase.client.java.util.Coordinate;
 // Imports of the other dependent services
 import com.couchbase.client.java.kv.*;
 import com.couchbase.client.java.json.*;
+
 import com.couchbase.client.java.query.*;
 // Search related imports
 import com.couchbase.client.java.search.SearchQuery;
@@ -84,46 +90,43 @@ public class  CouchbaseClient extends Client{
 	private int collection_len = 0 ;
 	private volatile Collection collection;
 
-	// An indicator to indicate the number of collections present for the test
-	// -1 => no collections
-	// 0 Default collection
-	// >1 N collections
-	private int collectionIndicator= Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS));
+	// To indicate that it is an index on collection
+	private boolean collectionsEnabled = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_ENABLED));
 
-	// for docs generated with custom doc gen (created by JNS87)
-	// the ids of the docs are of type String.valueOf(long ID) , not its hex equivalent
-	private int UseDocIdLong = Integer.parseInt(settings.get(TestProperties.TESTSPEC_DOCID_LONG));
 
 	// Setting the searchQuery Options
 	int limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
 	String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
 
-	String scopePrefix = settings.get(TestProperties.TESTSPEC_SCOPE_PREFIX);
-	int scopeNumber = Integer.parseInt(settings.get(TestProperties.TESTSPEC_SCOPE_NUMBER));
-	String collectionPrefix = settings.get(TestProperties.TESTSPEC_COLLECTIONS_PREFIX);
-	int collectionNumber = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS_NUMBER));
-
-// collection_number = number of collections per scope
- String scopeName = scopePrefix + String.valueOf(scopeNumber);
- String collectionName = collectionPrefix + String.valueOf(collectionNumber);
- String[] collectionList= new String[collectionNumber];
-
 	private Cluster cluster;
 	private volatile ClusterOptions clusterOptions;
 	private Bucket bucket;
 
+
 	// Collection specific variables
-	private Boolean collectionSpecificFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_SPECIFIC));
+	private boolean index_map_provided;
+	private String collection_query_mode = settings.get(TestProperties.TESTSPEC_COLLECTION_QUERY_MODE);
+	private String fts_index_map_raw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
+	private JSONObject fts_index_json;
+	private List<String> fts_index_list;
+	private List<String> collections_list;
+	private int numCollections;
+
+	// For knowing what the subset for collection_specific tests
+	private int collection_specific_subset = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_SUBSET));
+
+	// For a FTS with score = none
 	private Boolean scoreNoneFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_SCORE_NONE));
+
 
 	private SearchOptions opt = SearchOptions.searchOptions().limit(limit).disableScoring(scoreNoneFlag);
 
-
+	//  FTS Query variables
 	private SearchQuery[] FTSQueries;
 	private int totalQueries = 0;
 	private SearchQuery queryToRun;
 
-	//Flex Query variables
+	// Flex Query variables
 	private String[] FlexQueries;
 	private int FlexTotalQueries = 0;
 	private Boolean flexFlag ;
@@ -134,19 +137,96 @@ public class  CouchbaseClient extends Client{
 
 	public CouchbaseClient(TestProperties workload) throws Exception{
         super(workload);
-				connect();
-				generateQueries();
+        setup();
+        connect();
+		generateQueries();
     }
-		private void generateCollectionSpecificParameters(){
-			JsonObject scName = JsonObject.create();
-			scName.put("scope", scopeName);
-			for(int colNum = 0; colNum<collectionNumber;colNum++){
-				collectionList[colNum] = collectionPrefix+String.valueOf(colNum + 1);
+	private void setup() throws Exception {
+		if (!fts_index_map_raw.equals("")) {
+			index_map_provided = true;
+			JSONParser jsonParser = new JSONParser();
+			Object obj = jsonParser.parse(fts_index_map_raw);
+			fts_index_json = (JSONObject) obj;
+			fts_index_list = new ArrayList<String>(fts_index_json.keySet());
+			Set target_set = new HashSet();
+
+			for (String index : fts_index_list) {
+				JSONObject index_targets = (JSONObject) fts_index_json.get(index);
+				String targetScope = (String) index_targets.get("scope");
+				ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
+
+				for (String targetCollection : targetCollections) {
+					target_set.add(targetScope+"."+targetCollection);
+				}
 			}
-			JsonArray colNameList = JsonArray.create();
-			colNameList.from(collectionList);
-			opt.raw("scope",scName).raw("collections",colNameList);
+
+			collections_list = new ArrayList<String>(target_set);
+			numCollections = collections_list.size();
+
+		} else {
+			index_map_provided = false;
+			Set target_set = new HashSet();
+			target_set.add("_default._default");
+			collections_list = new ArrayList<String>(target_set);
+			numCollections = collections_list.size();
 		}
+
+		if (collectionsEnabled && !index_map_provided) {
+			throw new Exception("index map required when collections enabled");
+		}
+	}
+
+	private String getRandomIndex() {
+		return fts_index_list.get(rand.nextInt(fts_index_list.size()));
+	}
+
+	private String getRandomCollection() {
+		return collections_list.get(rand.nextInt(collections_list.size()));
+	}
+
+	private ArrayList<String> getRandomCollection(ArrayList<String> collectionList) {
+		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
+		ArrayList<String> subsetList = new ArrayList<>();
+		// If all collections are included
+		if (collection_specific_subset == numCollections ){
+			subsetList =  collectionList;
+		}
+		if (collection_specific_subset > 1 && collection_specific_subset < numCollections){
+			int startIndex = rand.nextInt(totalDocs);
+			int endIndex = startIndex + (collection_specific_subset - 1) ;
+			if (endIndex < numCollections){
+				subsetList =  collectionList.subList(startIndex,endIndex);
+			}
+			if (endIndex >= numCollections){
+				subsetList = collectionList.subList(startIndex,numCollections-1);
+				endIndex = endIndex - numCollections ;
+				subsetList.add(collectionList.subList(0,endIndex));
+			}
+
+		}
+		if (collection_specific_subset == 1){
+			subsetList.add(collectionList.get(rand.nextInt(collectionList.size())));
+		}
+
+
+		return subsetList;
+	}
+
+	private SearchOptions genSearchOpts(String indexToQuery) {
+		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
+		if (collectionsEnabled && collection_query_mode.equals("collection_specific")) {
+			JSONObject index_targets = (JSONObject) fts_index_json.get(indexToQuery);
+			JsonObject scopeJson = JsonObject.create();
+			String targetScope = (String) index_targets.get("scope");
+			scopeJson.put("scope", targetScope);
+			JsonArray colJson = JsonArray.create();
+			ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
+			ArrayList<String> randomCollection = getRandomCollection(targetCollections);
+			colJson.add(randomCollection.get(0));
+			opt.raw("scope", scopeJson).raw("collections", colJson);
+		}
+		return opt;
+	}
 
 		private void connect() throws Exception{
 
@@ -167,17 +247,7 @@ public class  CouchbaseClient extends Client{
 
 			cluster = Cluster.connect(getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
 			bucket = cluster.bucket(getProp(TestProperties.CBSPEC_CBBUCKET));
-            // adding in logic for collection enabling for CC
-			//logWriter.logMessage("the collectionIndicator is : "+collectionIndicator);
-			if(collectionIndicator == -1 || collectionIndicator == 0 ) {
-				// In CC the data is present in the default collection for even the bucket level tests
-				// This is default collections on the KV side
-				collection = bucket.defaultCollection();
-			}else {
-				// Adding the code for a single non-default scope and non-default collection
-				collection = bucket.scope(scopeName).collection(collectionName);
 
-			}
 
 		}catch(Exception ex) {
             throw new Exception("Could not connect to Couchbase Bucket.", ex);
@@ -449,34 +519,33 @@ public float queryAndLatency() {
 }
 
 
-public void mutateRandomDoc() {
-	long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
-	long docIdLong = Math.abs(rand.nextLong() % totalDocs);
-	String docIdHex = "";
-	//logWriter.logMessage("this is the doc: "+doc.toString());
-	if(UseDocIdLong == 0){
-		docIdHex =  Long.toHexString(docIdLong);
-	}else{
-		docIdHex = String.valueOf(docIdLong);
+	public void mutateRandomDoc() {
+		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
+		long docPerCollection = totalDocs / numCollections;
+		long docIdLong = Math.abs(rand.nextLong() % docPerCollection);
+
+		String docIdHex = Long.toHexString(docIdLong);
+		String originFieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
+		String replaceFieldName = settings.get(TestProperties.TESTSPEC_MUTATION_FIELD);
+
+		Collection collection;
+		String target = getRandomCollection();
+		if (target.equals("_default._default")) {
+			collection = bucket.defaultCollection();
+		} else {
+			String[] scope_collection = target.split("\\.");
+			String targetScope = scope_collection[0];
+			String targetColl = scope_collection[1];
+			collection = bucket.scope(targetScope).collection(targetColl);
+		}
+		GetResult doc = collection.get(docIdHex);
+		JsonObject mutate_doc = doc.contentAsObject();
+		Object origin = doc.contentAsObject().getString(originFieldName);
+		Object replace = doc.contentAsObject().getString(replaceFieldName);
+		mutate_doc.put(originFieldName, replace);
+		mutate_doc.put(replaceFieldName, origin);
+		MutationResult mut_res =  collection.upsert(docIdHex, mutate_doc);
 	}
-	String originFieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
-	String replaceFieldName = settings.get(TestProperties.TESTSPEC_MUTATION_FIELD);
-
-	GetResult doc = collection.get(docIdHex);
-	//logWriter.logMessage("this is the doc: "+doc.toString());
-	// converting that to a JSON object
-	JsonObject mutate_doc = doc.contentAsObject();
-	// To get the values we are changing
-	Object origin = doc.contentAsObject().getString(originFieldName);
-	Object replace = doc.contentAsObject().getString(replaceFieldName);
-	// mutating this by interchanging
-	mutate_doc.put(originFieldName, replace);
-	mutate_doc.put(replaceFieldName, origin);
-	// pushing the document
-	MutationResult mut_res =  collection.upsert(docIdHex, mutate_doc);
-
-
-}
 
 public String queryDebug() {
 	if (collectionSpecificFlag){
