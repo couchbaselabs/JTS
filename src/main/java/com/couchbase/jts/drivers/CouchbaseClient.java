@@ -108,6 +108,7 @@ public class  CouchbaseClient extends Client{
 	// Collection specific variables
 	private boolean index_map_provided;
 	private Boolean collectionSpecificFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_FLAG));
+
 	private String fts_index_map_raw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
 	private JSONObject fts_index_json;
 	private List<String> fts_index_list;
@@ -138,11 +139,11 @@ public class  CouchbaseClient extends Client{
 	private Random rand = new Random();
 
 	public CouchbaseClient(TestProperties workload) throws Exception{
-        super(workload);
-        setup();
-        connect();
+		super(workload);
+		setup();
+		connect();
 		generateQueries();
-    }
+	}
 
 	private void setup() throws Exception {
 		if (!fts_index_map_raw.equals("")) {
@@ -188,15 +189,15 @@ public class  CouchbaseClient extends Client{
 			subsetList =  collectionList;
 		}
 		if (collection_specific_subset > 1 && collection_specific_subset < numCollections){
-			int startIndex = rand.nextInt(totalDocs);
-			int endIndex = startIndex + (collection_specific_subset - 1) ;
+			int startIndex = rand.nextInt(numCollections);
+			int endIndex = startIndex + collection_specific_subset ;
 			if (endIndex < numCollections){
-				subsetList = (ArrayList<String>) collectionList.subList(startIndex,endIndex);
+				subsetList = new ArrayList<String>(collectionList.subList(startIndex,endIndex));
 			}
 			if (endIndex >= numCollections){
-				subsetList =  (ArrayList<String>) collectionList.subList(startIndex,numCollections-1);
+				subsetList =  new ArrayList<String> (collectionList.subList(startIndex,numCollections));
 				endIndex = endIndex - numCollections ;
-				ArrayList <String> tempList =  (ArrayList<String>) collectionList.subList(0,endIndex);
+				ArrayList <String> tempList =  new ArrayList<String> (collectionList.subList(0,endIndex));
 				for (String collectionName : tempList ){
 					subsetList.add(collectionName);
 				}
@@ -214,15 +215,18 @@ public class  CouchbaseClient extends Client{
 
 	private void generateCollectionSpecificParameters() {
 		// Sets the values for
-			JSONObject index_targets = (JSONObject) fts_index_json.get(indexName);
-			JsonObject scopeJson = JsonObject.create();
-			String targetScope = (String) index_targets.get("scope");
-			scopeJson.put("scope", targetScope);
-			JsonArray colJson = JsonArray.create();
-			ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
-			ArrayList<String> randomCollection = getCollectionList(targetCollections);
-			colJson.add(randomCollection.get(0));
-			opt.raw("scope", scopeJson).raw("collections", colJson);
+		JSONObject index_targets = (JSONObject) fts_index_json.get(indexName);
+		JsonObject scopeJson = JsonObject.create();
+		String targetScope = (String) index_targets.get("scope");
+		scopeJson.put("scope", targetScope);
+		JsonArray colJson = JsonArray.create();
+		ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
+		ArrayList<String> randomCollection = getCollectionList(targetCollections);
+		for(String colName : randomCollection) {
+			colJson.add(colName);
+		}
+
+		opt.raw("scope", scopeJson).raw("collections", colJson);
 
 	}
 
@@ -235,7 +239,7 @@ public class  CouchbaseClient extends Client{
 							.builder()
 							.timeoutConfig(TimeoutConfig.kvTimeout(Duration.ofMillis(kvTimeout)))
 							.ioConfig(IoConfig.enableMutationTokens(enableMutationToken).numKvConnections(kvEndpoints))
-				      .build();
+							.build();
 				}
 			}
 			clusterOptions = ClusterOptions.clusterOptions(getProp(TestProperties.CBSPEC_USER),getProp(TestProperties.CBSPEC_PASSWORD));
@@ -246,8 +250,8 @@ public class  CouchbaseClient extends Client{
 
 
 		}catch(Exception ex) {
-            throw new Exception("Could not connect to Couchbase Bucket.", ex);
-        }
+			throw new Exception("Could not connect to Couchbase Bucket.", ex);
+		}
 	}
 
 	private void generateQueries() throws Exception {
@@ -267,7 +271,7 @@ public class  CouchbaseClient extends Client{
 			queryList = generateTermQueries(terms,fieldName);
 			if ((queryList == null) || (queryList.size() == 0)) {
 				throw new Exception("Query list is empty!");
-    		}
+			}
 			FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
 			totalQueries = FTSQueries.length;
 		}
@@ -314,37 +318,37 @@ public class  CouchbaseClient extends Client{
 	private SearchQuery buildQuery(String[] terms, String fieldName)
 			throws IllegalArgumentException, IndexOutOfBoundsException {
 		switch (settings.get(settings.TESTSPEC_QUERY_TYPE)) {
-		 	case TestProperties.CONSTANT_QUERY_TYPE_TERM:
+			case TestProperties.CONSTANT_QUERY_TYPE_TERM:
 				return buildTermQuery(terms,fieldName);
-		 	case TestProperties.CONSTANT_QUERY_TYPE_AND:
-		 		return buildAndQuery(terms,fieldName);
-		 	case TestProperties.CONSTANT_QUERY_TYPE_OR:
-				 return buildOrQuery(terms,fieldName);
-		 	case TestProperties.CONSTANT_QUERY_TYPE_AND_OR_OR:
-		 		 return buildAndOrOrQuery(terms,fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_AND:
+				return buildAndQuery(terms,fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_OR:
+				return buildOrQuery(terms,fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_AND_OR_OR:
+				return buildAndOrOrQuery(terms,fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_FUZZY:
-				 return buildFuzzyQuery(terms,fieldName);
+				return buildFuzzyQuery(terms,fieldName);
 			case TestProperties.CONSTANT_SCORE_NONE:
 				return buildScoreNoneQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_PHRASE:
-				 return buildPhraseQuery(terms, fieldName);
+				return buildPhraseQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_PREFIX:
-			 	return buildPrefixQuery(terms, fieldName);
+				return buildPrefixQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_WILDCARD:
-			 	return buildWildcardQuery(terms, fieldName);
+				return buildWildcardQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
-		   		return buildNumericQuery(terms, fieldName);
+				return buildNumericQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
-		   		return buildGeoRadiusQuery(terms,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
+				return buildGeoRadiusQuery(terms,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
 			case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
-		   		double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
-		   		double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
-		   		return buildGeoBoundingBoxQuery(terms,fieldName , latHeight,lonWidth);
-		   case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
-		   		return buildGeoPolygonQuery(terms,fieldName);
+				double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
+				double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
+				return buildGeoBoundingBoxQuery(terms,fieldName , latHeight,lonWidth);
+			case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
+				return buildGeoPolygonQuery(terms,fieldName);
 		}
 		throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
-									+ settings.get(settings.TESTSPEC_QUERY_TYPE));
+				+ settings.get(settings.TESTSPEC_QUERY_TYPE));
 	}
 
 	private SearchQuery buildTermQuery(String[] terms, String fieldName) {
@@ -365,9 +369,9 @@ public class  CouchbaseClient extends Client{
 	private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName){
 		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
 		TermQuery mt = SearchQuery.term(terms[1]).field(fieldName);
-  		TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
-  		DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
-  		return SearchQuery.conjuncts(disSQ, lt);
+		TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
+		DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
+		return SearchQuery.conjuncts(disSQ, lt);
 	}
 
 	private SearchQuery buildScoreNoneQuery(String[] terms, String fieldName){
@@ -395,83 +399,83 @@ public class  CouchbaseClient extends Client{
 	}
 	private SearchQuery buildNumericQuery(String[] terms, String fieldName){
 		String[] minmax = terms[0].split(":");
- 		return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
-          .min(Double.parseDouble(minmax[1]), true).field(fieldName);
+		return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
+				.min(Double.parseDouble(minmax[1]), true).field(fieldName);
 
 	}
 	private SearchQuery buildGeoRadiusQuery(String[] terms,String feildName, String dist){
-	//double locationLon, double locationLat, String distance
-    	double locationLon= Double.parseDouble(terms[0]) ;
-    	double locationLat = Double.parseDouble(terms[1]);
-    	String distance = dist;
-    	return SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
+		//double locationLon, double locationLat, String distance
+		double locationLon= Double.parseDouble(terms[0]) ;
+		double locationLat = Double.parseDouble(terms[1]);
+		String distance = dist;
+		return SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
 	}
 
 	private SearchQuery buildGeoBoundingBoxQuery(String[] terms, String fieldName, double latHeight, double lonWidth){
 		//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
-    	double topLeftLon= Double.parseDouble(terms[0]) ;
-    	double topLeftLat = Double.parseDouble(terms[1]);
-    	double bottomRightLon= topLeftLon +lonWidth ;
-    	double bottomRightLat = topLeftLat - latHeight;
-    	return  SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(fieldName);
+		double topLeftLon= Double.parseDouble(terms[0]) ;
+		double topLeftLat = Double.parseDouble(terms[1]);
+		double bottomRightLon= topLeftLon +lonWidth ;
+		double bottomRightLat = topLeftLat - latHeight;
+		return  SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(fieldName);
 	}
 
 	private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName ){
 		List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
-    	for(int i = 0; i <terms.length;i = i+2)
-    	{
-    		double lon = Double.parseDouble(terms[i]);
-    		double lat = Double.parseDouble(terms[i+1]);
-    		Coordinate coord = Coordinate.ofLonLat(lon,lat);
-    		listOfPts.add(coord);
-    	}
+		for(int i = 0; i <terms.length;i = i+2)
+		{
+			double lon = Double.parseDouble(terms[i]);
+			double lat = Double.parseDouble(terms[i+1]);
+			Coordinate coord = Coordinate.ofLonLat(lon,lat);
+			listOfPts.add(coord);
+		}
 
-    	return SearchQuery.geoPolygon(listOfPts).field(fieldName);
+		return SearchQuery.geoPolygon(listOfPts).field(fieldName);
 	}
 
 	private String buildFlexQuery()
 			throws IllegalArgumentException, IndexOutOfBoundsException {
 		switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)) {
-	    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
-	    			return buildComplexObjQuery();
-	    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED1:
-	    			return buildMixedQuery1();
-	    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED2:
-	    			return buildMixedQuery2();
-	    		}
-	    		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
-}
+			case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
+				return buildComplexObjQuery();
+			case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED1:
+				return buildMixedQuery1();
+			case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED2:
+				return buildMixedQuery2();
+		}
+		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
+	}
 
 	private String buildComplexObjQuery() {
-		 String query ="SELECT devices, company_name, first_name "
-						 + "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
-				 + "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
-				 + "OR (ANY num in devices SATISFIES num >= \"070842-712\" AND num<=\"070875-000\" END) ) ) "
-				 + "AND ((ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060843-712\" END) "
-				 + "OR  (ANY c in children SATISFIES (c.first_name =\"Tyra\" or c.first_name =\"Aaron\") "
-				 + "AND c.gender = \"F\" AND c.age>=10 AND c.age<=13 END))OR(ANY c IN children SATISFIES c.gender = \"F\" "
-				 + "AND c.age <=5 AND (first_name=\"Sienna\" OR first_name= \"Pattie\" ) END )";
-		 return query;
-	 }
+		String query ="SELECT devices, company_name, first_name "
+				+ "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
+				+ "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
+				+ "OR (ANY num in devices SATISFIES num >= \"070842-712\" AND num<=\"070875-000\" END) ) ) "
+				+ "AND ((ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060843-712\" END) "
+				+ "OR  (ANY c in children SATISFIES (c.first_name =\"Tyra\" or c.first_name =\"Aaron\") "
+				+ "AND c.gender = \"F\" AND c.age>=10 AND c.age<=13 END))OR(ANY c IN children SATISFIES c.gender = \"F\" "
+				+ "AND c.age <=5 AND (first_name=\"Sienna\" OR first_name= \"Pattie\" ) END )";
+		return query;
+	}
 
 	private String buildMixedQuery1() {
-		 String query = "select first_name , routing_number, city , country, age "
-				 + "from `bucket-1` USE index (using FTS) "
-				 +"where ((routing_number>=1011 AND routing_number<=1020) "
-				 +"OR (address.city =\"Schoenview\" OR address.city =\"Doylefurt\" OR address.city = \"Rutherfordbury\" OR address.city =\"North Vanceville\") "
-				 +"AND ( address.country =\"Senegal\" AND (age =78 OR age=30 )))";
-		 return query;
+		String query = "select first_name , routing_number, city , country, age "
+				+ "from `bucket-1` USE index (using FTS) "
+				+"where ((routing_number>=1011 AND routing_number<=1020) "
+				+"OR (address.city =\"Schoenview\" OR address.city =\"Doylefurt\" OR address.city = \"Rutherfordbury\" OR address.city =\"North Vanceville\") "
+				+"AND ( address.country =\"Senegal\" AND (age =78 OR age=30 )))";
+		return query;
 	}
 
 	private String buildMixedQuery2() {
-		 String query = "select country , age "
-				 +"from `bucket-1` "
-				 +"use index (using FTS) "
-				 +"where (address.country=\"Nigeria\" AND (age=31 OR age=33)) "
-				 +"OR (ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060879-902\" END) "
-				 +"AND (routing_number>=1011 AND routing_number<=1020) "
-				 +"AND (ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) ";
-		 return query;
+		String query = "select country , age "
+				+"from `bucket-1` "
+				+"use index (using FTS) "
+				+"where (address.country=\"Nigeria\" AND (age=31 OR age=33)) "
+				+"OR (ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060879-902\" END) "
+				+"AND (routing_number>=1011 AND routing_number<=1020) "
+				+"AND (ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) ";
+		return query;
 	}
 
 
@@ -483,6 +487,7 @@ public class  CouchbaseClient extends Client{
 		if(flexFlag){
 			flexQueryToRun = FlexQueries[rand.nextInt(FlexTotalQueries)];
 		}
+		
 		if (collectionSpecificFlag){
 			generateCollectionSpecificParameters();
 		}
@@ -495,23 +500,23 @@ public class  CouchbaseClient extends Client{
 			en = System.nanoTime();
 			//logWriter.logMessage(res.toString());
 		}else{
-		st = System.nanoTime();
-		res = cluster.searchQuery(indexName,queryToRun,opt);
-		en = System.nanoTime();
-	}
-	logWriter.logMessage("this is the result: "+res.toString());
-	float latency = (float) (en - st) / 1000000;
-	if (flexFlag){
-		if (String.valueOf(flexRes.metaData().status()) == "SUCCESS"){return latency; }
-        	fileError(flexRes.toString());
-	}else{
-		int res_size = res.rows().size();
-		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.totalRows()!= 0){ return latency;}
-	}
+			st = System.nanoTime();
+			res = cluster.searchQuery(indexName,queryToRun,opt);
+			en = System.nanoTime();
+		}
+		logWriter.logMessage("this is the result: "+res.toString());
+		float latency = (float) (en - st) / 1000000;
+		if (flexFlag){
+			if (String.valueOf(flexRes.metaData().status()) == "SUCCESS"){return latency; }
+			fileError(flexRes.toString());
+		}else{
+			int res_size = res.rows().size();
+			SearchMetrics metrics = res.metaData().metrics();
+			if (res_size > 0 && metrics.totalRows()!= 0){ return latency;}
+		}
 
-	return 0;
-}
+		return 0;
+	}
 
 
 	public void mutateRandomDoc() {
@@ -542,56 +547,56 @@ public class  CouchbaseClient extends Client{
 		MutationResult mut_res =  collection.upsert(docIdHex, mutate_doc);
 	}
 
-public String queryDebug() {
-	if (collectionSpecificFlag){
-		generateCollectionSpecificParameters();
-	}
-	if(flexFlag){
-		return cluster.query(FlexQueries[rand.nextInt(FlexTotalQueries)]).toString();
-	}else{
-		return cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt).toString();
-	}
-}
-
-public void query() {
-	if (collectionSpecificFlag){
-		generateCollectionSpecificParameters();
-	}
-	if(flexFlag){
-		 cluster.query(FlexQueries[rand.nextInt(FlexTotalQueries)]).toString();
-	}else{
-		cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt).toString();
-	}
-
-}
-
-public Boolean queryAndSuccess() {
-	if (collectionSpecificFlag){
-		generateCollectionSpecificParameters();
-	}
-	if(flexFlag){
-		QueryResult flexRes = cluster.query(FlexQueries[rand.nextInt(FlexTotalQueries)]);
-		//logWriter.logMessage(flexRes.toString());
-		long resultCount = 2;
-		//logWriter.logMessage("This is resultCount: "+flexRes.metaData().status());
-		if (String.valueOf(flexRes.metaData().status()) == "SUCCESS"){return true; }
-		return false;
-	}else{
-		SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt);
-		int res_size = res.rows().size();
-		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.totalRows()!= 0){ return true;}
-		return false;
-	}
-}
-
-
- private String getProp(String name) {
-				return settings.get(name);
+	public String queryDebug() {
+		if (collectionSpecificFlag){
+			generateCollectionSpecificParameters();
 		}
- private void fileError(String err) {
-				System.out.println(err);
+		if(flexFlag){
+			return cluster.query(FlexQueries[rand.nextInt(FlexTotalQueries)]).toString();
+		}else{
+			return cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt).toString();
 		}
+	}
+
+	public void query() {
+		if (collectionSpecificFlag){
+			generateCollectionSpecificParameters();
+		}
+		if(flexFlag){
+			cluster.query(FlexQueries[rand.nextInt(FlexTotalQueries)]).toString();
+		}else{
+			cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt).toString();
+		}
+
+	}
+
+	public Boolean queryAndSuccess() {
+		if (collectionSpecificFlag){
+			generateCollectionSpecificParameters();
+		}
+		if(flexFlag){
+			QueryResult flexRes = cluster.query(FlexQueries[rand.nextInt(FlexTotalQueries)]);
+			//logWriter.logMessage(flexRes.toString());
+			long resultCount = 2;
+			//logWriter.logMessage("This is resultCount: "+flexRes.metaData().status());
+			if (String.valueOf(flexRes.metaData().status()) == "SUCCESS"){return true; }
+			return false;
+		}else{
+			SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],opt);
+			int res_size = res.rows().size();
+			SearchMetrics metrics = res.metaData().metrics();
+			if (res_size > 0 && metrics.totalRows()!= 0){ return true;}
+			return false;
+		}
+	}
+
+
+	private String getProp(String name) {
+		return settings.get(name);
+	}
+	private void fileError(String err) {
+		System.out.println(err);
+	}
 
 
 }
