@@ -104,38 +104,12 @@ public class TestProperties {
     private static final String TESTSPEC_FLEX_QUERY_TYPE_DEFAULT ="array_predicate";
 
 
-    // Collections setting
-    // -1 => no collections
- 	  // 0 Default collection
- 	  // >1 N collections
-
-    public static final String TESTSPEC_COLLECTIONS ="test_collections_flag";
-    private static final String TESTSPEC_COLLECTIONS_DEFAULT = "0";
-
-    // If the docid is long: value = 1 , for Hex equivalent ids of dataset; value = 0
-    // 0 is default
-    public static final String TESTSPEC_DOCID_LONG ="test_docid_use_long";
-    private static final String TESTSPEC_DOCID_LONG_DEFAULT = "0";
-
-    // For multiple collections settings
-    public static final String TESTSPEC_COLLECTIONS_NUMBER ="test_collections_number";
-    private static final String TESTSPEC_COLLECTIONS_NUMBER_DEFAULT = "0";
-
-    public static final String TESTSPEC_SCOPE_NUMBER = "test_scope_number";
-    private static final String TESTSPEC_SCOPE_NUMBER_DEFAULT = "0";
-
-    public static final String TESTSPEC_COLLECTIONS_PREFIX = "test_collection_prefix";
-    private static final String TESTSPEC_COLLECTIONS_PREFIX_DEFAULT = "collection-";
-
-    public static final String TESTSPEC_SCOPE_PREFIX = "test_scope_prefix";
-    public static final String TESTSPEC_SCOPE_PREFIX_DEFAULT = "scope-";
-
     // Couchbase-specific settings
     public static final String TESTSPEC_COLLECTIONS_ENABLED ="test_collections_enabled";
     private static final String TESTSPEC_COLLECTIONS_ENABLED_DEFAULT = "false";
 
-    public static final String TESTSPEC_COLLECTION_QUERY_MODE ="test_collection_query_mode";
-    private static final String TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT = "default";
+    public static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG ="test_collection_specific_flag";
+    private static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG_DEFAULT = "default";
 
     public static final String TESTSPEC_FTS_INDEX_MAP ="test_fts_index_map";
     private static final String TESTSPEC_FTS_INDEX_MAP_DEFAULT = "";
@@ -223,15 +197,9 @@ public class TestProperties {
 
         // Additional flags for Collections
         options.addOption(Option.builder(TESTSPEC_COLLECTIONS_ENABLED).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_COLLECTION_QUERY_MODE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_FLAG).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FTS_INDEX_MAP).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_SUBSET).hasArg().required(false).build());
-
-        // Additional settings for multiple Collections
-        options.addOption(Option.builder(TESTSPEC_COLLECTIONS_NUMBER).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_SCOPE_NUMBER).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_COLLECTIONS_PREFIX).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_SCOPE_PREFIX).hasArg().required(false).build());
 
         // Score = none Settings
         options.addOption(Option.builder(TESTSPEC_SCORE_NONE).hasArg().required(false).build());
@@ -285,9 +253,9 @@ public class TestProperties {
 
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));
-        prop.put(TESTSPEC_COLLECTION_QUERY_MODE, cmd.getOptionValue(TESTSPEC_COLLECTION_QUERY_MODE, TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT));
+        prop.put(TESTSPEC_COLLECTION_SPECIFIC_FLAG, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_FLAG, TESTSPEC_COLLECTION_SPECIFIC_FLAG_DEFAULT));
         prop.put(TESTSPEC_FTS_INDEX_MAP, cmd.getOptionValue(TESTSPEC_FTS_INDEX_MAP, TESTSPEC_FTS_INDEX_MAP_DEFAULT));
-        prop.put(TESTSPEC_FTS_INDEX_MAP, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_SUBSET, TESTSPEC_COLLECTION_SPECIFIC_SUBSET_DEFAULT));
+        prop.put(TESTSPEC_COLLECTION_SPECIFIC_SUBSET, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_SUBSET, TESTSPEC_COLLECTION_SPECIFIC_SUBSET_DEFAULT));
 
 
         // Additional Flex queries parameter

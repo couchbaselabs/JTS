@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.lang.System.* ;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 //Imports for JSON
@@ -105,7 +107,7 @@ public class  CouchbaseClient extends Client{
 
 	// Collection specific variables
 	private boolean index_map_provided;
-	private String collection_query_mode = settings.get(TestProperties.TESTSPEC_COLLECTION_QUERY_MODE);
+	private Boolean collectionSpecificFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_FLAG));
 	private String fts_index_map_raw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
 	private JSONObject fts_index_json;
 	private List<String> fts_index_list;
@@ -141,6 +143,7 @@ public class  CouchbaseClient extends Client{
         connect();
 		generateQueries();
     }
+
 	private void setup() throws Exception {
 		if (!fts_index_map_raw.equals("")) {
 			index_map_provided = true;
@@ -176,16 +179,9 @@ public class  CouchbaseClient extends Client{
 		}
 	}
 
-	private String getRandomIndex() {
-		return fts_index_list.get(rand.nextInt(fts_index_list.size()));
-	}
 
-	private String getRandomCollection() {
-		return collections_list.get(rand.nextInt(collections_list.size()));
-	}
-
-	private ArrayList<String> getRandomCollection(ArrayList<String> collectionList) {
-		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
+	private ArrayList<String> getCollectionList(ArrayList<String> collectionList) {
+		int totalDocs = Integer.parseInt(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
 		ArrayList<String> subsetList = new ArrayList<>();
 		// If all collections are included
 		if (collection_specific_subset == numCollections ){
@@ -195,43 +191,43 @@ public class  CouchbaseClient extends Client{
 			int startIndex = rand.nextInt(totalDocs);
 			int endIndex = startIndex + (collection_specific_subset - 1) ;
 			if (endIndex < numCollections){
-				subsetList =  collectionList.subList(startIndex,endIndex);
+				subsetList = (ArrayList<String>) collectionList.subList(startIndex,endIndex);
 			}
 			if (endIndex >= numCollections){
-				subsetList = collectionList.subList(startIndex,numCollections-1);
+				subsetList =  (ArrayList<String>) collectionList.subList(startIndex,numCollections-1);
 				endIndex = endIndex - numCollections ;
-				subsetList.add(collectionList.subList(0,endIndex));
+				ArrayList <String> tempList =  (ArrayList<String>) collectionList.subList(0,endIndex);
+				for (String collectionName : tempList ){
+					subsetList.add(collectionName);
+				}
+
 			}
 
 		}
 		if (collection_specific_subset == 1){
-			subsetList.add(collectionList.get(rand.nextInt(collectionList.size())));
+			subsetList.add(collections_list.get(rand.nextInt(collections_list.size())));
 		}
 
 
 		return subsetList;
 	}
 
-	private SearchOptions genSearchOpts(String indexToQuery) {
-		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
-		if (collectionsEnabled && collection_query_mode.equals("collection_specific")) {
-			JSONObject index_targets = (JSONObject) fts_index_json.get(indexToQuery);
+	private void generateCollectionSpecificParameters() {
+		// Sets the values for
+			JSONObject index_targets = (JSONObject) fts_index_json.get(indexName);
 			JsonObject scopeJson = JsonObject.create();
 			String targetScope = (String) index_targets.get("scope");
 			scopeJson.put("scope", targetScope);
 			JsonArray colJson = JsonArray.create();
 			ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
-			ArrayList<String> randomCollection = getRandomCollection(targetCollections);
+			ArrayList<String> randomCollection = getCollectionList(targetCollections);
 			colJson.add(randomCollection.get(0));
 			opt.raw("scope", scopeJson).raw("collections", colJson);
-		}
-		return opt;
+
 	}
 
-		private void connect() throws Exception{
-
+	private void connect() throws Exception{
 		try {
-
 			synchronized (INIT_COORDINATOR) {
 				if(env == null) {
 					// This creates a new ClusterEnvironment with Default Settings
@@ -254,174 +250,174 @@ public class  CouchbaseClient extends Client{
         }
 	}
 
-		private void generateQueries() throws Exception {
-	String[][] terms = importTerms();
-	List <SearchQuery> queryList = null;
-	List <String> flexQueryList = null;
-	String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
-	flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
-	if(flexFlag){
-		flexQueryList = generateFlexQueries(terms,fieldName);
-		if((flexQueryList == null) || (flexQueryList.size()==0)) {
-			throw new Exception("Query list is empty! ");
+	private void generateQueries() throws Exception {
+		String[][] terms = importTerms();
+		List <SearchQuery> queryList = null;
+		List <String> flexQueryList = null;
+		String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
+		flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
+		if(flexFlag){
+			flexQueryList = generateFlexQueries(terms,fieldName);
+			if((flexQueryList == null) || (flexQueryList.size()==0)) {
+				throw new Exception("Query list is empty! ");
+			}
+			FlexQueries = flexQueryList.stream().toArray(String[]::new);
+			FlexTotalQueries = FlexQueries.length;
+		}else{
+			queryList = generateTermQueries(terms,fieldName);
+			if ((queryList == null) || (queryList.size() == 0)) {
+				throw new Exception("Query list is empty!");
+    		}
+			FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
+			totalQueries = FTSQueries.length;
 		}
-		FlexQueries = flexQueryList.stream().toArray(String[]::new);
-		FlexTotalQueries = FlexQueries.length;
-	}else{
-		queryList = generateTermQueries(terms,fieldName);
-		if ((queryList == null) || (queryList.size() == 0)) {
-      throw new Exception("Query list is empty!");
-    }
-		FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
-		totalQueries = FTSQueries.length;
+
 	}
 
-}
-
-private List<SearchQuery> generateTermQueries(String[][] terms,  String fieldName)
-	throws IllegalArgumentException{
-	List<SearchQuery> queryList = new ArrayList<>();
-	int size = terms.length;
-
-	for (int i = 0; i<size; i++) {
-		int lineSize = terms[i].length;
-		if(lineSize > 0) {
-			try {
-				SearchQuery query = buildQuery(terms[i], fieldName);
-				queryList.add(query);
-			}catch(IndexOutOfBoundsException ex) {
-				continue;
+	private List<SearchQuery> generateTermQueries(String[][] terms,  String fieldName)
+			throws IllegalArgumentException{
+		List<SearchQuery> queryList = new ArrayList<>();
+		int size = terms.length;
+		for (int i = 0; i<size; i++) {
+			int lineSize = terms[i].length;
+			if(lineSize > 0) {
+				try {
+					SearchQuery query = buildQuery(terms[i], fieldName);
+					queryList.add(query);
+				}catch(IndexOutOfBoundsException ex) {
+					continue;
+				}
 			}
 		}
+		return queryList ;
 	}
-	return queryList ;
 
-}
-private List<String> generateFlexQueries(String[][] terms, String fieldName)
-	throws IllegalArgumentException{
-	List<String> flexQueryList = new ArrayList<>();
-	int size = terms.length;
-	for (int i = 0; i<size; i++) {
-		int lineSize = terms[i].length;
-		if(lineSize > 0) {
-			try {
-				String query = buildFlexQuery();
-				flexQueryList.add(query);
-			}catch(IndexOutOfBoundsException ex) {
-				continue;
+	private List<String> generateFlexQueries(String[][] terms, String fieldName)
+			throws IllegalArgumentException{
+		List<String> flexQueryList = new ArrayList<>();
+		int size = terms.length;
+		for (int i = 0; i<size; i++) {
+			int lineSize = terms[i].length;
+			if(lineSize > 0) {
+				try {
+					String query = buildFlexQuery();
+					flexQueryList.add(query);
+				}catch(IndexOutOfBoundsException ex) {
+					continue;
+				}
 			}
 		}
+
+		return flexQueryList ;
 	}
-
-	return flexQueryList ;
-}
-//Query builders
-private SearchQuery buildQuery(String[] terms, String fieldName)
-	throws IllegalArgumentException, IndexOutOfBoundsException {
-
-	switch (settings.get(settings.TESTSPEC_QUERY_TYPE)) {
-		 case TestProperties.CONSTANT_QUERY_TYPE_TERM:
+	//Query builders
+	private SearchQuery buildQuery(String[] terms, String fieldName)
+			throws IllegalArgumentException, IndexOutOfBoundsException {
+		switch (settings.get(settings.TESTSPEC_QUERY_TYPE)) {
+		 	case TestProperties.CONSTANT_QUERY_TYPE_TERM:
 				return buildTermQuery(terms,fieldName);
-		 case TestProperties.CONSTANT_QUERY_TYPE_AND:
-				return buildAndQuery(terms,fieldName);
-		 case TestProperties.CONSTANT_QUERY_TYPE_OR:
-				return buildOrQuery(terms,fieldName);
-		 case TestProperties.CONSTANT_QUERY_TYPE_AND_OR_OR:
-	 			return buildAndOrOrQuery(terms,fieldName);
-		case TestProperties.CONSTANT_QUERY_TYPE_FUZZY:
-			 return buildFuzzyQuery(terms,fieldName);
-		case TestProperties.CONSTANT_SCORE_NONE:
-			return buildScoreNoneQuery(terms, fieldName);
-		case TestProperties.CONSTANT_QUERY_TYPE_PHRASE:
-			 return buildPhraseQuery(terms, fieldName);
-		case TestProperties.CONSTANT_QUERY_TYPE_PREFIX:
-			 return buildPrefixQuery(terms, fieldName);
-		case TestProperties.CONSTANT_QUERY_TYPE_WILDCARD:
-			 return buildWildcardQuery(terms, fieldName);
+		 	case TestProperties.CONSTANT_QUERY_TYPE_AND:
+		 		return buildAndQuery(terms,fieldName);
+		 	case TestProperties.CONSTANT_QUERY_TYPE_OR:
+				 return buildOrQuery(terms,fieldName);
+		 	case TestProperties.CONSTANT_QUERY_TYPE_AND_OR_OR:
+		 		 return buildAndOrOrQuery(terms,fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_FUZZY:
+				 return buildFuzzyQuery(terms,fieldName);
+			case TestProperties.CONSTANT_SCORE_NONE:
+				return buildScoreNoneQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_PHRASE:
+				 return buildPhraseQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_PREFIX:
+			 	return buildPrefixQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_WILDCARD:
+			 	return buildWildcardQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
+		   		return buildNumericQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
+		   		return buildGeoRadiusQuery(terms,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
+			case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
+		   		double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
+		   		double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
+		   		return buildGeoBoundingBoxQuery(terms,fieldName , latHeight,lonWidth);
+		   case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
+		   		return buildGeoPolygonQuery(terms,fieldName);
+		}
+		throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
+									+ settings.get(settings.TESTSPEC_QUERY_TYPE));
+	}
 
-		case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
-		   return buildNumericQuery(terms, fieldName);
-		case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
-		   return buildGeoRadiusQuery(terms,fieldName,settings.get(settings.TESTSPEC_GEO_DISTANCE));
-		case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
-		   double latHeight = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LAT_HEIGHT));
-		   double lonWidth = Double.parseDouble(settings.get(settings.TESTSPEC_GEO_LON_WIDTH));
-		   return buildGeoBoundingBoxQuery(terms,fieldName , latHeight,lonWidth);
-		case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
-		   return buildGeoPolygonQuery(terms,fieldName);
+	private SearchQuery buildTermQuery(String[] terms, String fieldName) {
+		return SearchQuery.term(terms[0]).field(fieldName);
+	}
+	private SearchQuery buildAndQuery(String[] terms, String fieldName) {
+		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
+		TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
+		return SearchQuery.conjuncts(lt,rt);
+	}
+
+	private SearchQuery buildOrQuery(String[] terms, String fieldName) {
+		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
+		TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
+		return SearchQuery.disjuncts(lt,rt);
+	}
+
+	private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName){
+		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
+		TermQuery mt = SearchQuery.term(terms[1]).field(fieldName);
+  		TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
+  		DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
+  		return SearchQuery.conjuncts(disSQ, lt);
+	}
+
+	private SearchQuery buildScoreNoneQuery(String[] terms, String fieldName){
+		TermQuery t1 = SearchQuery.term(terms[0]).field(fieldName);
+		TermQuery t2 = SearchQuery.term(terms[1]).field(fieldName);
+		TermQuery t3 = SearchQuery.term(terms[2]).field(fieldName);
+		TermQuery t4 = SearchQuery.term(terms[3]).field(fieldName);
+		TermQuery t5 = SearchQuery.term(terms[4]).field(fieldName);
+		ConjunctionQuery conjQ = SearchQuery.conjuncts(t4,t5);
+		return SearchQuery.disjuncts(t1,t2,t3,conjQ);
 
 	}
-	throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
-									+ settings.get(settings.TESTSPEC_QUERY_TYPE));
-}
 
-private SearchQuery buildTermQuery(String[] terms, String fieldName) {
-	return SearchQuery.term(terms[0]).field(fieldName);
-}
-private SearchQuery buildAndQuery(String[] terms, String fieldName) {
-	TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
-	TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
-	return SearchQuery.conjuncts(lt,rt);
-}
-private SearchQuery buildOrQuery(String[] terms, String fieldName) {
-	TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
-	TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
-	return SearchQuery.disjuncts(lt,rt);
-}
-private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName){
-	TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
-  TermQuery mt = SearchQuery.term(terms[1]).field(fieldName);
-  TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
-  DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
-  return SearchQuery.conjuncts(disSQ, lt);
-}
-
-private SearchQuery buildScoreNoneQuery(String[] terms, String fieldName){
-	TermQuery t1 = SearchQuery.term(terms[0]).field(fieldName);
-	TermQuery t2 = SearchQuery.term(terms[1]).field(fieldName);
-	TermQuery t3 = SearchQuery.term(terms[2]).field(fieldName);
-	TermQuery t4 = SearchQuery.term(terms[3]).field(fieldName);
-	TermQuery t5 = SearchQuery.term(terms[4]).field(fieldName);
-	ConjunctionQuery conjQ = SearchQuery.conjuncts(t4,t5);
-	return SearchQuery.disjuncts(t1,t2,t3,conjQ);
-
-}
-
-private SearchQuery buildFuzzyQuery(String[] terms, String fieldName){
-	return SearchQuery.term(terms[0]).field(fieldName).fuzziness(Integer.parseInt(terms[1]));
-}
-private SearchQuery buildPhraseQuery(String[] terms, String fieldName){
-	return SearchQuery.matchPhrase(terms[0]+ " "+ terms[1]).field(fieldName);
-}
-private SearchQuery buildPrefixQuery(String[] terms, String fieldName){
-	return SearchQuery.prefix(terms[0]).field(fieldName);
-}
-private SearchQuery buildWildcardQuery(String [] terms, String fieldName){
-	return SearchQuery.wildcard(terms[0]).field(fieldName);
-}
-private SearchQuery buildNumericQuery(String[] terms, String fieldName){
-	String[] minmax = terms[0].split(":");
- 	return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
+	private SearchQuery buildFuzzyQuery(String[] terms, String fieldName){
+		return SearchQuery.term(terms[0]).field(fieldName).fuzziness(Integer.parseInt(terms[1]));
+	}
+	private SearchQuery buildPhraseQuery(String[] terms, String fieldName){
+		return SearchQuery.matchPhrase(terms[0]+ " "+ terms[1]).field(fieldName);
+	}
+	private SearchQuery buildPrefixQuery(String[] terms, String fieldName){
+		return SearchQuery.prefix(terms[0]).field(fieldName);
+	}
+	private SearchQuery buildWildcardQuery(String [] terms, String fieldName){
+		return SearchQuery.wildcard(terms[0]).field(fieldName);
+	}
+	private SearchQuery buildNumericQuery(String[] terms, String fieldName){
+		String[] minmax = terms[0].split(":");
+ 		return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
           .min(Double.parseDouble(minmax[1]), true).field(fieldName);
 
-}
-private SearchQuery buildGeoRadiusQuery(String[] terms,String feildName, String dist){
+	}
+	private SearchQuery buildGeoRadiusQuery(String[] terms,String feildName, String dist){
 	//double locationLon, double locationLat, String distance
     	double locationLon= Double.parseDouble(terms[0]) ;
     	double locationLat = Double.parseDouble(terms[1]);
     	String distance = dist;
     	return SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
-}
-private SearchQuery buildGeoBoundingBoxQuery(String[] terms, String fieldName, double latHeight, double lonWidth){
-	//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
+	}
+
+	private SearchQuery buildGeoBoundingBoxQuery(String[] terms, String fieldName, double latHeight, double lonWidth){
+		//double topLeftLon, double topLeftLat,double bottomRightLon, double bottomRightLat
     	double topLeftLon= Double.parseDouble(terms[0]) ;
     	double topLeftLat = Double.parseDouble(terms[1]);
     	double bottomRightLon= topLeftLon +lonWidth ;
     	double bottomRightLat = topLeftLat - latHeight;
     	return  SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(fieldName);
-}
-private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName ){
-    	List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
+	}
+
+	private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName ){
+		List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
     	for(int i = 0; i <terms.length;i = i+2)
     	{
     		double lon = Double.parseDouble(terms[i]);
@@ -431,11 +427,11 @@ private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName ){
     	}
 
     	return SearchQuery.geoPolygon(listOfPts).field(fieldName);
+	}
 
-    }
-private String buildFlexQuery()
-	throws IllegalArgumentException, IndexOutOfBoundsException {
-	switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)) {
+	private String buildFlexQuery()
+			throws IllegalArgumentException, IndexOutOfBoundsException {
+		switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)) {
 	    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
 	    			return buildComplexObjQuery();
 	    		case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED1:
@@ -446,7 +442,7 @@ private String buildFlexQuery()
 	    		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
 }
 
-private String buildComplexObjQuery() {
+	private String buildComplexObjQuery() {
 		 String query ="SELECT devices, company_name, first_name "
 						 + "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
 				 + "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
@@ -458,7 +454,7 @@ private String buildComplexObjQuery() {
 		 return query;
 	 }
 
-private String buildMixedQuery1() {
+	private String buildMixedQuery1() {
 		 String query = "select first_name , routing_number, city , country, age "
 				 + "from `bucket-1` USE index (using FTS) "
 				 +"where ((routing_number>=1011 AND routing_number<=1020) "
@@ -467,7 +463,7 @@ private String buildMixedQuery1() {
 		 return query;
 	}
 
-private String buildMixedQuery2() {
+	private String buildMixedQuery2() {
 		 String query = "select country , age "
 				 +"from `bucket-1` "
 				 +"use index (using FTS) "
@@ -479,27 +475,26 @@ private String buildMixedQuery2() {
 	}
 
 
-public float queryAndLatency() {
-	long st = 0;
-	long en = 0;
-	queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-	flexQueryToRun = "";
-	if(flexFlag){
-		flexQueryToRun = FlexQueries[rand.nextInt(FlexTotalQueries)];
-	}
-
-	if (collectionSpecificFlag){
-		generateCollectionSpecificParameters();
-	}
-	SearchResult res = null;
-	QueryResult flexRes = null ;
-	if(flexFlag){
-		st = System.nanoTime();
-		flexRes = cluster.query(flexQueryToRun);
-		//logWriter.logMessage("the resultSet is :"+ flexRes.toString());
-		en = System.nanoTime();
-		//logWriter.logMessage(res.toString());
-	}else{
+	public float queryAndLatency() {
+		long st = 0;
+		long en = 0;
+		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
+		flexQueryToRun = "";
+		if(flexFlag){
+			flexQueryToRun = FlexQueries[rand.nextInt(FlexTotalQueries)];
+		}
+		if (collectionSpecificFlag){
+			generateCollectionSpecificParameters();
+		}
+		SearchResult res = null;
+		QueryResult flexRes = null ;
+		if(flexFlag){
+			st = System.nanoTime();
+			flexRes = cluster.query(flexQueryToRun);
+			//logWriter.logMessage("the resultSet is :"+ flexRes.toString());
+			en = System.nanoTime();
+			//logWriter.logMessage(res.toString());
+		}else{
 		st = System.nanoTime();
 		res = cluster.searchQuery(indexName,queryToRun,opt);
 		en = System.nanoTime();
@@ -529,7 +524,7 @@ public float queryAndLatency() {
 		String replaceFieldName = settings.get(TestProperties.TESTSPEC_MUTATION_FIELD);
 
 		Collection collection;
-		String target = getRandomCollection();
+		String target = collections_list.get(rand.nextInt(collections_list.size()));
 		if (target.equals("_default._default")) {
 			collection = bucket.defaultCollection();
 		} else {
