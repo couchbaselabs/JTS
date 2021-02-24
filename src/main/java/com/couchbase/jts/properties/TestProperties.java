@@ -123,7 +123,7 @@ public class TestProperties {
 
 
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
-    private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
+    private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index-0";
 
     public static final String CBSPEC_SERVER = "couchbase_cluster_ip";
     private static final String CBSPEC_SERVER_DEFAULT = "172.23.99.211";
