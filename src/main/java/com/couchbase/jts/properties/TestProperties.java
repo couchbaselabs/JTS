@@ -109,7 +109,7 @@ public class TestProperties {
     private static final String TESTSPEC_COLLECTIONS_ENABLED_DEFAULT = "false";
 
     public static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG ="test_collection_specific_flag";
-    private static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG_DEFAULT = "default";
+    private static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG_DEFAULT = "false";
 
     public static final String TESTSPEC_FTS_INDEX_MAP ="test_fts_index_map";
     private static final String TESTSPEC_FTS_INDEX_MAP_DEFAULT = "";
