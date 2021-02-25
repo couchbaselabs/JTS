@@ -62,6 +62,7 @@ public class  CouchbaseClient extends Client {
 	private boolean collectionsEnabled = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_ENABLED));
 	private boolean index_map_provided;
 	private String collection_query_mode = settings.get(TestProperties.TESTSPEC_COLLECTION_QUERY_MODE);
+	private int collection_specific_count = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_COUNT));
 	private String fts_index_map_raw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
 	private JSONObject fts_index_json;
 	private List<String> fts_index_list;
@@ -361,9 +362,14 @@ public class  CouchbaseClient extends Client {
 		return collections_list.get(rand.nextInt(collections_list.size()));
 	}
 
-	private ArrayList<String> getRandomCollection(ArrayList<String> collectionList) {
+	private ArrayList<String> getRandomCollections(ArrayList<String> collectionList) {
 		ArrayList<String> subsetList = new ArrayList<>();
-		subsetList.add(collectionList.get(rand.nextInt(collectionList.size())));
+		Set coll_set = new HashSet();
+		int num_coll = collectionList.size();
+		while (coll_set.size() < collection_specific_count) {
+			coll_set.add(collectionList.get(rand.nextInt(num_coll)));
+		}
+		subsetList.addAll(coll_set);
 		return subsetList;
 	}
 
@@ -374,10 +380,10 @@ public class  CouchbaseClient extends Client {
 			JsonObject scopeJson = JsonObject.create();
 			String targetScope = (String) index_targets.get("scope");
 			scopeJson.put("scope", targetScope);
-			JsonArray colJson = JsonArray.create();
+
 			ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
-			ArrayList<String> randomCollection = getRandomCollection(targetCollections);
-			colJson.add(randomCollection.get(0));
+			ArrayList<String> randomCollections = getRandomCollections(targetCollections);
+			JsonArray colJson = JsonArray.from(randomCollections);
 			opt.raw("scope", scopeJson).raw("collections", colJson);
 		}
 		return opt;

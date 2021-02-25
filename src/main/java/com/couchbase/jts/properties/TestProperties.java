@@ -109,6 +109,9 @@ public class TestProperties {
     public static final String TESTSPEC_COLLECTION_QUERY_MODE ="test_collection_query_mode";
     private static final String TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT = "default";
 
+    public static final String TESTSPEC_COLLECTION_SPECIFIC_COUNT ="test_collection_specific_count";
+    private static final String TESTSPEC_COLLECTION_SPECIFIC_COUNT_DEFAULT = "1";
+
     public static final String TESTSPEC_FTS_INDEX_MAP ="test_fts_index_map";
     private static final String TESTSPEC_FTS_INDEX_MAP_DEFAULT = "";
 
@@ -189,6 +192,7 @@ public class TestProperties {
         // Additional flags for Collections
         options.addOption(Option.builder(TESTSPEC_COLLECTIONS_ENABLED).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_COLLECTION_QUERY_MODE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_COUNT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FTS_INDEX_MAP).hasArg().required(false).build());
 
         // Couchbase authentication related parameters
@@ -238,6 +242,7 @@ public class TestProperties {
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));
         prop.put(TESTSPEC_COLLECTION_QUERY_MODE, cmd.getOptionValue(TESTSPEC_COLLECTION_QUERY_MODE, TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT));
+        prop.put(TESTSPEC_COLLECTION_SPECIFIC_COUNT, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_COUNT, TESTSPEC_COLLECTION_SPECIFIC_COUNT_DEFAULT));
         prop.put(TESTSPEC_FTS_INDEX_MAP, cmd.getOptionValue(TESTSPEC_FTS_INDEX_MAP, TESTSPEC_FTS_INDEX_MAP_DEFAULT));
 
         // Additional Flex queries parameter
