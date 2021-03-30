@@ -451,7 +451,7 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildComplexObjQuery(String[] terms, int limit, String indexName) {
 
     	String query ="SELECT devices, company_name, first_name "
-    	        + "FROM `bucket-1` USE INDEX( perf_fts_index USING FTS) "
+    	        + "FROM `bucket-1` USE INDEX( `"+index_name+"` USING FTS) "
     			+ "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
     			+ "OR (ANY num in devices SATISFIES num >= \"070842-712\" AND num<=\"070875-000\" END) ) ) "
     			+ "AND ((ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060843-712\" END) "
@@ -465,7 +465,7 @@ public class  CouchbaseClient extends Client{
     private N1qlQuery buildMixedQuery1(String[] terms, int limit , String indexName) {
 
     	String query = "select first_name , routing_number, city , country, age "
-    			+ "from `bucket-1` USE index (using FTS) "
+    			+ "from `bucket-1` USE index (`\"+index_name+\"` using FTS) "
     			+"where ((routing_number>=1011 AND routing_number<=1020) "
     			+"OR (address.city =\"Schoenview\" OR address.city =\"Doylefurt\" OR address.city = \"Rutherfordbury\" OR address.city =\"North Vanceville\") "
     			+"AND ( address.country =\"Senegal\" AND (age =78 OR age=30 )))";
@@ -476,7 +476,7 @@ public class  CouchbaseClient extends Client{
 
     	String query = "select country , age "
     			+"from `bucket-1` "
-    			+"use index (using FTS) "
+    			+"use index (`\"+index_name+\"` FTS) "
     			+"where (address.country=\"Nigeria\" AND (age=31 OR age=33)) "
     			+"OR (ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060879-902\" END) "
     			+"AND (routing_number>=1011 AND routing_number<=1020) "
