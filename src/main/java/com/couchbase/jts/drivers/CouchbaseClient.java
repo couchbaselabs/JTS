@@ -476,7 +476,7 @@ public class  CouchbaseClient extends Client{
 
     	String query = "select country , age "
     			+"from `bucket-1` "
-    			+"use index (`"+indexName+"` FTS) "
+    			+"use index (`"+indexName+"` using FTS) "
     			+"where (address.country=\"Nigeria\" AND (age=31 OR age=33)) "
     			+"OR (ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060879-902\" END) "
     			+"AND (routing_number>=1011 AND routing_number<=1020) "
