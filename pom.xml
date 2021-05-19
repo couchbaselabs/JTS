@@ -10,13 +10,11 @@
     <properties>
         <jar.finalName>loadgen</jar.finalName>
     </properties>
-
-
     <dependencies>
         <dependency>
             <groupId>com.couchbase.client</groupId>
             <artifactId>java-client</artifactId>
-            <version>2.7.14</version>
+            <version>3.1.0</version>
         </dependency>
 
         <dependency>
@@ -67,4 +65,3 @@
         </plugins>
     </build>
 </project>
-
