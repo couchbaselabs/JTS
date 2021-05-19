@@ -34,7 +34,6 @@ public class TestProperties {
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED2 = "mixed2";
-    public static final String CONSTANT_SCORE_NONE = "score_none";
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 
@@ -103,27 +102,25 @@ public class TestProperties {
     public static final String TESTSPEC_FLEX_QUERY_TYPE = "test_flex_query_type";
     private static final String TESTSPEC_FLEX_QUERY_TYPE_DEFAULT ="array_predicate";
 
-
-    // Couchbase-specific settings
+    // Collections setting
     public static final String TESTSPEC_COLLECTIONS_ENABLED ="test_collections_enabled";
     private static final String TESTSPEC_COLLECTIONS_ENABLED_DEFAULT = "false";
 
-    public static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG ="test_collection_specific_flag";
-    private static final String TESTSPEC_COLLECTION_SPECIFIC_FLAG_DEFAULT = "false";
+    // to indicate if the query is collection_specific or not
+    public static final String TESTSPEC_COLLECTION_QUERY_MODE ="test_collection_query_mode";
+    private static final String TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT = "default";
 
+    // number of collections for the collection specific query
+    public static final String TESTSPEC_COLLECTION_SPECIFIC_COUNT ="test_collection_specific_count";
+    private static final String TESTSPEC_COLLECTION_SPECIFIC_COUNT_DEFAULT = "1";
+
+    // to get the index to collection map
     public static final String TESTSPEC_FTS_INDEX_MAP ="test_fts_index_map";
     private static final String TESTSPEC_FTS_INDEX_MAP_DEFAULT = "";
 
-    public static final String TESTSPEC_COLLECTION_SPECIFIC_SUBSET = "test_collection_specific_subset";
-    public static final String TESTSPEC_COLLECTION_SPECIFIC_SUBSET_DEFAULT = "0";
-
-    //score-none Settings
-    public static final String TESTSPEC_SCORE_NONE = "test_score_none";
-    private static final String TESTSPEC_SCORE_NONE_DEFAULT = "false";
-
-
+    // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
-    private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index-0";
+    private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
 
     public static final String CBSPEC_SERVER = "couchbase_cluster_ip";
     private static final String CBSPEC_SERVER_DEFAULT = "172.23.99.211";
@@ -195,14 +192,11 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_FLEX).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FLEX_QUERY_TYPE).hasArg().required(false).build());
 
-        // Additional flags for Collections
+        // Collection specific parameters
         options.addOption(Option.builder(TESTSPEC_COLLECTIONS_ENABLED).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_FLAG).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_COLLECTION_QUERY_MODE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_COUNT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FTS_INDEX_MAP).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_SUBSET).hasArg().required(false).build());
-
-        // Score = none Settings
-        options.addOption(Option.builder(TESTSPEC_SCORE_NONE).hasArg().required(false).build());
 
         // Couchbase authentication related parameters
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
@@ -251,11 +245,6 @@ public class TestProperties {
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
 
-        // Additional Collection flags
-        prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));
-        prop.put(TESTSPEC_COLLECTION_SPECIFIC_FLAG, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_FLAG, TESTSPEC_COLLECTION_SPECIFIC_FLAG_DEFAULT));
-        prop.put(TESTSPEC_FTS_INDEX_MAP, cmd.getOptionValue(TESTSPEC_FTS_INDEX_MAP, TESTSPEC_FTS_INDEX_MAP_DEFAULT));
-        prop.put(TESTSPEC_COLLECTION_SPECIFIC_SUBSET, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_SUBSET, TESTSPEC_COLLECTION_SPECIFIC_SUBSET_DEFAULT));
 
 
         // Additional Flex queries parameter
@@ -267,7 +256,12 @@ public class TestProperties {
         prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));
         prop.put(TESTSPEC_GEO_POLYGON_COORD_LIST, cmd.getOptionValue(TESTSPEC_GEO_POLYGON_COORD_LIST,TESTSPEC_GEO_POLYGON_COORD_LIST_DEFAULT));
         prop.put(TESTSPEC_GEO_LON_WIDTH,cmd.getOptionValue(TESTSPEC_GEO_LON_WIDTH,TESTSPEC_GEO_LON_WIDTH_DEFAULT));
-        prop.put(TESTSPEC_SCORE_NONE,cmd.getOptionValue(TESTSPEC_SCORE_NONE,TESTSPEC_SCORE_NONE_DEFAULT));
+
+        // Additional Collection flags
+        prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));
+        prop.put(TESTSPEC_COLLECTION_QUERY_MODE, cmd.getOptionValue(TESTSPEC_COLLECTION_QUERY_MODE, TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT));
+        prop.put(TESTSPEC_COLLECTION_SPECIFIC_COUNT, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_COUNT, TESTSPEC_COLLECTION_SPECIFIC_COUNT_DEFAULT));
+        prop.put(TESTSPEC_FTS_INDEX_MAP, cmd.getOptionValue(TESTSPEC_FTS_INDEX_MAP, TESTSPEC_FTS_INDEX_MAP_DEFAULT));
 
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));
