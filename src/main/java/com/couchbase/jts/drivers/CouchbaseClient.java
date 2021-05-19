@@ -12,16 +12,8 @@ import java.lang.System.* ;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.Set;
-import java.util.HashSet;
-
-// imports for the JSON parser
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 // Imports for Collections
-import com.couchbase.client.java.Scope;
 import com.couchbase.client.java.Collection;
 
 // Imports of JTS loggers and other utils
@@ -34,13 +26,13 @@ import com.couchbase.jts.logger.GlobalStatusLogger;
 import com.couchbase.client.java.env.ClusterEnvironment;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
+import com.couchbase.client.java.Scope;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.core.env.IoConfig;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.java.json.JsonObject;
 import com.couchbase.client.java.kv.MutationResult;
-
 // Data type for Geo queries
 import com.couchbase.client.java.util.Coordinate;
 
@@ -48,7 +40,6 @@ import com.couchbase.client.java.util.Coordinate;
 import com.couchbase.client.java.kv.*;
 import com.couchbase.client.java.json.*;
 import com.couchbase.client.java.query.*;
-
 // Search related imports
 import com.couchbase.client.java.search.SearchQuery;
 import com.couchbase.client.java.search.result.SearchResult;
@@ -58,7 +49,6 @@ import com.couchbase.client.java.search.SearchOptions;
 import com.couchbase.client.java.search.queries.TermQuery;
 import com.couchbase.client.java.search.queries.ConjunctionQuery;
 import com.couchbase.client.java.search.queries.DisjunctionQuery;
-
 // Flex Query related imports
 import com.couchbase.client.java.query.QueryResult;
 
@@ -80,25 +70,30 @@ public class  CouchbaseClient extends Client{
 	private int connectTimeout = 100000;
 	private int socketTimeout = 100000;
 	private boolean enableMutationToken = false;
+	private int collection_len = 0 ;
+	private volatile Collection collection;
 
-	private boolean collectionsEnabled = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_ENABLED));
-	private boolean indexMapProvided;
-	// This will mark if the query type is collection specific or blanket
-	private String collectionsQueryMode = settings.get(TestProperties.TESTSPEC_COLLECTION_QUERY_MODE);
-	// to determine the number of collections in the collection specific list
-	private int collectionSpecificCount =  Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_COUNT));
-	private String ftsIndexMapRaw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
-	private JSONObject ftsIndexJson;
-	private List<String> ftsIndexList;
-	private List<String> collectionsList;
-	private String scopeName;
-	private ArrayList<String> collectionsListRaw ;
-	private int numCollections;
+	// An indicator to indicate the number of collections present for the test
+	// -1 => no collections
+	// 0 Default collection
+	// >1 N collections
+	private int collectionIndicator= Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS));
 
+	// for docs generated with custom doc gen (created by JNS87)
+	// the ids of the docs are of type String.valueOf(long ID) , not its hex equivalent
+	private int UseDocIdLong = Integer.parseInt(settings.get(TestProperties.TESTSPEC_DOCID_LONG));
 
 	// Setting the searchQuery Options
 	int limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
 	String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
+
+	String scope_prefix = settings.get(TestProperties.TESTSPEC_SCOPE_PREFIX);
+	int scope_number = Integer.parseInt(settings.get(TestProperties.TESTSPEC_SCOPE_NUMBER));
+	String collection_prefix = settings.get(TestProperties.TESTSPEC_COLLECTIONS_PREFIX);
+	int collection_number = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTIONS_NUMBER));
+
+	// collection_number = number of collections per scope
+	private volatile Collection[] collection_list = new Collection[scope_number*collection_number];
 	private Cluster cluster;
 	private volatile ClusterOptions clusterOptions;
 	private Bucket bucket;
@@ -116,41 +111,15 @@ public class  CouchbaseClient extends Client{
 
 	public CouchbaseClient(TestProperties workload) throws Exception{
 		super(workload);
-		setup();
 		connect();
 		generateQueries();
 	}
 
-	private void setup() throws Exception{
-		if(!ftsIndexMapRaw.equals("")){
-			indexMapProvided= true;
-			JSONParser jsonParser = new JSONParser();
-			Object obj = jsonParser.parse(ftsIndexMapRaw);
-			ftsIndexJson = (JSONObject) obj;
-			Set targetSet = new HashSet();
 
-			// it is a single index
-			JSONObject indexDetails = (JSONObject) ftsIndexJson.get(indexName);
-			// to get the scope name
-			scopeName = (String) indexDetails.get("scope");
-			// To get the list of Collections
-			collectionsListRaw = (ArrayList<String>) indexDetails.get("collections");
-			for(String collectionName : collectionsListRaw){
-				targetSet.add(scopeName+"."+collectionName);
-			}
-			collectionsList = new ArrayList<String>(targetSet);
-			numCollections = collectionsList.size();
-		}else{
-			indexMapProvided = false;
-			Set targetSet = new HashSet();
-			targetSet.add("_default._default");
-			collectionsList = new ArrayList<String>(targetSet);
-			numCollections = collectionsList.size();
-		}
-
-	}
 	private void connect() throws Exception{
+
 		try {
+
 			synchronized (INIT_COORDINATOR) {
 				if(env == null) {
 					// This creates a new ClusterEnvironment with Default Settings
@@ -166,6 +135,22 @@ public class  CouchbaseClient extends Client{
 
 			cluster = Cluster.connect(getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
 			bucket = cluster.bucket(getProp(TestProperties.CBSPEC_CBBUCKET));
+			// adding in logic for collection enabling for CC
+			logWriter.logMessage("the collectionIndicator is : "+collectionIndicator);
+			if(collectionIndicator == -1 || collectionIndicator == 0 ) {
+				// In CC the data is present in the default collection for even the bucket level tests
+				// This is default collections on the KV side
+				collection = bucket.defaultCollection();
+			}else {
+				// Adding the code for a single non-default scope and non-default collection
+				for(int scopeNum = 0 ; scopeNum<scope_number; scopeNum++){
+					for (int collNum = 0; collNum<collection_number; collNum++){
+						collection_list[scopeNum+collNum]=bucket.scope(scope_prefix+String.valueOf(scopeNum+1)).collection(collection_prefix+String.valueOf(collNum+1));
+					}
+				}
+				collection_len = collection_list.length;
+
+			}
 
 		}catch(Exception ex) {
 			throw new Exception("Could not connect to Couchbase Bucket.", ex);
@@ -175,6 +160,7 @@ public class  CouchbaseClient extends Client{
 	private void generateQueries() throws Exception {
 		String[][] terms = importTerms();
 		List <SearchQuery> queryList = null;
+
 		String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
 		queryList = generateTermQueries(terms,fieldName);
 		if((queryList ==null) || (queryList.size()==0)) {
@@ -182,11 +168,14 @@ public class  CouchbaseClient extends Client{
 		}
 		FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
 		totalQueries = FTSQueries.length;
+
 	}
 
-	private List<SearchQuery> generateTermQueries(String[][] terms,  String fieldName) throws IllegalArgumentException{
+	private List<SearchQuery> generateTermQueries(String[][] terms,  String fieldName)
+			throws IllegalArgumentException{
 		List<SearchQuery> queryList = new ArrayList<>();
 		int size = terms.length;
+
 		for (int i = 0; i<size; i++) {
 			int lineSize = terms[i].length;
 			if(lineSize > 0) {
@@ -199,11 +188,13 @@ public class  CouchbaseClient extends Client{
 			}
 		}
 		return queryList ;
+
 	}
 
 	//Query builders
 	private SearchQuery buildQuery(String[] terms, String fieldName)
 			throws IllegalArgumentException, IndexOutOfBoundsException {
+
 		switch (settings.get(settings.TESTSPEC_QUERY_TYPE)) {
 			case TestProperties.CONSTANT_QUERY_TYPE_TERM:
 				return buildTermQuery(terms,fieldName);
@@ -221,6 +212,7 @@ public class  CouchbaseClient extends Client{
 				return buildPrefixQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_WILDCARD:
 				return buildWildcardQuery(terms, fieldName);
+
 			case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
 				return buildNumericQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
@@ -257,19 +249,15 @@ public class  CouchbaseClient extends Client{
 		DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
 		return SearchQuery.conjuncts(disSQ, lt);
 	}
-
 	private SearchQuery buildFuzzyQuery(String[] terms, String fieldName){
 		return SearchQuery.term(terms[0]).field(fieldName).fuzziness(Integer.parseInt(terms[1]));
 	}
-
 	private SearchQuery buildPhraseQuery(String[] terms, String fieldName){
 		return SearchQuery.matchPhrase(terms[0]+ " "+ terms[1]).field(fieldName);
 	}
-
 	private SearchQuery buildPrefixQuery(String[] terms, String fieldName){
 		return SearchQuery.prefix(terms[0]).field(fieldName);
 	}
-
 	private SearchQuery buildWildcardQuery(String [] terms, String fieldName){
 		return SearchQuery.wildcard(terms[0]).field(fieldName);
 	}
@@ -278,8 +266,8 @@ public class  CouchbaseClient extends Client{
 		String[] minmax = terms[0].split(":");
 		return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
 				.min(Double.parseDouble(minmax[1]), true).field(fieldName);
-	}
 
+	}
 	private SearchQuery buildGeoRadiusQuery(String[] terms,String feildName, String dist){
 		//double locationLon, double locationLat, String distance
 		double locationLon= Double.parseDouble(terms[0]) ;
@@ -294,7 +282,7 @@ public class  CouchbaseClient extends Client{
 		double topLeftLat = Double.parseDouble(terms[1]);
 		double bottomRightLon= topLeftLon +lonWidth ;
 		double bottomRightLat = topLeftLat - latHeight;
-		return  SearchQuery.geoBoundingBox(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(fieldName);
+		return  SearchQuery.geoBoundingBox​(topLeftLon,topLeftLat, bottomRightLon,bottomRightLat).field(fieldName);
 	}
 
 	private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName ){
@@ -308,57 +296,15 @@ public class  CouchbaseClient extends Client{
 		}
 
 		return SearchQuery.geoPolygon(listOfPts).field(fieldName);
+
 	}
 
-	private ArrayList<String> getCollectionList(ArrayList<String> collectionList){
-		ArrayList<String> subsetList = new ArrayList<>();
-		// If all the collections are included
-		if (collectionSpecificCount == numCollections){
-			subsetList = collectionList;
-		}
-		if(collectionSpecificCount > 1 && collectionSpecificCount < numCollections){
-			int startIndex = rand.nextInt(numCollections);
-			int endIndex = startIndex + collectionSpecificCount;
-
-			if (endIndex < numCollections){
-				subsetList = new ArrayList<String>(collectionList.subList(startIndex,endIndex));
-			}
-			if(endIndex >= numCollections){
-				subsetList = new ArrayList<String>(collectionList.subList(startIndex,numCollections));
-				endIndex = endIndex - numCollections;
-				ArrayList <String> tempList = new ArrayList<String> (collectionsList.subList(0,endIndex));
-				for (String collectionName: tempList){
-					subsetList.add(collectionName);
-				}
-			}
-		}
-		if (collectionSpecificCount == 1){
-			subsetList.add(collectionList.get(rand.nextInt(numCollections)));
-		}
-		return subsetList;
-	}
-
-	public SearchOptions genSearchOpts(String indexToQuery){
-		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
-		if(collectionsEnabled && collectionsQueryMode.equals("collection_specific")){
-			// Setting the scope name for the collection Specific
-			JsonObject scopeJson = JsonObject.create();
-			scopeJson.put("scope",scopeName);
-
-			// Setting the collection name for the collection specific queries
-			ArrayList<String> targetCollections = getCollectionList(collectionsListRaw);
-			JsonArray colJson = JsonArray.from(targetCollections);
-			opt.raw("scope",scopeJson).raw("collections",colJson);
-		}
-		return opt;
-	}
 
 
 	public float queryAndLatency() {
-		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-		// Setting the limit and the other options of the SearchQuery
-		SearchOptions opt = genSearchOpts(indexName);
 		long st = System.nanoTime();
+		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
+		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
 		SearchResult res = cluster.searchQuery(indexName,queryToRun,opt);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
@@ -371,19 +317,21 @@ public class  CouchbaseClient extends Client{
 
 	public void mutateRandomDoc() {
 		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
-		long docsPerCollection = totalDocs/numCollections;
-		long docIdLong = Math.abs(rand.nextLong() % docsPerCollection);
-		String docIdHex =  Long.toHexString(docIdLong);
+		long docIdLong = Math.abs(rand.nextLong() % totalDocs);
+		String docIdHex = "";
+		if(UseDocIdLong == 0){
+			docIdHex =  Long.toHexString(docIdLong);
+		}else{
+			docIdHex = String.valueOf(docIdLong);
+		}
 		String originFieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
 		String replaceFieldName = settings.get(TestProperties.TESTSPEC_MUTATION_FIELD);
-
-		Collection collection ;
-		// to choose the random collection
-		String targetCollection= collectionsList.get(rand.nextInt(numCollections));
-		if(targetCollection.equals("_default._default")){
-			collection = bucket.defaultCollection();
-		}else{
-			collection = bucket.scope(scopeName).collection(targetCollection);
+		// Getting the document content
+		if(collection_len == 1){
+			collection = collection_list[0];
+		}
+		if(collection_len > 1){
+			collection = collection_list[rand.nextInt(collection_len)];
 		}
 
 		GetResult doc = collection.get(docIdHex);
@@ -403,15 +351,15 @@ public class  CouchbaseClient extends Client{
 	}
 
 	public String queryDebug() {
-		return cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName)).toString();
+		return cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],SearchOptions.searchOptions().limit(limit)).toString();
 	}
 
 	public void query() {
-		cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName)).toString();
+		cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],SearchOptions.searchOptions().limit(limit)).toString();
 	}
 
 	public Boolean queryAndSuccess() {
-		SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName));
+		SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],SearchOptions.searchOptions().limit(limit));
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
 		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true;}
