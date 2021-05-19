@@ -102,33 +102,6 @@ public class TestProperties {
     public static final String TESTSPEC_FLEX_QUERY_TYPE = "test_flex_query_type";
     private static final String TESTSPEC_FLEX_QUERY_TYPE_DEFAULT ="array_predicate";
 
-
-    // Collections setting
-    // -1 => no collections
-    // 0 Default collection
-    // >1 N collections
-
-    public static final String TESTSPEC_COLLECTIONS ="test_collections_flag";
-    private static final String TESTSPEC_COLLECTIONS_DEFAULT = "0";
-
-    // If the docid is long: value = 1 , for Hex equivalent ids of dataset; value = 0
-    // 0 is default
-    public static final String TESTSPEC_DOCID_LONG ="test_docid_use_long";
-    private static final String TESTSPEC_DOCID_LONG_DEFAULT = "0";
-
-    // For multiple collections settings
-    public static final String TESTSPEC_COLLECTIONS_NUMBER ="test_collections_number";
-    private static final String TESTSPEC_COLLECTIONS_NUMBER_DEFAULT = "0";
-
-    public static final String TESTSPEC_SCOPE_NUMBER = "test_scope_number";
-    private static final String TESTSPEC_SCOPE_NUMBER_DEFAULT = "0";
-
-    public static final String TESTSPEC_COLLECTIONS_PREFIX = "test_collection_prefix";
-    public static final String TESTSPEC_COLLECTIONS_PREFIX_DEFAULT = "collection-";
-
-    public static final String TESTSPEC_SCOPE_PREFIX = "test_scope_prefix";
-    public static final String TESTSPEC_SCOPE_PREFIX_DEFAULT = "scope-";
-
     // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
     private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
@@ -203,17 +176,6 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_FLEX).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FLEX_QUERY_TYPE).hasArg().required(false).build());
 
-        // Additional flags for Collections
-        options.addOption(Option.builder(TESTSPEC_COLLECTIONS).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_DOCID_LONG).hasArg().required(false).build());
-
-        // Additional settings for multiple Collections
-        options.addOption(Option.builder(TESTSPEC_COLLECTIONS_NUMBER).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_SCOPE_NUMBER).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_COLLECTIONS_PREFIX).hasArg().required(false).build());
-        options.addOption(Option.builder(TESTSPEC_SCOPE_PREFIX).hasArg().required(false).build());
-
-
         // Couchbase authentication related parameters
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SERVER).hasArg().required(false).build());
@@ -260,16 +222,6 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
-
-        // Additional Collection flags
-        prop.put(TESTSPEC_COLLECTIONS,cmd.getOptionValue(TESTSPEC_COLLECTIONS,TESTSPEC_COLLECTIONS_DEFAULT));
-        prop.put(TESTSPEC_DOCID_LONG, cmd.getOptionValue(TESTSPEC_DOCID_LONG, TESTSPEC_DOCID_LONG_DEFAULT));
-
-        // Additional Collection settings for multiple Collections
-        prop.put(TESTSPEC_COLLECTIONS_NUMBER,cmd.getOptionValue(TESTSPEC_COLLECTIONS_NUMBER ,TESTSPEC_COLLECTIONS_NUMBER_DEFAULT));
-        prop.put(TESTSPEC_SCOPE_NUMBER,cmd.getOptionValue(TESTSPEC_SCOPE_NUMBER ,TESTSPEC_SCOPE_NUMBER_DEFAULT));
-        prop.put(TESTSPEC_COLLECTIONS_PREFIX,cmd.getOptionValue(TESTSPEC_COLLECTIONS_PREFIX ,TESTSPEC_COLLECTIONS_PREFIX_DEFAULT));
-        prop.put(TESTSPEC_SCOPE_PREFIX,cmd.getOptionValue(TESTSPEC_SCOPE_PREFIX ,TESTSPEC_SCOPE_PREFIX_DEFAULT));
 
         // Additional Flex queries parameter
         prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
