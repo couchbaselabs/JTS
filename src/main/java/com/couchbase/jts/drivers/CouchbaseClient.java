@@ -61,6 +61,9 @@ import com.couchbase.client.java.search.queries.DisjunctionQuery;
 
 // Flex Query related imports
 import com.couchbase.client.java.query.QueryResult;
+import com.couchbase.client.java.query.QueryOptions;
+import com.couchbase.client.java.query.QueryMetaData;
+import com.couchbase.client.java.query.QueryStatus;
 
 
 
@@ -109,8 +112,10 @@ public class  CouchbaseClient extends Client{
 	private SearchQuery queryToRun;
 
 	//Flex Query variables
-	private String[] FlexQueries;
-	private int FlexTotalQueries = 0;
+	private String[] flexQueries;
+	private String flexQueryToRun;
+	private int flexTotalQueries = 0;
+	private Boolean flexFlag;
 
 	private Random rand = new Random();
 
@@ -175,13 +180,31 @@ public class  CouchbaseClient extends Client{
 	private void generateQueries() throws Exception {
 		String[][] terms = importTerms();
 		List <SearchQuery> queryList = null;
+		List <String> flexQueryList = null;
+		String flexTarget ;
 		String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
-		queryList = generateTermQueries(terms,fieldName);
-		if((queryList ==null) || (queryList.size()==0)) {
-			throw new Exception("Query list is empty! ");
+		flexFlag = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_FLEX));
+		if(flexFlag){
+			if (collectionsEnabled ){
+				flexTarget = "default:`bucket-1`.`scope-1`.`collection-1`";
+			}else{
+				flexTarget = "`bucket-1`";
+			}
+			flexQueryList= generateFlexQueries(terms,flexTarget);
+			if((flexQueryList == null)||(flexQueryList.size() == 0)){
+				throw new Exception("Flex query list is empty");
+			}
+			flexQueries = flexQueryList.stream().toArray(String[]::new);
+			flexTotalQueries = flexQueries.length;
+		}else{
+			queryList = generateTermQueries(terms,fieldName);
+			if((queryList ==null) || (queryList.size()==0)) {
+				throw new Exception("Query list is empty! ");
+			}
+			FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
+			totalQueries = FTSQueries.length;
 		}
-		FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
-		totalQueries = FTSQueries.length;
+
 	}
 
 	private List<SearchQuery> generateTermQueries(String[][] terms,  String fieldName) throws IllegalArgumentException{
@@ -199,6 +222,22 @@ public class  CouchbaseClient extends Client{
 			}
 		}
 		return queryList ;
+	}
+	private List<String> generateFlexQueries(String[][] terms, String flexTarget) throws IllegalArgumentException{
+		List<String> queryList = new ArrayList<>();
+		int size = terms.length;
+		for (int i = 1; i<size;i++){
+			int lineSize = terms[i].length;
+			if (lineSize > 0) {
+				try{
+					String query = buildFlexQuery(terms[i], flexTarget);
+					queryList.add(query);
+				}catch(IndexOutOfBoundsException ex){
+					continue;
+				}
+			}
+		}
+		return queryList;
 	}
 
 	//Query builders
@@ -235,6 +274,19 @@ public class  CouchbaseClient extends Client{
 		}
 		throw new IllegalArgumentException("Couchbase query builder: unexpected query type - "
 				+ settings.get(settings.TESTSPEC_QUERY_TYPE));
+	}
+
+	private String buildFlexQuery(String[] terms, String flexTarget) throws IllegalArgumentException{
+		switch(settings.get(settings.TESTSPEC_FLEX_QUERY_TYPE)){
+			case TestProperties.CONSTANT_FLEX_QUERY_TYPE_ARRAY :
+				return buildComplexObjQuery(terms,flexTarget);
+			case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED1:
+				return buildMixedQuery1(terms,flexTarget);
+			case TestProperties.CONSTANT_FLEX_QUERY_TYPE_MIXED2:
+				return buildMixedQuery2(terms,flexTarget);
+
+		}
+		throw new IllegalArgumentException("Couchbase query builder: unexpected flex query type.");
 	}
 
 	private SearchQuery buildTermQuery(String[] terms, String fieldName) {
@@ -310,6 +362,45 @@ public class  CouchbaseClient extends Client{
 		return SearchQuery.geoPolygon(listOfPts).field(fieldName);
 	}
 
+	// Flex query functions
+	private String buildComplexObjQuery(String[] terms, String flexTarget) {
+
+		String n1qlQuery ="SELECT devices, company_name, first_name "
+				+ "FROM " + flexTarget
+				+"USE INDEX( `"+indexName+"` USING FTS) "
+				+ "WHERE (((ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) "
+				+ "OR (ANY num in devices SATISFIES num >= \"070842-712\" AND num<=\"070875-000\" END) ) ) "
+				+ "AND ((ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060843-712\" END) "
+				+ "OR  (ANY c in children SATISFIES (c.first_name =\"Tyra\" or c.first_name =\"Aaron\") "
+				+ "AND c.gender = \"F\" AND c.age>=10 AND c.age<=13 END))OR(ANY c IN children SATISFIES c.gender = \"F\" "
+				+ "AND c.age <=5 AND (first_name=\"Sienna\" OR first_name= \"Pattie\" ) END )";
+		return n1qlQuery;
+
+	}
+
+	private String buildMixedQuery1(String[] terms, String flexTarget) {
+
+		String n1qlQuery = "select first_name , routing_number, city , country, age "
+				+ "from "+ flexTarget
+				+"USE index (`"+indexName+"` using FTS) "
+				+"where ((routing_number>=1011 AND routing_number<=1020) "
+				+"OR (address.city =\"Schoenview\" OR address.city =\"Doylefurt\" OR address.city = \"Rutherfordbury\" OR address.city =\"North Vanceville\") "
+				+"AND ( address.country =\"Senegal\" AND (age =78 OR age=30 )))";
+		return n1qlQuery;
+	}
+
+	private String buildMixedQuery2(String[] terms, String flexTarget) {
+
+		String n1qlQuery = "select country , age "
+				+"from  " + flexTarget
+				+"use index (`"+indexName+"` using FTS) "
+				+"where (address.country=\"Nigeria\" AND (age=31 OR age=33)) "
+				+"OR (ANY num in devices SATISFIES num >= \"060842-712\" AND num<=\"060879-902\" END) "
+				+"AND (routing_number>=1011 AND routing_number<=1020) "
+				+"AND (ANY c IN children SATISFIES c.gender = \"M\"  AND c.age <=8 AND c.first_name = \"Aaron\" END) ";
+		return n1qlQuery;
+	}
+
 	private ArrayList<String> getCollectionList(ArrayList<String> collectionList){
 		ArrayList<String> subsetList = new ArrayList<>();
 		// If all the collections are included
@@ -355,17 +446,32 @@ public class  CouchbaseClient extends Client{
 
 
 	public float queryAndLatency() {
-		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
+
+		long st = 0;
+		long en = 0;
 		// Setting the limit and the other options of the SearchQuery
-		SearchOptions opt = genSearchOpts(indexName);
-		long st = System.nanoTime();
-		SearchResult res = cluster.searchQuery(indexName,queryToRun,opt);
-		long en = System.nanoTime();
-		float latency = (float) (en - st) / 1000000;
-		int res_size = res.rows().size();
-		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return latency;}
-		return 0;
+		if (flexFlag) {
+			flexQueryToRun = flexQueries[rand.nextInt(totalQueries)];
+			st = System.nanoTime();
+			QueryResult res = cluster.query(flexQueryToRun);
+			en = System.nanoTime();
+			float latency = (float) (en - st) / 1000000;
+
+			return 0;
+		}else{
+			queryToRun = FTSQueries[rand.nextInt(totalQueries)];
+			SearchOptions opt = genSearchOpts(indexName);
+			st = System.nanoTime();
+			SearchResult res = cluster.searchQuery(indexName,queryToRun,opt);
+			en = System.nanoTime();
+			float latency = (float) (en - st) / 1000000;
+			int res_size = res.rows().size();
+			SearchMetrics metrics = res.metaData().metrics();
+			if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return latency;}
+			return 0;
+		}
+
+
 	}
 
 

@@ -1,0 +1,40 @@
+17:58:12: Workload Manager started
+17:58:12: Workload settings:
+test_duration = 600
+couchbase_user = bucket-1
+test_kv_throughput_goal = 1660
+test_query_field = cc_geo
+couchbase_cluster_ip = 172.23.99.211
+test_worker_type = validatedThroughput
+test_mutation_field = cc_mkt_desc
+test_collection_query_mode = default
+test_stats_limit = 1000000
+test_geo_polygon_coord_list = -test_query_lon_width
+couchbase_bucket = bucket-1
+couchbase_password = password
+test_flex_query_type = array_predicate
+test_driver = com.couchbase.jts.drivers.CouchbaseClient
+test_fts_index_map = 
+test_stats_aggregation_step = 100
+test_collections_enabled = false
+test_query_lat_height = 2
+mongodb_database = wiki
+test_flex = false
+test_query_limit = 10
+test_geo_distance = 50mi
+test_debug = false
+test_collection_specific_count = 1
+couchbase_index_name = perf_fts_index-0
+mongodb_collection = bucket1
+test_total_docs = 1000000
+mongodb_index_name = text_index
+test_query_workers = 10
+test_kv_workers = 5
+test_data_file = ../tests/fts/data/benchmark/geo_radius_50mi_2018hits.txt
+test_query_lon_width = 4
+mongodb_mongos_ip = 172.23.99.210
+mongodb_mongos_port = 27021
+test_query_type = geo_rad
+
+17:58:12: Initializing workers
+17:58:14: Starting workers
