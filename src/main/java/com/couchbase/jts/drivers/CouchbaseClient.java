@@ -64,6 +64,7 @@ import com.couchbase.client.java.query.QueryResult;
 import com.couchbase.client.java.query.QueryOptions;
 import com.couchbase.client.java.query.QueryMetaData;
 import com.couchbase.client.java.query.QueryStatus;
+import com.couchbase.client.java.query.QueryStatus;
 
 
 
@@ -127,6 +128,7 @@ public class  CouchbaseClient extends Client{
 	}
 
 	private void setup() throws Exception{
+		logWriter.logMessage("In the setUp() " + ftsIndexMapRaw + " :)");
 		if(!ftsIndexMapRaw.equals("")){
 			indexMapProvided= true;
 			JSONParser jsonParser = new JSONParser();
@@ -143,14 +145,20 @@ public class  CouchbaseClient extends Client{
 			for(String collectionName : collectionsListRaw){
 				targetSet.add(scopeName+"."+collectionName);
 			}
+
 			collectionsList = new ArrayList<String>(targetSet);
 			numCollections = collectionsList.size();
+			System.out.println("CollectionKList : " + collectionsList);
+
 		}else{
+			System.out.println("in the other case ");
 			indexMapProvided = false;
 			Set targetSet = new HashSet();
 			targetSet.add("_default._default");
 			collectionsList = new ArrayList<String>(targetSet);
 			numCollections = collectionsList.size();
+			System.out.println("Collection$List : " + collectionsList);
+
 		}
 
 	}
@@ -446,23 +454,33 @@ public class  CouchbaseClient extends Client{
 
 
 	public float queryAndLatency() {
-
+		System.out.println("in the queryAndLatency and flexFlag is : "+flexFlag);
 		long st = 0;
 		long en = 0;
 		// Setting the limit and the other options of the SearchQuery
 		if (flexFlag) {
-			flexQueryToRun = flexQueries[rand.nextInt(totalQueries)];
+			flexQueryToRun = flexQueries[rand.nextInt(flexTotalQueries)];
+			System.out.println("flex case result: "+flexQueryToRun);
 			st = System.nanoTime();
 			QueryResult res = cluster.query(flexQueryToRun);
 			en = System.nanoTime();
+			System.out.println("in the flex case result: "+res.toString());
+			QueryMetaData metaData = res.metaData();
+			QueryStatus flexStatus = metaData.status();
 			float latency = (float) (en - st) / 1000000;
-
+			List<JsonObject> resRows = res.rowsAsObject();
+			System.out.println("in the flex case result2: " + resRows.isEmpty());
+			if ((QueryStatus.valueOf("SUCCESS")) == flexStatus && resRows.isEmpty() == false){
+				System.out.println("in the flex case result3: " );
+				return latency;
+			}
 			return 0;
 		}else{
 			queryToRun = FTSQueries[rand.nextInt(totalQueries)];
 			SearchOptions opt = genSearchOpts(indexName);
 			st = System.nanoTime();
 			SearchResult res = cluster.searchQuery(indexName,queryToRun,opt);
+			System.out.println("in the other case result :"+res.toString());
 			en = System.nanoTime();
 			float latency = (float) (en - st) / 1000000;
 			int res_size = res.rows().size();
@@ -509,19 +527,41 @@ public class  CouchbaseClient extends Client{
 	}
 
 	public String queryDebug() {
-		return cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName)).toString();
-	}
+		if(flexFlag){
+			return cluster.query(flexQueries[rand.nextInt(flexTotalQueries)]).toString();
+		}else{
+			return cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName)).toString();
+		}
+		}
 
 	public void query() {
-		cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName)).toString();
+		if(flexFlag){
+			 cluster.query(flexQueries[rand.nextInt(flexTotalQueries)]).toString();
+		}else{
+			cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName)).toString();
+		}
 	}
 
 	public Boolean queryAndSuccess() {
-		SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName));
-		int res_size = res.rows().size();
-		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true;}
-		return false;
+		if(flexFlag){
+			QueryResult res = cluster.query(flexQueries[rand.nextInt(flexTotalQueries)]);
+			QueryMetaData metaData = res.metaData();
+			QueryStatus flexStatus = metaData.status();
+			List<JsonObject> resRows = res.rowsAsObject();
+			if ((QueryStatus.valueOf("SUCCESS")) == flexStatus && resRows.isEmpty() == false){
+				System.out.println("in the flex case result3: " );
+				return true;
+			}
+			return false;
+		}
+		else{
+			SearchResult res = cluster.searchQuery(indexName,FTSQueries[rand.nextInt(totalQueries)],genSearchOpts(indexName));
+			int res_size = res.rows().size();
+			SearchMetrics metrics = res.metaData().metrics();
+			if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true;}
+			return false;
+		}
+
 	}
 
 
