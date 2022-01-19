@@ -95,6 +95,10 @@ public class TestProperties {
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
     private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
 
+    // Index number for free tier tests
+    public static final String TESTSPEC_INDEX_NUMBER = 'test_num_index';
+    private static final String TESTSPEC_INDEX_NUMBER_DEFAULT = '1';
+
     //FLEX Settings one flag and the other for flexQueryType
     public static final String TESTSPEC_FLEX="test_flex";
     private static final String TESTSPEC_FLEX_DEFAULT ="false";
@@ -172,6 +176,9 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_GEO_LON_WIDTH).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_GEO_POLYGON_COORD_LIST).hasArg().required(false).build());
 
+        // for 500 index test
+        options.addOption(Option.builder(TESTSPEC_INDEX_NUMBER).hasArg().required(false).build());
+
         // Additional parameters for Flex
         options.addOption(Option.builder(TESTSPEC_FLEX).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FLEX_QUERY_TYPE).hasArg().required(false).build());
@@ -227,6 +234,8 @@ public class TestProperties {
         prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
         prop.put(TESTSPEC_FLEX_QUERY_TYPE,cmd.getOptionValue(TESTSPEC_FLEX_QUERY_TYPE,TESTSPEC_FLEX_QUERY_TYPE_DEFAULT));
 
+        // for 500 index test
+        prop.put(TESTSPEC_TEST_DURATION, cmd.getOptionValue(TESTSPEC_INDEX_NUMBER, TESTSPEC_INDEX_NUMBER_DEFAULT));
         // Additional Geo Queries parameter
         prop.put(TESTSPEC_GEO_DISTANCE, cmd.getOptionValue(TESTSPEC_GEO_DISTANCE,TESTSPEC_GEO_DISTANCE_DEFAULT));
         prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));

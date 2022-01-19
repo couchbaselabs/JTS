@@ -142,6 +142,11 @@ public class  CouchbaseClient extends Client{
         String[][] terms = importTerms();
         int limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
         String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
+        int indexNumber = Integer.parseInt(settings.get(TestProperties.TESTSPEC_INDEX_NUMBER));
+        if (indexNumber > 1){
+			       indexName = "perf_fts_index-" + String.valueOf(rand.nextInt(indexNumber)-1);
+
+		    }
         String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
         List<SearchQuery> queryList= null;
         List<N1qlQuery> flexQueryList = null;
