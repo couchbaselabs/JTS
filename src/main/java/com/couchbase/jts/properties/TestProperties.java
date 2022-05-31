@@ -118,6 +118,15 @@ public class TestProperties {
     public static final String CBSPEC_PASSWORD = "couchbase_password";
     private static final String CBSPEC_PASSWORD_DEFAULT = "password";
 
+    public static final String CBSPEC_SSLMODE = "couchbase_ssl_mode";
+    private static final String CBSPEC_SSLMODE_DEFAULT = "none";
+
+    public static final String CBSPEC_KEYSTORE_FILE = "couchbase_keystore_file";
+    private static final String CBSPEC_KEYSTORE_FILE_DEFAULT = "";
+
+    public static final String CBSPEC_KEYSTORE_PASSWORD = "couchbase_keystore_pass";
+    private static final String CBSPEC_KEYSTORE_PASSWORD_DEFAULT = "";
+
     // Mongodb-specific settings
     public static final String MDBSPEC_INDEX_NAME = "mongodb_index_name";
     private static final String MDBSPEC_INDEX_NAME_DEFAILT = "text_index";
@@ -182,6 +191,9 @@ public class TestProperties {
         options.addOption(Option.builder(CBSPEC_CBBUCKET).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_USER).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_PASSWORD).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_SSLMODE).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_KEYSTORE_FILE).hasArg().required(false).build());
+        options.addOption(Option.builder(CBSPEC_KEYSTORE_PASSWORD).hasArg().required(false).build());
 
         options.addOption(Option.builder(MDBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(MDBSPEC_SERVER).hasArg().required(false).build());
@@ -238,6 +250,9 @@ public class TestProperties {
         prop.put(CBSPEC_CBBUCKET, cmd.getOptionValue(CBSPEC_CBBUCKET, CBSPEC_CBBUCKET_DEFAULT));
         prop.put(CBSPEC_USER, cmd.getOptionValue(CBSPEC_USER, CBSPEC_USER_DEFAULT));
         prop.put(CBSPEC_PASSWORD, cmd.getOptionValue(CBSPEC_PASSWORD, CBSPEC_PASSWORD_DEFAULT));
+        prop.put(CBSPEC_SSLMODE, cmd.getOptionValue(CBSPEC_SSLMODE, CBSPEC_SSLMODE_DEFAULT));
+        prop.put(CBSPEC_KEYSTORE_FILE, cmd.getOptionValue(CBSPEC_KEYSTORE_FILE, CBSPEC_KEYSTORE_FILE_DEFAULT));
+        prop.put(CBSPEC_KEYSTORE_PASSWORD, cmd.getOptionValue(CBSPEC_KEYSTORE_PASSWORD, CBSPEC_KEYSTORE_PASSWORD_DEFAULT));
 
         prop.put(MDBSPEC_INDEX_NAME, cmd.getOptionValue(MDBSPEC_INDEX_NAME, MDBSPEC_INDEX_NAME_DEFAILT));
         prop.put(MDBSPEC_SERVER, cmd.getOptionValue(MDBSPEC_SERVER, MDBSPEC_SERVER_DEFAULT));

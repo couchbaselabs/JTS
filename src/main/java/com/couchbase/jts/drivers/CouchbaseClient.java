@@ -126,6 +126,13 @@ public class  CouchbaseClient extends Client{
                             : new NioEventLoopGroup(poolSize, threadFactory, SelectorProvider.provider(), factory);
                     builder.ioPool(group, new IoPoolShutdownHook(group));
 
+                    if (getProp(TestProperties.CBSPEC_SSLMODE).equals("capella")) {
+                        builder
+                            .sslEnabled(true)
+                            .sslKeystoreFile(getProp(TestProperties.CBSPEC_KEYSTORE_FILE))
+                            .sslKeystorePassword(getProp(TestProperties.CBSPEC_KEYSTORE_PASSWORD));
+                    }
+
                     env = builder.build();
                 }
             }
