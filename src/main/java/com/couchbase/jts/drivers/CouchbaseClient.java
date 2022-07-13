@@ -47,6 +47,7 @@ import com.couchbase.client.java.search.result.SearchMetrics;
 import com.couchbase.client.java.search.result.SearchRow;
 import com.couchbase.client.java.search.SearchOptions;
 import com.couchbase.client.java.search.queries.TermQuery;
+import com.couchbase.client.java.search.queries.MatchQuery;
 import com.couchbase.client.java.search.queries.ConjunctionQuery;
 import com.couchbase.client.java.search.queries.DisjunctionQuery;
 // Flex Query related imports
@@ -243,9 +244,9 @@ public class  CouchbaseClient extends Client{
 		return SearchQuery.disjuncts(lt,rt);
 	}
 	private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName){
-		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
-		TermQuery mt = SearchQuery.term(terms[1]).field(fieldName);
-		TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
+		MatchQuery lt = SearchQuery.match(terms[0]).field(fieldName);
+		MatchQuery mt = SearchQuery.match(terms[1]).field(fieldName);
+		MatchQuery rt = SearchQuery.match(terms[2]).field(fieldName);
 		DisjunctionQuery disSQ = SearchQuery.disjuncts(mt, rt);
 		return SearchQuery.conjuncts(disSQ, lt);
 	}
