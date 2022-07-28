@@ -319,12 +319,8 @@ public class  CouchbaseClient extends Client{
 	public void mutateRandomDoc() {
 		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
 		long docIdLong = Math.abs(rand.nextLong() % totalDocs);
-		String docIdHex = "";
-		if(UseDocIdLong == 0){
-			docIdHex =  Long.toHexString(docIdLong);
-		}else{
-			docIdHex = String.valueOf(docIdLong);
-		}
+		String docIdHex = "key::"+String.ofvalueOf(docIdLong);
+
 		String originFieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
 		String replaceFieldName = settings.get(TestProperties.TESTSPEC_MUTATION_FIELD);
 		// Getting the document content
