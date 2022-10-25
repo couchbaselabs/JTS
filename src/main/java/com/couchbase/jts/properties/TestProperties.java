@@ -27,6 +27,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_WILDCARD = "wildcard";
     public static final String CONSTANT_QUERY_TYPE_FACET = "facet";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC = "numeric";
+    public static final String CONSTANT_QUERY_TYPE_DATERANGE = "daterange";
     public static final String CONSTANT_QUERY_TYPE_GEO_RADIUS	= "geo_rad";
     public static final String CONSTANT_QUERY_TYPE_GEO_BOX ="geo_box";
     public static final String CONSTANT_QUERY_TYPE_GEO_POLYGON = "geo_polygon";

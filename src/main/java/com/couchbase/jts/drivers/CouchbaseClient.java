@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
 import java.lang.System.* ;
+import java.sql.Date;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +41,7 @@ import com.couchbase.client.java.search.result.SearchRow;
 import com.couchbase.client.java.search.SearchOptions;
 import com.couchbase.client.java.search.queries.TermQuery;
 import com.couchbase.client.java.search.queries.ConjunctionQuery;
+import com.couchbase.client.java.search.queries.DateRangeQuery;
 import com.couchbase.client.java.search.queries.DisjunctionQuery;
 import com.couchbase.client.java.query.QueryResult;
 
@@ -192,6 +194,8 @@ public class  CouchbaseClient extends Client {
 				return buildWildcardQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC:
 				return buildNumericQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_DATERANGE:
+				return buildDateQuery(terms, indexName, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEO_RADIUS:
 				return buildGeoRadiusQuery(terms, fieldName, settings.get(settings.TESTSPEC_GEO_DISTANCE));
 			case TestProperties.CONSTANT_QUERY_TYPE_GEO_BOX:
@@ -251,6 +255,14 @@ public class  CouchbaseClient extends Client {
 		return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
 						.min(Double.parseDouble(minmax[1]), true).field(fieldName);
 	}
+	private SearchQuery buildDateQuery(String[] terms, String indexName, String fieldName){
+		String[] startend = terms[0].split(":");
+		return SearchQuery.dateRange()
+				.start(startend[0], true)
+				.end(startend[1], true).field(fieldName);
+		
+	}
+	
 
 	private SearchQuery buildGeoRadiusQuery(String[] terms, String feildName, String dist) {
 		double locationLon= Double.parseDouble(terms[0]) ;
