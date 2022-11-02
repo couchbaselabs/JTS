@@ -25,17 +25,17 @@ public class KVWorker extends Worker {
 
     public void runAction(){
         try {
-            long st = System.nanoTime();
-            if (TestProperties.TESTSPEC_MUTATION_FIELD != null){
+            if (!TestProperties.TESTSPEC_MUTATION_FIELD.equals("test_mutation_field") && !TestProperties.TESTSPEC_MUTATION_FIELD.equals("false") ){
+                long st = System.nanoTime();
                 clientDB.mutateRandomDoc();
-            }
-            long en = System.nanoTime();
-            long latency =  (en - st) / 1000000;
-            if (throughputGoal >= 0) {
-                float expectedDelayMC = (totalWorkers / (float) throughputGoal) * 1000;
-                if (expectedDelayMC > latency) {
-                    long delayMS = (long) expectedDelayMC - latency;
-                    TimeUnit.MILLISECONDS.sleep(delayMS);
+                long en = System.nanoTime();
+                long latency =  (en - st) / 1000000;
+                if (throughputGoal >= 0) {
+                    float expectedDelayMC = (totalWorkers / (float) throughputGoal) * 1000;
+                    if (expectedDelayMC > latency) {
+                        long delayMS = (long) expectedDelayMC - latency;
+                        TimeUnit.MILLISECONDS.sleep(delayMS);
+                    }
                 }
             }
 

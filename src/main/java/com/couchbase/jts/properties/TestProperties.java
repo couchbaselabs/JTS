@@ -91,7 +91,7 @@ public class TestProperties {
     private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "text";
 
     public static final String TESTSPEC_MUTATION_FIELD = "test_mutation_field";
-    private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = null;
+    private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "false";
 
     public static final String TESTSPEC_WORKER_TYPE = "test_worker_type";
     private static final String TESTSPEC_WORKER_TYPE_DEFAULT = "latency"; //debug, latency, throughput
