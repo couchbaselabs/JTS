@@ -2,6 +2,7 @@ package com.couchbase.jts.worker;
 
 import com.couchbase.jts.drivers.Client;
 import com.couchbase.jts.logger.ThroughputLogger;
+import com.couchbase.jts.properties.TestProperties;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -25,7 +26,9 @@ public class KVWorker extends Worker {
     public void runAction(){
         try {
             long st = System.nanoTime();
-            clientDB.mutateRandomDoc();
+            if (TestProperties.TESTSPEC_MUTATION_FIELD != null){
+                clientDB.mutateRandomDoc();
+            }
             long en = System.nanoTime();
             long latency =  (en - st) / 1000000;
             if (throughputGoal >= 0) {
