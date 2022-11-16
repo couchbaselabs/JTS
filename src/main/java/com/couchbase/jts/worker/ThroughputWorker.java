@@ -14,7 +14,7 @@ public class ThroughputWorker extends Worker{
 
     public ThroughputWorker(Client client, int workerId){
         super(client);
-        throughputLogger = new ThroughputLogger(statsLimit, workerId);
+        throughputLogger = new ThroughputLogger(statsLimit, workerId, workload);
     }
 
     public void runAction(){
