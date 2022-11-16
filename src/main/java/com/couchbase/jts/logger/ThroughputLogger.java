@@ -21,15 +21,16 @@ public class ThroughputLogger extends Logger{
     private int aggregationBufferMS = 1000;
     private long samplesCounter = 0;
     private String filename;
+    protected static TestProperties settings;
 
     public ThroughputLogger(int storageLimit, int loggerId){
         super(storageLimit, loggerId);
-        filename = TestProperties.CBSPEC_CBBUCKET + "_worker_" + loggerId + "_throughput.log";
+        filename = settings.get(TestProperties.CBSPEC_CBBUCKET) + "_worker_" + loggerId + "_throughput.log";
     }
 
     public ThroughputLogger(int storageLimit, int loggerId, String customPrefix){
         super(storageLimit, loggerId);
-        filename = customPrefix + "_" + TestProperties.CBSPEC_CBBUCKET + "_worker_" + loggerId + "_throughput.log";
+        filename = settings.get(TestProperties.CBSPEC_CBBUCKET) + "_" + customPrefix + "_worker_" + loggerId + "_throughput.log";
     }
 
     public void logRequest(){
@@ -57,7 +58,7 @@ public class ThroughputLogger extends Logger{
     public static float aggregate(int totalFilesExpected) throws IOException{
         List<LogPair> lines = new ArrayList<>();
         for (int i=0; i< totalFilesExpected; i++) {
-            String filename = "logs/"  + TestProperties.CONSTANT_JTS_LOG_DIR + "/" + TestProperties.CBSPEC_CBBUCKET + "_worker_" + i + "_throughput.log";
+            String filename = "logs/"  + TestProperties.CONSTANT_JTS_LOG_DIR + "/" + settings.get(TestProperties.CBSPEC_CBBUCKET) + "_worker_" + i + "_throughput.log";
             Stream<String> strm;
             try {
                 strm = Files.lines(Paths.get(filename));
@@ -72,7 +73,7 @@ public class ThroughputLogger extends Logger{
 
         LogPair[] pairsArr = lines.toArray(new LogPair[lines.size()]);
         Arrays.sort(pairsArr, (a, b) -> a.k.compareTo(b.k));
-        dump(TestProperties.CBSPEC_CBBUCKET + "_combined_throughput.log", pairsArr, pairsArr.length);
+        dump(settings.get(TestProperties.CBSPEC_CBBUCKET) + "_combined_throughput.log", pairsArr, pairsArr.length);
 
         List<LogPair> aggregates = new ArrayList<>();
         long lastSample = -1;
@@ -92,7 +93,7 @@ public class ThroughputLogger extends Logger{
             }
         }
 
-        dump(TestProperties.CBSPEC_CBBUCKET + "_aggregated_throughput.log", aggregates.toArray(new LogPair[aggregates.size()]),
+        dump(settings.get(TestProperties.CBSPEC_CBBUCKET)+ "_aggregated_throughput.log", aggregates.toArray(new LogPair[aggregates.size()]),
                 aggregates.size());
 
         int totalValues = aggregates.size();

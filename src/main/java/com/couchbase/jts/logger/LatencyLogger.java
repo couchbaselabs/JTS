@@ -16,9 +16,10 @@ import java.util.List;
 public class LatencyLogger extends Logger{
 
     private String filename = "untitled.log";
+    protected static TestProperties settings;
     public LatencyLogger(int storageLimit, int workerId){
         super(storageLimit, workerId);
-        filename = TestProperties.CBSPEC_CBBUCKET + "_worker_" + workerId + "_latency.log";
+        filename = settings.get(TestProperties.CBSPEC_CBBUCKET) + "_worker_" + workerId + "_latency.log";
     }
 
     public void logLatency(float latency){
@@ -32,7 +33,7 @@ public class LatencyLogger extends Logger{
     public static float aggregate(int totalFilesExpected, int aggregationStep) throws IOException{
         List<LogPair> lines = new ArrayList<>();
         for (int i=0; i< totalFilesExpected; i++) {
-            String filename = "logs/" + TestProperties.CONSTANT_JTS_LOG_DIR + "/" + TestProperties.CBSPEC_CBBUCKET + "_worker_" + i + "_latency.log";
+            String filename = "logs/" + TestProperties.CONSTANT_JTS_LOG_DIR + "/" + settings.get(TestProperties.CBSPEC_CBBUCKET) + "_worker_" + i + "_latency.log";
             Stream<String> strm;
             try {
                 strm = Files.lines(Paths.get(filename));
@@ -47,7 +48,7 @@ public class LatencyLogger extends Logger{
 
         LogPair[] pairsArr = lines.toArray(new LogPair[lines.size()]);
         Arrays.sort(pairsArr, (a, b) -> a.k.compareTo(b.k));
-        dump(TestProperties.CBSPEC_CBBUCKET + "_combined_latency.log", pairsArr, pairsArr.length);
+        dump(settings.get(TestProperties.CBSPEC_CBBUCKET) + "_combined_latency.log", pairsArr, pairsArr.length);
 
         List<LogPair> aggregates = new ArrayList<>();
         int aggCounter = 0;
@@ -68,7 +69,7 @@ public class LatencyLogger extends Logger{
                 aggregates.add(new LogPair(stepCounter, avg));
             }
         }
-        dump(TestProperties.CBSPEC_CBBUCKET + "_aggregated_latency.log", aggregates.toArray(new LogPair[aggregates.size()]),
+        dump(settings.get(TestProperties.CBSPEC_CBBUCKET) + "_aggregated_latency.log", aggregates.toArray(new LogPair[aggregates.size()]),
                 aggregates.size());
 
 
