@@ -23,8 +23,9 @@ public class ThroughputLogger extends Logger{
     private String filename;
     protected static TestProperties settings;
 
-    public ThroughputLogger(int storageLimit, int loggerId){
+    public ThroughputLogger(int storageLimit, int loggerId, TestProperties worload){
         super(storageLimit, loggerId);
+        settings = worload;
         filename = settings.get(TestProperties.CBSPEC_CBBUCKET) + "_worker_" + loggerId + "_throughput.log";
     }
 

@@ -16,8 +16,8 @@ public class LatencyWorker extends Worker{
 
     public LatencyWorker(Client client, int workerId){
         super(client);
-        latencyLogger = new LatencyLogger(statsLimit, workerId);
-        throughputLogger = new ThroughputLogger(statsLimit, workerId);
+        latencyLogger = new LatencyLogger(statsLimit, workerId, workload);
+        throughputLogger = new ThroughputLogger(statsLimit, workerId, workload);
     }
 
     public void runAction(){

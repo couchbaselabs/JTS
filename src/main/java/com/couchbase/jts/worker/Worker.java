@@ -15,7 +15,7 @@ public abstract class Worker implements Runnable{
     protected ThroughputLogger throughputLogger;
     protected Client clientDB;
     private volatile Criteria testCompletedCriteria = new Criteria(false);
-    private TestProperties workload;
+    protected TestProperties workload;
     protected int statsLimit;
 
 

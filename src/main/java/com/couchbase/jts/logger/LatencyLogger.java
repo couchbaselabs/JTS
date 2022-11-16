@@ -17,8 +17,9 @@ public class LatencyLogger extends Logger{
 
     private String filename = "untitled.log";
     protected static TestProperties settings;
-    public LatencyLogger(int storageLimit, int workerId){
+    public LatencyLogger(int storageLimit, int workerId, TestProperties workload){
         super(storageLimit, workerId);
+        settings = workload;
         filename = settings.get(TestProperties.CBSPEC_CBBUCKET) + "_worker_" + workerId + "_latency.log";
     }
 
