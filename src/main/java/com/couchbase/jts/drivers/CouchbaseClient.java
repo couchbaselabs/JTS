@@ -138,7 +138,7 @@ public class  CouchbaseClient extends Client {
 			}
 			clusterOptions = ClusterOptions.clusterOptions(getProp(TestProperties.CBSPEC_USER),getProp(TestProperties.CBSPEC_PASSWORD));
 			clusterOptions.environment(env);
-			cluster = Cluster.connect(getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
+			cluster = Cluster.connect("couchbases://" + getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
 			bucket = cluster.bucket(getProp(TestProperties.CBSPEC_CBBUCKET));
 		} catch(Exception ex) {
 				throw new Exception("Could not connect to Couchbase Bucket.", ex);
@@ -345,6 +345,8 @@ public class  CouchbaseClient extends Client {
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
+        System.out.println(queryToRun);
+        System.out.println(res);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
