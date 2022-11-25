@@ -359,8 +359,6 @@ public class CouchbaseClient extends Client {
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
-		System.out.println(queryToRun);
-		System.out.println(res);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
