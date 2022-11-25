@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
-import java.lang.System.* ;
+import java.lang.System.*;
 import java.sql.Date;
 import java.util.Map;
 import java.util.HashMap;
@@ -25,7 +25,9 @@ import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.Scope;
 import com.couchbase.client.java.Collection;
 import com.couchbase.client.java.ClusterOptions;
+import com.couchbase.client.core.deps.io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import com.couchbase.client.core.env.IoConfig;
+import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.core.env.TimeoutConfig;
 import com.couchbase.client.java.json.JsonObject;
@@ -45,10 +47,9 @@ import com.couchbase.client.java.search.queries.DateRangeQuery;
 import com.couchbase.client.java.search.queries.DisjunctionQuery;
 import com.couchbase.client.java.query.QueryResult;
 
-
-public class  CouchbaseClient extends Client {
+public class CouchbaseClient extends Client {
 	private GlobalStatusLogger logWriter = new GlobalStatusLogger();
-	private static volatile ClusterEnvironment env =  null;
+	private static volatile ClusterEnvironment env = null;
 	private static final Object INIT_COORDINATOR = new Object();
 	private int networkMetricsInterval = 0;
 	private int runtimeMetricsInterval = 0;
@@ -61,10 +62,12 @@ public class  CouchbaseClient extends Client {
 	private int socketTimeout = 100000;
 	private boolean enableMutationToken = false;
 
-	private boolean collectionsEnabled = Boolean.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_ENABLED));
+	private boolean collectionsEnabled = Boolean
+			.parseBoolean(settings.get(TestProperties.TESTSPEC_COLLECTIONS_ENABLED));
 	private boolean index_map_provided;
 	private String collection_query_mode = settings.get(TestProperties.TESTSPEC_COLLECTION_QUERY_MODE);
-	private int collection_specific_count = Integer.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_COUNT));
+	private int collection_specific_count = Integer
+			.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_COUNT));
 	private String fts_index_map_raw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
 	private JSONObject fts_index_json;
 	private List<String> fts_index_list;
@@ -105,7 +108,7 @@ public class  CouchbaseClient extends Client {
 				ArrayList<String> targetCollections = (ArrayList<String>) index_targets.get("collections");
 
 				for (String targetCollection : targetCollections) {
-					target_set.add(targetScope+"."+targetCollection);
+					target_set.add(targetScope + "." + targetCollection);
 				}
 			}
 
@@ -127,30 +130,40 @@ public class  CouchbaseClient extends Client {
 
 	private void connect() throws Exception {
 		try {
+			String connection_prefix = "";
 			synchronized (INIT_COORDINATOR) {
-				if(env == null) {
-					env = ClusterEnvironment
+				if (env == null) {
+					ClusterEnvironment.Builder builder = ClusterEnvironment
 							.builder()
 							.timeoutConfig(TimeoutConfig.kvTimeout(Duration.ofMillis(kvTimeout)))
-							.ioConfig(IoConfig.enableMutationTokens(enableMutationToken).numKvConnections(kvEndpoints))
-							.build();
+							.ioConfig(IoConfig.enableMutationTokens(enableMutationToken).numKvConnections(kvEndpoints));
+
+					if (getProp(TestProperties.CBSPEC_SSLMODE).equals("capella")) {
+						builder.securityConfig(SecurityConfig
+								.enableTls(true)
+								.trustManagerFactory(InsecureTrustManagerFactory.INSTANCE));
+						connection_prefix = "couchbases://";
+					}
+					env = builder.build();
 				}
 			}
-			clusterOptions = ClusterOptions.clusterOptions(getProp(TestProperties.CBSPEC_USER),getProp(TestProperties.CBSPEC_PASSWORD));
+			clusterOptions = ClusterOptions.clusterOptions(getProp(TestProperties.CBSPEC_USER),
+					getProp(TestProperties.CBSPEC_PASSWORD));
+
 			clusterOptions.environment(env);
-			cluster = Cluster.connect("couchbases://" + getProp(TestProperties.CBSPEC_SERVER),clusterOptions);
+			cluster = Cluster.connect(connection_prefix + getProp(TestProperties.CBSPEC_SERVER), clusterOptions);
 			bucket = cluster.bucket(getProp(TestProperties.CBSPEC_CBBUCKET));
-		} catch(Exception ex) {
-				throw new Exception("Could not connect to Couchbase Bucket.", ex);
+		} catch (Exception ex) {
+			throw new Exception("Could not connect to Couchbase Bucket.", ex);
 		}
 	}
 
 	private void generateQueries() throws Exception {
 		String[][] terms = importTerms();
-		List <SearchQuery> queryList = null;
+		List<SearchQuery> queryList = null;
 		String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
-		queryList = generateTermQueries(terms,fieldName);
-		if((queryList == null) || (queryList.size() == 0)) {
+		queryList = generateTermQueries(terms, fieldName);
+		if ((queryList == null) || (queryList.size() == 0)) {
 			throw new Exception("Query list is empty! ");
 		}
 		FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
@@ -166,7 +179,7 @@ public class  CouchbaseClient extends Client {
 				try {
 					SearchQuery query = buildQuery(terms[i], fieldName);
 					queryList.add(query);
-				} catch(IndexOutOfBoundsException ex) {
+				} catch (IndexOutOfBoundsException ex) {
 					continue;
 				}
 			}
@@ -174,7 +187,8 @@ public class  CouchbaseClient extends Client {
 		return queryList;
 	}
 
-	private SearchQuery buildQuery(String[] terms, String fieldName) throws IllegalArgumentException, IndexOutOfBoundsException {
+	private SearchQuery buildQuery(String[] terms, String fieldName)
+			throws IllegalArgumentException, IndexOutOfBoundsException {
 		switch (settings.get(settings.TESTSPEC_QUERY_TYPE)) {
 			case TestProperties.CONSTANT_QUERY_TYPE_TERM:
 				return buildTermQuery(terms, fieldName);
@@ -206,8 +220,8 @@ public class  CouchbaseClient extends Client {
 				return buildGeoPolygonQuery(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
-					"Couchbase query builder: unexpected query type - " +
-								settings.get(settings.TESTSPEC_QUERY_TYPE));
+				"Couchbase query builder: unexpected query type - " +
+						settings.get(settings.TESTSPEC_QUERY_TYPE));
 	}
 
 	private SearchQuery buildTermQuery(String[] terms, String fieldName) {
@@ -226,7 +240,7 @@ public class  CouchbaseClient extends Client {
 		return SearchQuery.disjuncts(lt, rt);
 	}
 
-	private SearchQuery buildAndOrOrQuery(String[] terms , String fieldName) {
+	private SearchQuery buildAndOrOrQuery(String[] terms, String fieldName) {
 		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
 		TermQuery mt = SearchQuery.term(terms[1]).field(fieldName);
 		TermQuery rt = SearchQuery.term(terms[2]).field(fieldName);
@@ -239,33 +253,33 @@ public class  CouchbaseClient extends Client {
 	}
 
 	private SearchQuery buildPhraseQuery(String[] terms, String fieldName) {
-		return SearchQuery.matchPhrase(terms[0]+ " " + terms[1]).field(fieldName);
+		return SearchQuery.matchPhrase(terms[0] + " " + terms[1]).field(fieldName);
 	}
 
 	private SearchQuery buildPrefixQuery(String[] terms, String fieldName) {
 		return SearchQuery.prefix(terms[0]).field(fieldName);
 	}
 
-	private SearchQuery buildWildcardQuery(String [] terms, String fieldName) {
+	private SearchQuery buildWildcardQuery(String[] terms, String fieldName) {
 		return SearchQuery.wildcard(terms[0]).field(fieldName);
 	}
 
 	private SearchQuery buildNumericQuery(String[] terms, String fieldName) {
 		String[] minmax = terms[0].split(":");
-		return  SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
-						.min(Double.parseDouble(minmax[1]), true).field(fieldName);
+		return SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
+				.min(Double.parseDouble(minmax[1]), true).field(fieldName);
 	}
-	private SearchQuery buildDateQuery(String[] terms, String indexName, String fieldName){
+
+	private SearchQuery buildDateQuery(String[] terms, String indexName, String fieldName) {
 		String[] startend = terms[0].split(":");
 		return SearchQuery.dateRange()
 				.start(startend[0], true)
 				.end(startend[1], true).field(fieldName);
-		
+
 	}
-	
 
 	private SearchQuery buildGeoRadiusQuery(String[] terms, String feildName, String dist) {
-		double locationLon= Double.parseDouble(terms[0]) ;
+		double locationLon = Double.parseDouble(terms[0]);
 		double locationLat = Double.parseDouble(terms[1]);
 		String distance = dist;
 		return SearchQuery.geoDistance(locationLon, locationLat, distance).field(feildName);
@@ -279,11 +293,11 @@ public class  CouchbaseClient extends Client {
 		return SearchQuery.geoBoundingBox​(topLeftLon, topLeftLat, bottomRightLon, bottomRightLat).field(fieldName);
 	}
 
-	private SearchQuery  buildGeoPolygonQuery(String[] terms, String fieldName) {
-		List<Coordinate> listOfPts =  new ArrayList<Coordinate>();
-		for(int i = 0; i < terms.length; i = i + 2) {
+	private SearchQuery buildGeoPolygonQuery(String[] terms, String fieldName) {
+		List<Coordinate> listOfPts = new ArrayList<Coordinate>();
+		for (int i = 0; i < terms.length; i = i + 2) {
 			double lon = Double.parseDouble(terms[i]);
-			double lat = Double.parseDouble(terms[i+1]);
+			double lat = Double.parseDouble(terms[i + 1]);
 			Coordinate coord = Coordinate.ofLonLat(lon, lat);
 			listOfPts.add(coord);
 		}
@@ -315,7 +329,7 @@ public class  CouchbaseClient extends Client {
 		Object replace = doc.contentAsObject().getString(replaceFieldName);
 		mutate_doc.put(originFieldName, replace);
 		mutate_doc.put(replaceFieldName, origin);
-		MutationResult mut_res =  collection.upsert(docIdHex, mutate_doc);
+		MutationResult mut_res = collection.upsert(docIdHex, mutate_doc);
 	}
 
 	public String queryDebug() {
@@ -345,13 +359,15 @@ public class  CouchbaseClient extends Client {
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
-        System.out.println(queryToRun);
-        System.out.println(res);
+		System.out.println(queryToRun);
+		System.out.println(res);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return latency; }
+		if (res_size > 0 && metrics.maxScore() != 0 && metrics.totalRows() != 0) {
+			return latency;
+		}
 		return 0;
 	}
 
@@ -364,7 +380,9 @@ public class  CouchbaseClient extends Client {
 		SearchResult res = cluster.searchQuery(indexToQuery, FTSQueries[rand.nextInt(totalQueries)], opt);
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
-		if (res_size > 0 && metrics.maxScore()!= 0 && metrics.totalRows()!= 0){ return true; }
+		if (res_size > 0 && metrics.maxScore() != 0 && metrics.totalRows() != 0) {
+			return true;
+		}
 		return false;
 	}
 
