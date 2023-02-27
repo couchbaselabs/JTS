@@ -31,7 +31,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_GEO_RADIUS	= "geo_rad";
     public static final String CONSTANT_QUERY_TYPE_GEO_BOX ="geo_box";
     public static final String CONSTANT_QUERY_TYPE_GEO_POLYGON = "geo_polygon";
-    public static final String CONSTANT_QUERY_MATCH = "match";
+    public static final String CONSTANT_QUERY_TYPE_MATCH = "match";
     //Flex query types
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
