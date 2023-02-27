@@ -218,6 +218,8 @@ public class CouchbaseClient extends Client {
 				return buildGeoBoundingBoxQuery(terms, fieldName, latHeight, lonWidth);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEO_POLYGON:
 				return buildGeoPolygonQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_MATCH:
+				return buildMatchQuery(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -302,6 +304,10 @@ public class CouchbaseClient extends Client {
 			listOfPts.add(coord);
 		}
 		return SearchQuery.geoPolygon(listOfPts).field(fieldName);
+	}
+
+	private SearchQuery buildMatchQuery(String[] terms, String fieldName) {
+		return SearchQuery.match(terms[0]).field(fieldName);
 	}
 
 	public void mutateRandomDoc() {
