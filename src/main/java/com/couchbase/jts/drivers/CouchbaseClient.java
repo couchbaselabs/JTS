@@ -2,12 +2,13 @@ package com.couchbase.jts.drivers;
 
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.List;
 import java.time.Duration;
 import java.lang.System.*;
 import java.sql.Date;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.Set;
 import java.util.HashSet;
@@ -15,7 +16,7 @@ import java.util.HashSet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
+import static com.couchbase.client.core.util.Validators.notNullOrEmpty;
 import com.couchbase.jts.properties.TestProperties;
 import com.couchbase.jts.logger.GlobalStatusLogger;
 
@@ -30,8 +31,6 @@ import com.couchbase.client.core.env.IoConfig;
 import com.couchbase.client.core.env.SecurityConfig;
 import com.couchbase.client.java.ClusterOptions;
 import com.couchbase.client.core.env.TimeoutConfig;
-import com.couchbase.client.java.json.JsonObject;
-import com.couchbase.client.java.kv.MutationResult;
 import com.couchbase.client.java.util.Coordinate;
 import com.couchbase.client.java.kv.*;
 import com.couchbase.client.java.json.*;
@@ -220,6 +219,8 @@ public class CouchbaseClient extends Client {
 				return buildGeoPolygonQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_MATCH:
 				return buildMatchQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_POINT:
+			    return buildRawGeoJsonPointQuery(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -308,6 +309,75 @@ public class CouchbaseClient extends Client {
 
 	private SearchQuery buildMatchQuery(String[] terms, String fieldName) {
 		return SearchQuery.match(terms[0]).field(fieldName);
+	}
+
+	public class RawGeoJsonPointQuery extends SearchQuery {
+
+    
+		private Coordinate coordinates;
+		private String field;
+		private String relation;
+		private String shape;
+	
+    public RawGeoJsonPointQuery(Coordinate coordinate, String shape, String relation) {
+		super();
+		this.coordinates = coordinate;
+		this.relation = relation;
+		this.shape = shape;
+	}
+    /**
+     * Allows to specify which field the query should apply to (default is null).
+     *
+     * @param field the name of the field in the index/document (if null it is not considered).
+     * @return this {@link RawGeoJsonPointQuery} for chaining purposes.
+     */
+    public RawGeoJsonPointQuery field(final String field) {
+        this.field = field;
+        return this;
+    }
+
+
+    @Override
+    public RawGeoJsonPointQuery boost(final double boost) {
+        super.boost(boost);
+        return this;
+    }
+
+    @Override
+    protected void injectParams(final JsonObject input) {
+        final JsonArray points = JsonArray.from(coordinates.lon(), coordinates.lat());
+    
+		final JsonObject geometry = JsonObject.create().put("shape", JsonObject.create()
+				.put("coordinates", points)
+				.put("type", shape)
+		)
+		.put("relation", relation);
+        if (field != null) {
+            input.put("field", field);
+        }
+		input.put("geometry", geometry);
+
+    }
+}
+
+	private RawGeoJsonPointQuery buildRawGeoJsonPointQuery(String[] terms, String fieldName){
+	
+		double lon = Double.parseDouble(terms[0]);
+		double lat = Double.parseDouble(terms[1]);
+		Coordinate coord = Coordinate.ofLonLat(lon, lat);
+		RawGeoJsonPointQuery rawjson = new RawGeoJsonPointQuery(coord, "point", "intersects").field(fieldName);
+		return rawjson;
+		// 	"query": {
+		// 	  "field": "<<fieldName>>",
+		// 	  "geometry": {
+		// 		"shape": {
+		// 		  "type": "point",
+		// 		  "coordinates": [1.954764, 50.962097]
+		// 		},
+		// 		"relation": "intersects"
+		// 	  }
+		// 	}
+		//   }
 	}
 
 	public void mutateRandomDoc() {
