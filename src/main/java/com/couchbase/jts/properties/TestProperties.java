@@ -32,7 +32,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_GEO_BOX ="geo_box";
     public static final String CONSTANT_QUERY_TYPE_GEO_POLYGON = "geo_polygon";
     public static final String CONSTANT_QUERY_TYPE_MATCH = "match";
-    public static final String CONSTANT_QUERY_TYPE_GEOSHAPE_POINT = "geo_shape_point";
+    public static final String CONSTANT_QUERY_TYPE_GEOSHAPE = "geo_shape";
     //Flex query types
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
@@ -153,6 +153,12 @@ public class TestProperties {
     public static final String MDBSPEC_COLLECTION = "mongodb_collection";
     private static final String MDBSPEC_COLLECTION_DEFAULT = "bucket1";
 
+    public static final String TESTSPEC_GEOJSON_QUERY_TYPE = "test_geojson_query_type";
+    private static final String TESTSPEC_GEOJSON_QUERY_TYPE_DEFAULT = "point";
+
+    public static final String TESTSPEC_GEOJSON_QUERY_RELATION = "test_geojson_query_relation";
+    private static final String TESTSPEC_GEOJSON_QUERY_RELATION_DEFAULT = "contains";
+
     private HashMap<String, String> prop = new HashMap<>();
 
     private HashMap<String, String> driversMapping = new HashMap<>();
@@ -190,6 +196,9 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_GEO_LAT_HEIGHT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_GEO_LON_WIDTH).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_GEO_POLYGON_COORD_LIST).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEOJSON_QUERY_TYPE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_GEOJSON_QUERY_RELATION).hasArg().required(false).build());
+
 
         // Additional parameters for Flex
         options.addOption(Option.builder(TESTSPEC_FLEX).hasArg().required(false).build());
@@ -261,6 +270,9 @@ public class TestProperties {
         prop.put(TESTSPEC_GEO_LAT_HEIGHT,cmd.getOptionValue( TESTSPEC_GEO_LAT_HEIGHT,TESTSPEC_GEO_LAT_HEIGHT_DEFAULT ));
         prop.put(TESTSPEC_GEO_POLYGON_COORD_LIST, cmd.getOptionValue(TESTSPEC_GEO_POLYGON_COORD_LIST,TESTSPEC_GEO_POLYGON_COORD_LIST_DEFAULT));
         prop.put(TESTSPEC_GEO_LON_WIDTH,cmd.getOptionValue(TESTSPEC_GEO_LON_WIDTH,TESTSPEC_GEO_LON_WIDTH_DEFAULT));
+        prop.put(TESTSPEC_GEOJSON_QUERY_TYPE,cmd.getOptionValue(TESTSPEC_GEOJSON_QUERY_TYPE,TESTSPEC_GEOJSON_QUERY_TYPE_DEFAULT));
+        prop.put(TESTSPEC_GEOJSON_QUERY_RELATION,cmd.getOptionValue(TESTSPEC_GEOJSON_QUERY_RELATION,TESTSPEC_GEOJSON_QUERY_RELATION_DEFAULT));
+
 
         prop.put(CBSPEC_INDEX_NAME, cmd.getOptionValue(CBSPEC_INDEX_NAME, CBSPEC_INDEX_NAME_DEFAILT));
         prop.put(CBSPEC_SERVER, cmd.getOptionValue(CBSPEC_SERVER, CBSPEC_SERVER_DEFAULT));

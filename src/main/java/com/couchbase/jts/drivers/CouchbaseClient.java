@@ -219,8 +219,8 @@ public class CouchbaseClient extends Client {
 				return buildGeoPolygonQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_MATCH:
 				return buildMatchQuery(terms, fieldName);
-			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_POINT:
-			    return buildRawGeoJsonPointQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE:
+				return buildGeoJsonQuery(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -311,73 +311,140 @@ public class CouchbaseClient extends Client {
 		return SearchQuery.match(terms[0]).field(fieldName);
 	}
 
-	public class RawGeoJsonPointQuery extends SearchQuery {
+	public class RawGeoJsonQuery extends SearchQuery {
 
-    
-		private Coordinate coordinates;
+		private List<Coordinate> coordinates;
 		private String field;
 		private String relation;
 		private String shape;
-	
-    public RawGeoJsonPointQuery(Coordinate coordinate, String shape, String relation) {
-		super();
-		this.coordinates = coordinate;
-		this.relation = relation;
-		this.shape = shape;
+
+		public RawGeoJsonQuery(List<Coordinate> coordinates, String shape, String relation) {
+			super();
+			this.coordinates = coordinates;
+			this.relation = relation;
+			this.shape = shape;
+		}
+
+		/**
+		 * Allows to specify which field the query should apply to (default is null).
+		 *
+		 * @param field the name of the field in the index/document (if null it is not
+		 *              considered).
+		 * @return this {@link RawGeoJsonQuery} for chaining purposes.
+		 */
+		public RawGeoJsonQuery field(final String field) {
+			this.field = field;
+			return this;
+		}
+
+		@Override
+		public RawGeoJsonQuery boost(final double boost) {
+			super.boost(boost);
+			return this;
+		}
+
+		private JsonObject PointGeometry() {
+			final JsonArray points = JsonArray.from(coordinates.get(0).lon(), coordinates.get(0).lat());
+
+			final JsonObject geometry = JsonObject.create().put("shape", JsonObject.create()
+					.put("coordinates", points)
+					.put("type", shape))
+					.put("relation", relation);
+			return geometry;
+		}
+
+		private JsonObject CircleGeometry() {
+			final JsonArray points = JsonArray.from(coordinates.get(0).lon(), coordinates.get(0).lat());
+
+			final JsonObject geometry = JsonObject.create().put("shape", JsonObject.create()
+					.put("coordinates", points)
+					.put("type", shape)
+					.put("radius", settings.get(settings.TESTSPEC_GEO_DISTANCE)))
+					.put("relation", relation);
+			return geometry;
+		}
+
+		private JsonObject PolygonGeometry() {
+			JsonArray points = JsonArray.create();
+			for (int i=0; i < coordinates.size();i++){
+				points.add(JsonArray.from(coordinates.get(i).lon(), coordinates.get(i).lat()));
+			}
+
+			final JsonObject geometry = JsonObject.create().put("shape", JsonObject.create()
+					.put("coordinates", JsonArray.from(points))
+					.put("type", shape))
+					.put("relation", relation);
+			return geometry;
+		}
+
+		private JsonObject LinestringGeometry() {
+
+			JsonArray points = JsonArray.create();
+			for (int i=0; i < coordinates.size();i++){
+				points.add(JsonArray.from(coordinates.get(i).lon(), coordinates.get(i).lat()));
+			}
+
+			final JsonObject geometry = JsonObject.create().put("shape", JsonObject.create()
+					.put("coordinates", points)
+					.put("type", shape))
+					.put("relation", relation);
+			return geometry;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			JsonObject geometry = JsonObject.create();
+			switch (shape) {
+				case "circle":
+					geometry = CircleGeometry();
+					break;
+				case "polygon":
+					geometry = PolygonGeometry();
+					break;
+				case "point":
+					geometry = PointGeometry();
+					break;
+				case "linestring":
+					geometry = LinestringGeometry();
+					break;
+				default:
+					throw new IllegalArgumentException(
+							"Couchbase query builder: unsupportedGeoJson Query Shape" +
+									shape);
+			}
+
+			if (field != null) {
+				input.put("field", field);
+			}
+			input.put("geometry", geometry);
+
+		}
 	}
-    /**
-     * Allows to specify which field the query should apply to (default is null).
-     *
-     * @param field the name of the field in the index/document (if null it is not considered).
-     * @return this {@link RawGeoJsonPointQuery} for chaining purposes.
-     */
-    public RawGeoJsonPointQuery field(final String field) {
-        this.field = field;
-        return this;
-    }
 
+	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName) {
 
-    @Override
-    public RawGeoJsonPointQuery boost(final double boost) {
-        super.boost(boost);
-        return this;
-    }
-
-    @Override
-    protected void injectParams(final JsonObject input) {
-        final JsonArray points = JsonArray.from(coordinates.lon(), coordinates.lat());
-    
-		final JsonObject geometry = JsonObject.create().put("shape", JsonObject.create()
-				.put("coordinates", points)
-				.put("type", shape)
-		)
-		.put("relation", relation);
-        if (field != null) {
-            input.put("field", field);
-        }
-		input.put("geometry", geometry);
-
-    }
-}
-
-	private RawGeoJsonPointQuery buildRawGeoJsonPointQuery(String[] terms, String fieldName){
-	
-		double lon = Double.parseDouble(terms[0]);
-		double lat = Double.parseDouble(terms[1]);
-		Coordinate coord = Coordinate.ofLonLat(lon, lat);
-		RawGeoJsonPointQuery rawjson = new RawGeoJsonPointQuery(coord, "point", "intersects").field(fieldName);
+		List<Coordinate> listOfPts = new ArrayList<Coordinate>();
+		for (int i = 0; i < terms.length; i = i + 2) {
+			double lon = Double.parseDouble(terms[i]);
+			double lat = Double.parseDouble(terms[i + 1]);
+			Coordinate coord = Coordinate.ofLonLat(lon, lat);
+			listOfPts.add(coord);
+		}
+		String shape = settings.get(settings.TESTSPEC_GEOJSON_QUERY_TYPE);
+		String relation = settings.get(settings.TESTSPEC_GEOJSON_QUERY_RELATION);
+		RawGeoJsonQuery rawjson = new RawGeoJsonQuery(listOfPts, shape, relation).field(fieldName);
 		return rawjson;
-		// 	"query": {
-		// 	  "field": "<<fieldName>>",
-		// 	  "geometry": {
-		// 		"shape": {
-		// 		  "type": "point",
-		// 		  "coordinates": [1.954764, 50.962097]
-		// 		},
-		// 		"relation": "intersects"
-		// 	  }
-		// 	}
-		//   }
+		// "query": {
+		// "field": "<<fieldName>>",
+		// "geometry": {
+		// "shape": {
+		// "type": "point",
+		// "coordinates": [1.954764, 50.962097]
+		// },
+		// "relation": "intersects"
+		// }
+		// }
+		// }
 	}
 
 	public void mutateRandomDoc() {
