@@ -137,6 +137,9 @@ public class TestProperties {
     public static final String CBSPEC_SSLMODE = "couchbase_ssl_mode";
     private static final String CBSPEC_SSLMODE_DEFAULT = "none";
 
+    public static final String SEARCH_QUERY_TIMEOUT_IN_SEC = "search_query_timeout_in_sec";
+    public static final String SEARCH_QUERY_TIMEOUT_IN_SEC_DEFAULT = "10";
+
     // Mongodb-specific settings
     public static final String MDBSPEC_INDEX_NAME = "mongodb_index_name";
     private static final String MDBSPEC_INDEX_NAME_DEFAILT = "text_index";
@@ -217,6 +220,7 @@ public class TestProperties {
         options.addOption(Option.builder(CBSPEC_USER).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_PASSWORD).hasArg().required(false).build());
         options.addOption(Option.builder(CBSPEC_SSLMODE).hasArg().required(false).build());
+        options.addOption(Option.builder(SEARCH_QUERY_TIMEOUT_IN_SEC).hasArg().required(false).build());
 
         options.addOption(Option.builder(MDBSPEC_INDEX_NAME).hasArg().required(false).build());
         options.addOption(Option.builder(MDBSPEC_SERVER).hasArg().required(false).build());
@@ -280,6 +284,7 @@ public class TestProperties {
         prop.put(CBSPEC_USER, cmd.getOptionValue(CBSPEC_USER, CBSPEC_USER_DEFAULT));
         prop.put(CBSPEC_PASSWORD, cmd.getOptionValue(CBSPEC_PASSWORD, CBSPEC_PASSWORD_DEFAULT));
         prop.put(CBSPEC_SSLMODE, cmd.getOptionValue(CBSPEC_SSLMODE, CBSPEC_SSLMODE_DEFAULT));
+        prop.put(SEARCH_QUERY_TIMEOUT_IN_SEC, cmd.getOptionValue(SEARCH_QUERY_TIMEOUT_IN_SEC, SEARCH_QUERY_TIMEOUT_IN_SEC_DEFAULT));
 
         prop.put(MDBSPEC_INDEX_NAME, cmd.getOptionValue(MDBSPEC_INDEX_NAME, MDBSPEC_INDEX_NAME_DEFAILT));
         prop.put(MDBSPEC_SERVER, cmd.getOptionValue(MDBSPEC_SERVER, MDBSPEC_SERVER_DEFAULT));

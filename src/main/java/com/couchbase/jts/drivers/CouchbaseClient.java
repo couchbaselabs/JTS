@@ -84,6 +84,7 @@ public class CouchbaseClient extends Client {
 	private String[] FlexQueries;
 	private int FlexTotalQueries = 0;
 	private Random rand = new Random();
+	private int Search_Query_timeout = Integer.parseInt(settings.get(TestProperties.SEARCH_QUERY_TIMEOUT_IN_SEC));
 
 	public CouchbaseClient(TestProperties workload) throws Exception {
 		super(workload);
@@ -547,7 +548,7 @@ public class CouchbaseClient extends Client {
 	}
 
 	private SearchOptions genSearchOpts(String indexToQuery) {
-		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
+		SearchOptions opt = SearchOptions.searchOptions().limit(limit).timeout(Duration.ofSeconds(Search_Query_timeout));
 		if (collectionsEnabled && collection_query_mode.equals("collection_specific")) {
 			JSONObject index_targets = (JSONObject) fts_index_json.get(indexToQuery);
 			JsonObject scopeJson = JsonObject.create();
