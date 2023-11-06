@@ -18,7 +18,7 @@ public class ThroughputLogger extends Logger{
 
     private long timeStart = 0;
     private int requestsSinceLastDrop = 0;
-    private int aggregationBufferMS = 1000;
+    private int aggregationBufferMS = Integer.parseInt(settings.get(TestProperties.AGGREGATION_BUFFER_MS));
     private long samplesCounter = 0;
     private String filename;
     protected static TestProperties settings;
