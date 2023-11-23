@@ -33,6 +33,8 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_GEO_POLYGON = "geo_polygon";
     public static final String CONSTANT_QUERY_TYPE_MATCH = "match";
     public static final String CONSTANT_QUERY_TYPE_GEOSHAPE = "geo_shape";
+    public static final String CONSTANT_QUERY_TYPE_VECTOR = "vector";
+
     //Flex query types
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
@@ -166,6 +168,12 @@ public class TestProperties {
     public static final String TESTSPEC_GEOJSON_QUERY_RELATION = "test_geojson_query_relation";
     private static final String TESTSPEC_GEOJSON_QUERY_RELATION_DEFAULT = "contains";
 
+    public static final String TESTSPEC_FTS_RAW_QUERY_MAP = "fts_raw_query_map";
+    private static final String TESTSPEC_FTS_RAW_QUERY_MAP_DEFAULT = "";
+    
+    public static final String K_NEAREST_NEIGHBOUR = "k_nearest_neighbour";
+    private static final String K_NEAREST_NEIGHBOUR_DEFAULT = "3";
+
     private HashMap<String, String> prop = new HashMap<>();
 
     private HashMap<String, String> driversMapping = new HashMap<>();
@@ -197,6 +205,9 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_FTS_RAW_QUERY_MAP).hasArg().required(false).build());
+        options.addOption(Option.builder(K_NEAREST_NEIGHBOUR).hasArg().required(false).build());
+
 
         // Additional parameters for geo queries
         options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
@@ -264,6 +275,9 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
+        prop.put(TESTSPEC_FTS_RAW_QUERY_MAP, cmd.getOptionValue(TESTSPEC_FTS_RAW_QUERY_MAP, TESTSPEC_FTS_RAW_QUERY_MAP_DEFAULT));
+        prop.put(K_NEAREST_NEIGHBOUR, cmd.getOptionValue(K_NEAREST_NEIGHBOUR, K_NEAREST_NEIGHBOUR_DEFAULT));
+
 
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));

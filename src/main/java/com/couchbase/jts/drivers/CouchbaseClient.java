@@ -85,6 +85,8 @@ public class CouchbaseClient extends Client {
 	private int FlexTotalQueries = 0;
 	private Random rand = new Random();
 	private int Search_Query_timeout = Integer.parseInt(settings.get(TestProperties.SEARCH_QUERY_TIMEOUT_IN_SEC));
+	private String RawJsonStrig = settings.get(TestProperties.TESTSPEC_FTS_RAW_QUERY_MAP);
+	private int k_nearest_neighbour = Integer.parseInt(settings.get(TestProperties.K_NEAREST_NEIGHBOUR));
 
 	public CouchbaseClient(TestProperties workload) throws Exception {
 		super(workload);
@@ -173,8 +175,11 @@ public class CouchbaseClient extends Client {
 	private List<SearchQuery> generateTermQueries(String[][] terms, String fieldName) throws IllegalArgumentException {
 		List<SearchQuery> queryList = new ArrayList<>();
 		int size = terms.length;
+		System.out.println("Size -->"+ size);
 		for (int i = 0; i < size; i++) {
 			int lineSize = terms[i].length;
+			System.out.println("Linesize -->"+ lineSize + ", " +i);
+			System.out.println("term[i] -->"+ terms[i]+ ", " +i);
 			if (lineSize > 0) {
 				try {
 					SearchQuery query = buildQuery(terms[i], fieldName);
@@ -222,6 +227,8 @@ public class CouchbaseClient extends Client {
 				return buildMatchQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE:
 				return buildGeoJsonQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_VECTOR:
+				return buildVectorSearchQuery(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -422,6 +429,47 @@ public class CouchbaseClient extends Client {
 		}
 	}
 
+	public class VectorSearchQuery extends SearchQuery {
+
+		private String field;
+		private JsonArray vectArray ;
+		private int k;
+
+		public VectorSearchQuery(JsonArray vectors, int k) {
+			super();
+			this.vectArray = vectors;
+			this.k  = k;
+		}
+
+		/**
+		 * Allows to specify which field the query should apply to (default is null).
+		 *
+		 * @param field the name of the field in the index/document (if null it is not
+		 *              considered).
+		 * @return this {@link VectorSearchQuery} for chaining purposes.
+		 */
+		public VectorSearchQuery field(final String field) {
+			this.field = field;
+			return this;
+		}
+
+		@Override
+		public VectorSearchQuery boost(final double boost) {
+			super.boost(boost);
+			return this;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			JsonArray knn = JsonArray.create();
+			knn.add(JsonObject.create().put("field", field).put("vector", vectArray).put("k", k));
+			JsonObject query = JsonObject.fromJson(RawJsonStrig);
+			
+			query.toMap().forEach((key, value) -> input.put(key, value));
+			input.put("knn", knn);
+		}
+	}
+
 	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName) {
 
 		List<Coordinate> listOfPts = new ArrayList<Coordinate>();
@@ -447,6 +495,15 @@ public class CouchbaseClient extends Client {
 		// }
 		// }
 	}
+
+	private VectorSearchQuery buildVectorSearchQuery(String[] terms, String fieldName) {
+		JsonArray vectorArray = JsonArray.create();
+		for (int i = 0; i < terms.length; i = i + 1) {
+			double vector = Double.parseDouble(terms[i]);
+			vectorArray.add(vector);
+		}
+		return new VectorSearchQuery(vectorArray, k_nearest_neighbour);
+		}
 
 	public void mutateRandomDoc() {
 		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
@@ -501,9 +558,11 @@ public class CouchbaseClient extends Client {
 		}
 		SearchOptions opt = genSearchOpts(indexToQuery);
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
+		System.out.println("query ---> "+queryToRun);
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
 		long en = System.nanoTime();
+		System.out.println("res ---> "+res);
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
