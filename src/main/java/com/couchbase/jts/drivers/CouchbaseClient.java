@@ -502,7 +502,7 @@ public class CouchbaseClient extends Client {
 			double vector = Double.parseDouble(terms[i]);
 			vectorArray.add(vector);
 		}
-		return new VectorSearchQuery(vectorArray, k_nearest_neighbour);
+		return new VectorSearchQuery(vectorArray, k_nearest_neighbour).field(fieldName);
 		}
 
 	public void mutateRandomDoc() {
