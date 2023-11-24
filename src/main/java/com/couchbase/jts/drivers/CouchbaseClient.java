@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.time.Duration;
 import java.lang.System.*;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -454,6 +455,16 @@ public class CouchbaseClient extends Client {
 		}
 
 		@Override
+		public JsonObject export() {
+			JsonObject result = JsonObject.create();
+			injectParams(result);
+	
+			JsonObject queryJson = JsonObject.create();
+			injectParamsAndBoost(queryJson);
+			return queryJson;
+		}
+
+		@Override
 		public VectorSearchQuery boost(final double boost) {
 			super.boost(boost);
 			return this;
@@ -499,7 +510,7 @@ public class CouchbaseClient extends Client {
 	private VectorSearchQuery buildVectorSearchQuery(String[] terms, String fieldName) {
 		JsonArray vectorArray = JsonArray.create();
 		for (int i = 0; i < terms.length; i = i + 1) {
-			double vector = Double.parseDouble(terms[i]);
+			BigDecimal vector = BigDecimal.valueOf(Double.parseDouble(terms[i]));
 			vectorArray.add(vector);
 		}
 		return new VectorSearchQuery(vectorArray, k_nearest_neighbour).field(fieldName);
