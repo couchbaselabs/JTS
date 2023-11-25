@@ -176,11 +176,8 @@ public class CouchbaseClient extends Client {
 	private List<SearchQuery> generateTermQueries(String[][] terms, String fieldName) throws IllegalArgumentException {
 		List<SearchQuery> queryList = new ArrayList<>();
 		int size = terms.length;
-		System.out.println("Size -->"+ size);
 		for (int i = 0; i < size; i++) {
 			int lineSize = terms[i].length;
-			System.out.println("Linesize -->"+ lineSize + ", " +i);
-			System.out.println("term[i] -->"+ terms[i]+ ", " +i);
 			if (lineSize > 0) {
 				try {
 					SearchQuery query = buildQuery(terms[i], fieldName);
@@ -569,11 +566,9 @@ public class CouchbaseClient extends Client {
 		}
 		SearchOptions opt = genSearchOpts(indexToQuery);
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-		System.out.println("query ---> "+queryToRun);
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
 		long en = System.nanoTime();
-		System.out.println("res ---> "+res);
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
