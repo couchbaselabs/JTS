@@ -34,6 +34,9 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_MATCH = "match";
     public static final String CONSTANT_QUERY_TYPE_GEOSHAPE = "geo_shape";
     public static final String CONSTANT_QUERY_TYPE_VECTOR = "vector";
+    public static final String CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR = "multi_vector";
+    public static final String CONSTANT_QUERY_TYPE_TEXT_VECTOR = "text_vector";
+    public static final String CONSTANT_QUERY_TYPE_NUMERIC_VECTOR = "numeric_vector";
 
     //Flex query types
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
@@ -93,6 +96,9 @@ public class TestProperties {
 
     public static final String TESTSPEC_QUERY_FIELD = "test_query_field";
     private static final String TESTSPEC_QUERY_FIELD_DEFAULT = "text";
+
+    public static final String TESTSPEC_QUERY_FIELD2 = "test_query_field2";
+    private static final String TESTSPEC_QUERY_FIELD2_DEFAULT = "text";
 
     public static final String TESTSPEC_MUTATION_FIELD = "test_mutation_field";
     private static final String TESTSPEC_MUTATION_FIELD_DEFAULT = "false";
@@ -203,6 +209,7 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_QUERY_TYPE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_LIMIT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_QUERY_FIELD2).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_MUTATION_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FTS_RAW_QUERY_MAP).hasArg().required(false).build());
@@ -273,6 +280,7 @@ public class TestProperties {
         prop.put(TESTSPEC_QUERY_TYPE, cmd.getOptionValue(TESTSPEC_QUERY_TYPE, TESTSPEC_QUERY_TYPE_DEFAULT));
         prop.put(TESTSPEC_QUERY_LIMIT, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_LIMIT_DEFAULT));
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
+        prop.put(TESTSPEC_QUERY_FIELD2, cmd.getOptionValue(TESTSPEC_QUERY_FIELD2, TESTSPEC_QUERY_FIELD2_DEFAULT));
         prop.put(TESTSPEC_MUTATION_FIELD, cmd.getOptionValue(TESTSPEC_MUTATION_FIELD, TESTSPEC_MUTATION_FIELD_DEFAULT));
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
         prop.put(TESTSPEC_FTS_RAW_QUERY_MAP, cmd.getOptionValue(TESTSPEC_FTS_RAW_QUERY_MAP, TESTSPEC_FTS_RAW_QUERY_MAP_DEFAULT));
