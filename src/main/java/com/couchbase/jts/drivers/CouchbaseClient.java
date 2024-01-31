@@ -84,7 +84,7 @@ public class CouchbaseClient extends Client {
 	private SearchQuery queryToRun;
 	private String[] FlexQueries;
 	private int FlexTotalQueries = 0;
-	private Random rand = new Random();
+	private Random rand = new Random(10);
 	private int Search_Query_timeout = Integer.parseInt(settings.get(TestProperties.SEARCH_QUERY_TIMEOUT_IN_SEC));
 	private String RawJsonStrig = settings.get(TestProperties.TESTSPEC_FTS_RAW_QUERY_MAP);
 	private int k_nearest_neighbour = Integer.parseInt(settings.get(TestProperties.K_NEAREST_NEIGHBOUR));
