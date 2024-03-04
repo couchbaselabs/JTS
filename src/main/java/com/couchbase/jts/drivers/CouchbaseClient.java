@@ -88,7 +88,7 @@ public class CouchbaseClient extends Client {
 	private int Search_Query_timeout = Integer.parseInt(settings.get(TestProperties.SEARCH_QUERY_TIMEOUT_IN_SEC));
 	private String RawJsonStrig = settings.get(TestProperties.TESTSPEC_FTS_RAW_QUERY_MAP);
 	private int k_nearest_neighbour = Integer.parseInt(settings.get(TestProperties.K_NEAREST_NEIGHBOUR));
-
+	private String secondfieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD2);
 	public CouchbaseClient(TestProperties workload) throws Exception {
 		super(workload);
 		setup();
@@ -226,7 +226,16 @@ public class CouchbaseClient extends Client {
 			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE:
 				return buildGeoJsonQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_VECTOR:
-				return buildVectorSearchQuery(terms, fieldName);
+				return buildVectorSearchQuery(terms, fieldName,'A');
+			case TestProperties.CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR:
+				// This case is being handled in the injectParams class itself
+				// but it can be implemented using a new function if we pass specific
+				// new query for second knn .. Right now I am using same KNN in both fields.
+				return buildVectorSearchQuery(terms, fieldName,'A');
+			case TestProperties.CONSTANT_QUERY_TYPE_NUMERIC_VECTOR:
+				return buildVectorSearchQuery(terms, fieldName, 'B');
+			case TestProperties.CONSTANT_QUERY_TYPE_TEXT_VECTOR:
+				return buildVectorSearchQuery(terms, fieldName, 'C');
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -432,13 +441,13 @@ public class CouchbaseClient extends Client {
 		private String field;
 		private JsonArray vectArray ;
 		private int k;
+		private JsonObject queryObject;
 
 		public VectorSearchQuery(JsonArray vectors, int k) {
 			super();
 			this.vectArray = vectors;
-			this.k  = k;
+			this.k = k;
 		}
-
 		/**
 		 * Allows to specify which field the query should apply to (default is null).
 		 *
@@ -467,14 +476,21 @@ public class CouchbaseClient extends Client {
 			return this;
 		}
 
+		public VectorSearchQuery queryObject(final JsonObject queryObject){
+			this.queryObject = queryObject;
+			return this;
+		}
+
 		@Override
 		protected void injectParams(final JsonObject input) {
 			JsonArray knn = JsonArray.create();
 			knn.add(JsonObject.create().put("field", field).put("vector", vectArray).put("k", k));
-			JsonObject query = JsonObject.fromJson(RawJsonStrig);
-			
-			query.toMap().forEach((key, value) -> input.put(key, value));
+			if (TestProperties.CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {
+				knn.add(JsonObject.create().put("field", secondfieldName).put("vector", vectArray).put("k", k));
+			}
 			input.put("knn", knn);
+			input.put("query", queryObject);
+			input.put("sort", JsonArray.create().add("-_score") );
 		}
 	}
 
@@ -504,13 +520,40 @@ public class CouchbaseClient extends Client {
 		// }
 	}
 
-	private VectorSearchQuery buildVectorSearchQuery(String[] terms, String fieldName) {
+	private JsonObject buildQueryObjectForVectorSearch(String[] terms, String fieldName, char caseType){
+		// Cases definition
+		// A --> Pure KNN or multiKNN
+		// B --> Numeric
+		// C --> Text 
+		JsonObject queryObject;
+		switch (caseType) {
+			case 'A':
+				queryObject = JsonObject.create().put("match_none", JsonObject.create());
+				break;
+			case 'B':
+				String[] minmax = terms[1].split(":");
+				queryObject = SearchQuery.numericRange().max(Double.parseDouble(minmax[0]), true)
+						.min(Double.parseDouble(minmax[1]), true).field(secondfieldName).export();
+				break;
+			case 'C':
+				queryObject= SearchQuery.term(terms[0]).field(secondfieldName).export();
+				break;
+			default:
+				queryObject =  JsonObject.create();
+				break;
+		}
+		queryObject.removeKey("query");
+		return queryObject;
+	}
+
+	private VectorSearchQuery buildVectorSearchQuery(String[] terms, String fieldName, char caseType) {
 		JsonArray vectorArray = JsonArray.create();
-		for (int i = 0; i < terms.length; i = i + 1) {
+		JsonObject queryObject = buildQueryObjectForVectorSearch(terms, fieldName, caseType);
+		for (int i = 2; i < terms.length; i = i + 1) {
 			BigDecimal vector = BigDecimal.valueOf(Double.parseDouble(terms[i]));
 			vectorArray.add(vector);
 		}
-		return new VectorSearchQuery(vectorArray, k_nearest_neighbour).field(fieldName);
+		return new VectorSearchQuery(vectorArray, k_nearest_neighbour).field(fieldName).queryObject(queryObject);
 		}
 
 	public void mutateRandomDoc() {
