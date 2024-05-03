@@ -236,6 +236,8 @@ public class CouchbaseClient extends Client {
 				return buildVectorSearchQuery(terms, fieldName, 'B');
 			case TestProperties.CONSTANT_QUERY_TYPE_TEXT_VECTOR:
 				return buildVectorSearchQuery(terms, fieldName, 'C');
+			case TestProperties.CONSTANT_QUERY_TYPE_BASE64_VECTOR:
+				return buildVectorBase64SearchQuery(terms, fieldName, 'A');
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -442,10 +444,17 @@ public class CouchbaseClient extends Client {
 		private JsonArray vectArray ;
 		private int k;
 		private JsonObject queryObject;
+		private String vectorBase64String;
 
 		public VectorSearchQuery(JsonArray vectors, int k) {
 			super();
 			this.vectArray = vectors;
+			this.k = k;
+		}
+
+		public VectorSearchQuery(String vectorBase64String, int k) {
+			super();
+			this.vectorBase64String = vectorBase64String;
 			this.k = k;
 		}
 		/**
@@ -484,7 +493,14 @@ public class CouchbaseClient extends Client {
 		@Override
 		protected void injectParams(final JsonObject input) {
 			JsonArray knn = JsonArray.create();
-			knn.add(JsonObject.create().put("field", field).put("vector", vectArray).put("k", k));
+			JsonObject knnObject = JsonObject.create().put("field", field).put("k", k);
+			// knn.add(JsonObject.create().put("field", field).put("vector", vectArray).put("k", k));
+			if (TestProperties.CONSTANT_QUERY_TYPE_BASE64_VECTOR.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))){
+				knnObject.put("vector_base64", vectorBase64String);
+			} else {
+				knnObject.put("vector", vectArray);
+			}
+			knn.add(knnObject);
 			if (TestProperties.CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {
 				knn.add(JsonObject.create().put("field", secondfieldName).put("vector", vectArray).put("k", k));
 			}
@@ -539,7 +555,7 @@ public class CouchbaseClient extends Client {
 				queryObject= SearchQuery.term(terms[0]).field(secondfieldName).export();
 				break;
 			default:
-				queryObject =  JsonObject.create();
+				queryObject = JsonObject.create().put("match_none", JsonObject.create());
 				break;
 		}
 		queryObject.removeKey("query");
@@ -555,6 +571,13 @@ public class CouchbaseClient extends Client {
 		}
 		return new VectorSearchQuery(vectorArray, k_nearest_neighbour).field(fieldName).queryObject(queryObject);
 		}
+
+	private VectorSearchQuery buildVectorBase64SearchQuery(String[] terms, String fieldName, char caseType) {
+			
+			JsonObject queryObject = buildQueryObjectForVectorSearch(terms, fieldName, caseType);
+			String vectorBase64String = terms[2];
+			return new VectorSearchQuery(vectorBase64String, k_nearest_neighbour).field(fieldName).queryObject(queryObject);
+			}
 
 	public void mutateRandomDoc() {
 		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));

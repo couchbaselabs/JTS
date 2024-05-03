@@ -37,6 +37,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR = "multi_vector";
     public static final String CONSTANT_QUERY_TYPE_TEXT_VECTOR = "text_vector";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC_VECTOR = "numeric_vector";
+    public static final String CONSTANT_QUERY_TYPE_BASE64_VECTOR = "vector_base64";
 
     //Flex query types
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
