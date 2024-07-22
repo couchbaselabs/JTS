@@ -43,6 +43,9 @@ public class TestProperties {
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED1 = "mixed1";
     public static final String CONSTANT_FLEX_QUERY_TYPE_MIXED2 = "mixed2";
+    public static final String CONSTANT_QUERY_TYPE_AND_TERM_NUMBER = "2_conjuncts_with_text_number";
+    public static final String CONSTANT_QUERY_TYPE_AND_NUMBER_NUMBER = "2_conjuncts_with_number_number";
+
     public static final String CONSTANT_JTS_LOG_DIR = UUID.randomUUID().toString();
 
 

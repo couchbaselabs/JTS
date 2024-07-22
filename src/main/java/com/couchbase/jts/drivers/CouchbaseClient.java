@@ -45,6 +45,7 @@ import com.couchbase.client.java.search.queries.TermQuery;
 import com.couchbase.client.java.search.queries.ConjunctionQuery;
 import com.couchbase.client.java.search.queries.DateRangeQuery;
 import com.couchbase.client.java.search.queries.DisjunctionQuery;
+import com.couchbase.client.java.search.queries.NumericRangeQuery;
 import com.couchbase.client.java.query.QueryResult;
 
 public class CouchbaseClient extends Client {
@@ -238,6 +239,10 @@ public class CouchbaseClient extends Client {
 				return buildVectorSearchQuery(terms, fieldName, 'C');
 			case TestProperties.CONSTANT_QUERY_TYPE_BASE64_VECTOR:
 				return buildVectorBase64SearchQuery(terms, fieldName, 'A');
+			case TestProperties.CONSTANT_QUERY_TYPE_AND_TERM_NUMBER:
+			 	return buildAndQueryForNumber(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_AND_NUMBER_NUMBER:
+				return buildAndQueryForNumberAndNumber(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -578,6 +583,18 @@ public class CouchbaseClient extends Client {
 			String vectorBase64String = terms[2];
 			return new VectorSearchQuery(vectorBase64String, k_nearest_neighbour).field(fieldName).queryObject(queryObject);
 			}
+	
+	private SearchQuery buildAndQueryForNumber(String[] terms, String fieldName) {
+			TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
+			NumericRangeQuery rt = SearchQuery.numericRange().max(Double.parseDouble(terms[1]), true).min(Double.parseDouble(terms[1]), true).field(secondfieldName);
+			return SearchQuery.conjuncts(lt, rt);
+		}
+
+	private SearchQuery buildAndQueryForNumberAndNumber(String[] terms, String fieldName) {
+			NumericRangeQuery lt = SearchQuery.numericRange().max(Double.parseDouble(terms[0]), true).min(Double.parseDouble(terms[0]), true).field(fieldName);
+			NumericRangeQuery rt = SearchQuery.numericRange().max(Double.parseDouble(terms[1]), true).min(Double.parseDouble(terms[1]), true).field(secondfieldName);
+			return SearchQuery.conjuncts(lt, rt);
+		}
 
 	public void mutateRandomDoc() {
 		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
