@@ -506,7 +506,8 @@ public class CouchbaseClient extends Client {
 				JsonObject filters = JsonObject.create().put("field", secondfieldName);
 				if (Integer.parseInt(minmax[1]) > 0){
 					filters.put("min", minmax[0])
-					.put("max", minmax[1]);
+					.put("max", minmax[1])
+					.put("inclusive_max", false);
 				}
 				if (!match.isEmpty()) {
 					filters.put("match", match);
