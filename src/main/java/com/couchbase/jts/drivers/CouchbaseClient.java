@@ -86,7 +86,7 @@ public class CouchbaseClient extends Client {
 	private int FlexTotalQueries = 0;
 	private Random rand = new Random();
 	private int Search_Query_timeout = Integer.parseInt(settings.get(TestProperties.SEARCH_QUERY_TIMEOUT_IN_SEC));
-	private String RawJsonStrig = settings.get(TestProperties.TESTSPEC_FTS_RAW_QUERY_MAP);
+	private String RawJsonString = settings.get(TestProperties.TESTSPEC_FTS_RAW_QUERY_MAP);
 	private int k_nearest_neighbour = Integer.parseInt(settings.get(TestProperties.K_NEAREST_NEIGHBOUR));
 	private String secondfieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD2);
 	public CouchbaseClient(TestProperties workload) throws Exception {
@@ -499,6 +499,19 @@ public class CouchbaseClient extends Client {
 				knnObject.put("vector_base64", vectorBase64String);
 			} else {
 				knnObject.put("vector", vectArray);
+			}
+			if (settings.get(settings.TESTSPEC_VECTOR_FILTER_ENABLED).equals("true")){
+				String[] minmax = settings.get(settings.TESTSPEC_VECTOR_FILTER_MIN_MAX).split(":");
+				String match = settings.get(settings.TESTSPEC_VECTOR_FILTER_MATCH);
+				JsonObject filters = JsonObject.create().put("field", secondfieldName);
+				if (Integer.parseInt(minmax[1]) > 0){
+					filters.put("min", minmax[0])
+					.put("max", minmax[1]);
+				}
+				if (!match.isEmpty()) {
+					filters.put("match", match);
+				}
+				knnObject.put("filter", filters);
 			}
 			knn.add(knnObject);
 			if (TestProperties.CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {

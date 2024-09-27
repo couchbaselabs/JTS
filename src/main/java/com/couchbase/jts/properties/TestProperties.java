@@ -80,6 +80,15 @@ public class TestProperties {
     public static final String TESTSPEC_QUERY_TYPE = "test_query_type";
     private static final String TESTSPEC_QUERY_TYPE_DEFAULT = "term";
 
+    public static final String TESTSPEC_VECTOR_FILTER_ENABLED = "test_vector_enabled";
+    private static final String TESTSPEC_VECTOR_FILTER_ENABLED_DEFAULT = "false";
+
+    public static final String TESTSPEC_VECTOR_FILTER_MIN_MAX = "test_vector_filter_minmax";
+    private static final String TESTSPEC_VECTOR_FILTER_MIN_MAX_DEFAULT = "0:0";
+
+    public static final String TESTSPEC_VECTOR_FILTER_MATCH = "test_vector_filter_match";
+    private static final String TESTSPEC_VECTOR_FILTER_MATCH_DEFAULT = "";
+
     public static final String TESTSPEC_GEO_DISTANCE = "test_geo_distance";
     private static final String TESTSPEC_GEO_DISTANCE_DEFAULT = "10mi";
 
@@ -208,6 +217,9 @@ public class TestProperties {
 
         // Query type and QueryOptions related parameters
         options.addOption(Option.builder(TESTSPEC_QUERY_TYPE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_VECTOR_FILTER_ENABLED).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_VECTOR_FILTER_MIN_MAX).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_VECTOR_FILTER_MATCH).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_LIMIT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_QUERY_FIELD2).hasArg().required(false).build());
@@ -279,6 +291,9 @@ public class TestProperties {
         prop.put(TESTSPEC_STATS_AGGR_STEP, cmd.getOptionValue(TESTSPEC_STATS_AGGR_STEP,
                 TESTSPEC_STATS_AGGR_STEP_DEFAULT));
         prop.put(TESTSPEC_QUERY_TYPE, cmd.getOptionValue(TESTSPEC_QUERY_TYPE, TESTSPEC_QUERY_TYPE_DEFAULT));
+        prop.put(TESTSPEC_VECTOR_FILTER_ENABLED, cmd.getOptionValue(TESTSPEC_VECTOR_FILTER_ENABLED, TESTSPEC_VECTOR_FILTER_ENABLED_DEFAULT));
+        prop.put(TESTSPEC_VECTOR_FILTER_MATCH, cmd.getOptionValue(TESTSPEC_VECTOR_FILTER_MATCH, TESTSPEC_VECTOR_FILTER_MATCH_DEFAULT));
+        prop.put(TESTSPEC_VECTOR_FILTER_MIN_MAX, cmd.getOptionValue(TESTSPEC_VECTOR_FILTER_MIN_MAX, TESTSPEC_VECTOR_FILTER_MIN_MAX_DEFAULT));
         prop.put(TESTSPEC_QUERY_LIMIT, cmd.getOptionValue(TESTSPEC_QUERY_LIMIT, TESTSPEC_QUERY_LIMIT_DEFAULT));
         prop.put(TESTSPEC_QUERY_FIELD, cmd.getOptionValue(TESTSPEC_QUERY_FIELD, TESTSPEC_QUERY_FIELD_DEFAULT));
         prop.put(TESTSPEC_QUERY_FIELD2, cmd.getOptionValue(TESTSPEC_QUERY_FIELD2, TESTSPEC_QUERY_FIELD2_DEFAULT));
