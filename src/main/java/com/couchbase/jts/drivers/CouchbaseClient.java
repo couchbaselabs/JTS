@@ -505,8 +505,8 @@ public class CouchbaseClient extends Client {
 				String match = settings.get(settings.TESTSPEC_VECTOR_FILTER_MATCH);
 				JsonObject filters = JsonObject.create().put("field", secondfieldName);
 				if (Integer.parseInt(minmax[1]) > 0){
-					filters.put("min", minmax[0])
-					.put("max", minmax[1])
+					filters.put("min", Integer.parseInt(minmax[0]))
+					.put("max", Integer.parseInt(minmax[1]))
 					.put("inclusive_max", false);
 				}
 				if (!match.isEmpty()) {
