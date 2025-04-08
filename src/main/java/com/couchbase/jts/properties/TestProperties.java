@@ -3,12 +3,12 @@ package com.couchbase.jts.properties;
 import java.util.HashMap;
 import java.util.UUID;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.ParseException;
 
 /**
@@ -190,6 +190,9 @@ public class TestProperties {
     public static final String K_NEAREST_NEIGHBOUR = "k_nearest_neighbour";
     private static final String K_NEAREST_NEIGHBOUR_DEFAULT = "3";
 
+    public static final String PARTITION_SELECTION = "partition_selection";
+    private static final String PARTITION_SELECTION_DEFAULT = "None";
+
     private HashMap<String, String> prop = new HashMap<>();
 
     private HashMap<String, String> driversMapping = new HashMap<>();
@@ -227,6 +230,7 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_WORKER_TYPE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FTS_RAW_QUERY_MAP).hasArg().required(false).build());
         options.addOption(Option.builder(K_NEAREST_NEIGHBOUR).hasArg().required(false).build());
+        options.addOption(Option.builder(PARTITION_SELECTION).hasArg().required(false).build());
 
 
         // Additional parameters for geo queries
@@ -301,6 +305,7 @@ public class TestProperties {
         prop.put(TESTSPEC_WORKER_TYPE, cmd.getOptionValue(TESTSPEC_WORKER_TYPE, TESTSPEC_WORKER_TYPE_DEFAULT));
         prop.put(TESTSPEC_FTS_RAW_QUERY_MAP, cmd.getOptionValue(TESTSPEC_FTS_RAW_QUERY_MAP, TESTSPEC_FTS_RAW_QUERY_MAP_DEFAULT));
         prop.put(K_NEAREST_NEIGHBOUR, cmd.getOptionValue(K_NEAREST_NEIGHBOUR, K_NEAREST_NEIGHBOUR_DEFAULT));
+        prop.put(PARTITION_SELECTION, cmd.getOptionValue(PARTITION_SELECTION, PARTITION_SELECTION_DEFAULT));
 
 
         // Additional Collection flags

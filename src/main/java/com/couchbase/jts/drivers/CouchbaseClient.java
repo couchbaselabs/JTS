@@ -693,7 +693,14 @@ public class CouchbaseClient extends Client {
 	}
 
 	private SearchOptions genSearchOpts(String indexToQuery) {
-		SearchOptions opt = SearchOptions.searchOptions().limit(limit).timeout(Duration.ofSeconds(Search_Query_timeout));
+		// Need to reimplement this method with correct timeout and partition selection
+		// after sdk support for parition selection is available
+		SearchOptions opt = SearchOptions.searchOptions().limit(limit);
+		JsonObject ctl = JsonObject.create().put("timeout", Duration.ofSeconds(Search_Query_timeout).toMillis());
+		if (!"None".equals(settings.get(TestProperties.PARTITION_SELECTION))) {
+			ctl.put("partition_selection", settings.get(TestProperties.PARTITION_SELECTION));
+		}
+		opt.raw("ctl", ctl);
 		if (collectionsEnabled && collection_query_mode.equals("collection_specific")) {
 			JSONObject index_targets = (JSONObject) fts_index_json.get(indexToQuery);
 			JsonObject scopeJson = JsonObject.create();
