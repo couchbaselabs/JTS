@@ -192,6 +192,9 @@ public class TestProperties {
 
     public static final String PARTITION_SELECTION = "partition_selection";
     private static final String PARTITION_SELECTION_DEFAULT = "None";
+    
+    public static final String IVF_NPROBE_PCT = "ivf_nprobe_pct";
+    private static final String IVF_NPROBE_PCT_DEFAULT = "None";
 
     private HashMap<String, String> prop = new HashMap<>();
 
@@ -231,6 +234,7 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_FTS_RAW_QUERY_MAP).hasArg().required(false).build());
         options.addOption(Option.builder(K_NEAREST_NEIGHBOUR).hasArg().required(false).build());
         options.addOption(Option.builder(PARTITION_SELECTION).hasArg().required(false).build());
+        options.addOption(Option.builder(IVF_NPROBE_PCT).hasArg().required(false).build());
 
 
         // Additional parameters for geo queries
@@ -306,6 +310,7 @@ public class TestProperties {
         prop.put(TESTSPEC_FTS_RAW_QUERY_MAP, cmd.getOptionValue(TESTSPEC_FTS_RAW_QUERY_MAP, TESTSPEC_FTS_RAW_QUERY_MAP_DEFAULT));
         prop.put(K_NEAREST_NEIGHBOUR, cmd.getOptionValue(K_NEAREST_NEIGHBOUR, K_NEAREST_NEIGHBOUR_DEFAULT));
         prop.put(PARTITION_SELECTION, cmd.getOptionValue(PARTITION_SELECTION, PARTITION_SELECTION_DEFAULT));
+        prop.put(IVF_NPROBE_PCT, cmd.getOptionValue(IVF_NPROBE_PCT, IVF_NPROBE_PCT_DEFAULT));
 
 
         // Additional Collection flags
