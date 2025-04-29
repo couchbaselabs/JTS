@@ -501,7 +501,7 @@ public class CouchbaseClient extends Client {
 				knnObject.put("vector", vectArray);
 			}
 			if (!settings.get(settings.IVF_NPROBE_PCT).equals("None")){
-				knnObject.put("ivf_nprobe_pct", Double.parseDouble(settings.get(settings.IVF_NPROBE_PCT)));
+				knnObject.put("params", JsonObject.create().put("ivf_nprobe_pct", Double.parseDouble(settings.get(settings.IVF_NPROBE_PCT))));
 			}
 			if (settings.get(settings.TESTSPEC_VECTOR_FILTER_ENABLED).equals("true")){
 				String[] minmax = settings.get(settings.TESTSPEC_VECTOR_FILTER_MIN_MAX).split(":");
