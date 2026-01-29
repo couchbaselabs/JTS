@@ -21,6 +21,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_AND = "2_conjuncts"; //(term1 AND term2)
     public static final String CONSTANT_QUERY_TYPE_OR = "2_disjuncts"; // (term1 OR term2)
     public static final String CONSTANT_QUERY_TYPE_AND_OR_OR = "1_conjuncts_2_disjuncts"; //(term1 AND (term2 OR term3))
+    public static final String CONSTANT_QUERY_TYPE_NESTED_CONJUNCTS = "nested_conjuncts"; // nested conjuncts
     public static final String CONSTANT_QUERY_TYPE_FUZZY = "fuzzy";
     public static final String CONSTANT_QUERY_TYPE_PHRASE = "match_phrase";
     public static final String CONSTANT_QUERY_TYPE_PREFIX = "prefix";
@@ -38,6 +39,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_TEXT_VECTOR = "text_vector";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC_VECTOR = "numeric_vector";
     public static final String CONSTANT_QUERY_TYPE_BASE64_VECTOR = "vector_base64";
+
 
     //Flex query types
     public static final String CONSTANT_FLEX_QUERY_TYPE_ARRAY = "array_predicate";
