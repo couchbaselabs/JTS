@@ -676,12 +676,13 @@ public class CouchbaseClient extends Client {
 		}
 		SearchOptions opt = genSearchOpts(indexToQuery);
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-        System.out.println("Query to run: " + queryToRun.toString());
+        //System.out.println("Query to run: " + queryToRun.toString());
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
+		//System.out.println("Query Results Found: " + res_size); // ADD THIS
 		SearchMetrics metrics = res.metaData().metrics();
 		if (res_size > 0 && metrics.maxScore() != 0 && metrics.totalRows() != 0) {
 			return latency;
@@ -695,7 +696,7 @@ public class CouchbaseClient extends Client {
 			indexToQuery = getRandomIndex();
 		}
 		SearchOptions opt = genSearchOpts(indexToQuery);
-        System.out.println("Query to run: " + FTSQueries[rand.nextInt(totalQueries)].toString());
+        //System.out.println("Query to run: " + FTSQueries[rand.nextInt(totalQueries)].toString());
 		SearchResult res = cluster.searchQuery(indexToQuery, FTSQueries[rand.nextInt(totalQueries)], opt);
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
@@ -758,6 +759,12 @@ public class CouchbaseClient extends Client {
 // ((USA:company.locations.country,Athens:company.locations.city),Engineering:company.departments.name)
 
 
+
+
+
+
+
+
 // 1. Main Entry Point
     private SearchQuery buildNestedConjunctsQuery(String[] terms, String defaultField) {
         List<SearchQuery> rootConjuncts = new ArrayList<>();
@@ -768,9 +775,13 @@ public class CouchbaseClient extends Client {
                 rootConjuncts.add(parseRecursiveQuery(term, defaultField));
             }
         }
+		// FIX: Only wrap in conjuncts if there are actually multiple space-separated terms
+		if (rootConjuncts.size() == 1) {
+			return rootConjuncts.get(0);
+		}
         // Combine all parts into a generic SearchQuery
         SearchQuery result = SearchQuery.conjuncts(rootConjuncts.toArray(new SearchQuery[0]));
-        System.out.println("Built Nested Conjuncts Query: " + result.toString());
+        //System.out.println("Built Nested Conjuncts Query: " + result.toString());
         return result;
     }
 
@@ -875,6 +886,10 @@ public class CouchbaseClient extends Client {
 			if (term != null && !term.isEmpty()) {
 				rootConjuncts.add(parseRecursiveQueryStatic(term, defaultField));
 			}
+		}
+			// FIX: Apply the same logic here for your unit tests
+		if (rootConjuncts.size() == 1) {
+			return rootConjuncts.get(0);
 		}
 		return SearchQuery.conjuncts(rootConjuncts.toArray(new SearchQuery[0]));
 	}
