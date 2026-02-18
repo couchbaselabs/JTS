@@ -161,8 +161,6 @@ public class CouchbaseClient extends Client {
 		}
 	}
 
-	//a b c d e f g h 
-
 	private void generateQueries() throws Exception {
 		String[][] terms = importTerms();
 		List<SearchQuery> queryList = null;
@@ -257,29 +255,6 @@ public class CouchbaseClient extends Client {
 		TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
 		return SearchQuery.conjuncts(lt, rt);
 	}
-
-	// private SearchQuery buildDOubleConjunct(String[] terms, String fieldName) {
-	// 	SearchQuery left = buildAndQuery(terms, fieldName);
-	// 	SearchQuery right = buildAndQuery(terms, fieldName);
-	// 	return SearchQuery.conjuncts(left, right);
-
-	// }
-
-	// ((F & E1) & E2) & (U & L)
-
-    // Q1 => F & E1
-	// Q2 => Q1 & E2
-	// Q3 => U & L
-	// Q4 => Q2 & Q3
-
-	// Q1 = buildAndQuery(F, E1)
-
-	// Q2 = buildAndQuery(Q1, E2)
-
-	// Q3 = buildAndQuery(U, L)
-
-	// Q4 = buildAndQuery(Q2, Q3)
-
 
 	private SearchQuery buildOrQuery(String[] terms, String fieldName) {
 		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
@@ -676,13 +651,11 @@ public class CouchbaseClient extends Client {
 		}
 		SearchOptions opt = genSearchOpts(indexToQuery);
 		queryToRun = FTSQueries[rand.nextInt(totalQueries)];
-        //System.out.println("Query to run: " + queryToRun.toString());
 		long st = System.nanoTime();
 		SearchResult res = cluster.searchQuery(indexToQuery, queryToRun, opt);
 		long en = System.nanoTime();
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
-		//System.out.println("Query Results Found: " + res_size); // ADD THIS
 		SearchMetrics metrics = res.metaData().metrics();
 		if (res_size > 0 && metrics.maxScore() != 0 && metrics.totalRows() != 0) {
 			return latency;
@@ -696,7 +669,6 @@ public class CouchbaseClient extends Client {
 			indexToQuery = getRandomIndex();
 		}
 		SearchOptions opt = genSearchOpts(indexToQuery);
-        //System.out.println("Query to run: " + FTSQueries[rand.nextInt(totalQueries)].toString());
 		SearchResult res = cluster.searchQuery(indexToQuery, FTSQueries[rand.nextInt(totalQueries)], opt);
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
@@ -756,16 +728,8 @@ public class CouchbaseClient extends Client {
 		System.out.println(err);
 	}
 
-// ((USA:company.locations.country,Athens:company.locations.city),Engineering:company.departments.name)
-
-
-
-
-
-
-
-
-// 1. Main Entry Point
+	//  sample nestedConjuctsQuery (Engineering:company.departments.name,(Bob:company.departments.employees.name,completed:company.departments.projects.status))
+	// 1. Main Entry Point
     private SearchQuery buildNestedConjunctsQuery(String[] terms, String defaultField) {
         List<SearchQuery> rootConjuncts = new ArrayList<>();
 
@@ -878,200 +842,4 @@ public class CouchbaseClient extends Client {
         }
         return true;
     }
-
-	// Static helpers for unit tests: parse nested conjunct strings without creating a CouchbaseClient instance
-	public static SearchQuery buildNestedConjunctsFromStrings(String[] terms, String defaultField) {
-		List<SearchQuery> rootConjuncts = new ArrayList<>();
-		for (String term : terms) {
-			if (term != null && !term.isEmpty()) {
-				rootConjuncts.add(parseRecursiveQueryStatic(term, defaultField));
-			}
-		}
-			// FIX: Apply the same logic here for your unit tests
-		if (rootConjuncts.size() == 1) {
-			return rootConjuncts.get(0);
-		}
-		return SearchQuery.conjuncts(rootConjuncts.toArray(new SearchQuery[0]));
-	}
-
-	private static SearchQuery parseRecursiveQueryStatic(String input, String defaultField) {
-		while (input.startsWith("(") && input.endsWith(")")) {
-			if (isValidGroupStatic(input)) {
-				input = input.substring(1, input.length() - 1);
-			} else {
-				break;
-			}
-		}
-
-		List<String> parts = splitRespectingParensStatic(input);
-
-		if (parts.size() > 1) {
-			List<SearchQuery> children = new ArrayList<>();
-			for (String part : parts) {
-				children.add(parseRecursiveQueryStatic(part, defaultField));
-			}
-			return SearchQuery.conjuncts(children.toArray(new SearchQuery[0]));
-		}
-
-		if (!input.contains("(") && input.contains(":")) {
-			int separatorIndex = input.lastIndexOf(":");
-			String value = input.substring(0, separatorIndex);
-			String field = input.substring(separatorIndex + 1);
-			return SearchQuery.term(value).field(field);
-		} else if (!input.contains("(") && !input.contains(":")) {
-			return SearchQuery.term(input).field(defaultField);
-		}
-
-		if (parts.size() == 1 && !parts.get(0).equals(input)) {
-			return parseRecursiveQueryStatic(parts.get(0), defaultField);
-		}
-
-		return SearchQuery.term(input).field(defaultField);
-	}
-
-	private static List<String> splitRespectingParensStatic(String input) {
-		List<String> tokens = new ArrayList<>();
-		int parensBalance = 0;
-		int lastStart = 0;
-
-		for (int i = 0; i < input.length(); i++) {
-			char c = input.charAt(i);
-			if (c == '(') {
-				parensBalance++;
-			} else if (c == ')') {
-				parensBalance--;
-			} else if (c == ',' && parensBalance == 0) {
-				tokens.add(input.substring(lastStart, i));
-				lastStart = i + 1;
-			}
-		}
-		if (lastStart < input.length()) {
-			tokens.add(input.substring(lastStart));
-		}
-		return tokens;
-	}
-
-	private static boolean isValidGroupStatic(String input) {
-		if (!input.startsWith("(") || !input.endsWith(")")) return false;
-		int balance = 0;
-		for (int i = 0; i < input.length() - 1; i++) {
-			char c = input.charAt(i);
-			if (c == '(') balance++;
-			if (c == ')') balance--;
-			if (balance == 0) return false;
-		}
-		return true;
-	}
 }
-
-
-
-
-    // // 1. Change return type to AbstractFtsQuery
-    // private AbstractFtsQuery buildNestedConjunctsQuery(String[] terms, String defaultField) {
-    //     // Change List type to AbstractFtsQuery
-    //     List<AbstractFtsQuery> rootConjuncts = new ArrayList<>();
-
-    //     for (String term : terms) {
-    //         if (term != null && !term.isEmpty()) {
-    //             rootConjuncts.add(parseRecursiveQuery(term, defaultField));
-    //         }
-    //     }
-    //     // Cast to the specific AbstractFtsQuery array the SDK wants
-    //     return SearchQuery.conjuncts(rootConjuncts.toArray(new AbstractFtsQuery[0]));
-    // }
-
-    // // 2. Change return type to AbstractFtsQuery
-    // private AbstractFtsQuery parseRecursiveQuery(String input, String defaultField) {
-    //     while (input.startsWith("(") && input.endsWith(")")) {
-    //         if (isValidGroup(input)) {
-    //             input = input.substring(1, input.length() - 1);
-    //         } else {
-    //             break;
-    //         }
-    //     }
-
-    //     List<String> parts = splitRespectingParens(input);
-
-    //     if (parts.size() > 1) {
-    //         // Change List type here too
-    //         List<AbstractFtsQuery> children = new ArrayList<>();
-    //         for (String part : parts) {
-    //             children.add(parseRecursiveQuery(part, defaultField));
-    //         }
-    //         return SearchQuery.conjuncts(children.toArray(new AbstractFtsQuery[0]));
-    //     } 
-        
-    //     if (!input.contains("(") && input.contains(":")) {
-    //         int separatorIndex = input.lastIndexOf(":");
-    //         String value = input.substring(0, separatorIndex);
-    //         String field = input.substring(separatorIndex + 1);
-    //         // This now returns TermQuery which extends AbstractFtsQuery
-    //         return SearchQuery.term(value).field(field);
-    //     } else if (!input.contains("(") && !input.contains(":")) {
-    //         return SearchQuery.term(input).field(defaultField);
-    //     }
-
-    //     if(parts.size() == 1 && !parts.get(0).equals(input)) {
-    //         return parseRecursiveQuery(parts.get(0), defaultField);
-    //     }
-
-    //     return SearchQuery.term(input).field(defaultField);
-    // }
-
-
-
-
-
-    //     // 1. Change return type to AbstractFtsQuery
-    // public static AbstractFtsQuery buildNestedConjunctsFromStrings(String[] terms, String defaultField) {
-    //     // Change List type to AbstractFtsQuery
-    //     List<AbstractFtsQuery> rootConjuncts = new ArrayList<>(); 
-    //     for (String term : terms) {
-    //         if (term != null && !term.isEmpty()) {
-    //             rootConjuncts.add(parseRecursiveQueryStatic(term, defaultField));
-    //         }
-    //     }
-    //     // Change the array type here
-    //     return SearchQuery.conjuncts(rootConjuncts.toArray(new AbstractFtsQuery[0]));
-    // }
-
-    // // 2. Change return type to AbstractFtsQuery
-    // private static AbstractFtsQuery parseRecursiveQueryStatic(String input, String defaultField) {
-    //     while (input.startsWith("(") && input.endsWith(")")) {
-    //         if (isValidGroupStatic(input)) {
-    //             input = input.substring(1, input.length() - 1);
-    //         } else {
-    //             break;
-    //         }
-    //     }
-
-    //     List<String> parts = splitRespectingParensStatic(input);
-
-    //     if (parts.size() > 1) {
-    //         // Change List type to AbstractFtsQuery
-    //         List<AbstractFtsQuery> children = new ArrayList<>();
-    //         for (String part : parts) {
-    //             children.add(parseRecursiveQueryStatic(part, defaultField));
-    //         }
-    //         // Change the array type here
-    //         return SearchQuery.conjuncts(children.toArray(new AbstractFtsQuery[0]));
-    //     }
-
-    //     // These branches are now fine because they return TermQuery/MatchQuery 
-    //     // which are subclasses of AbstractFtsQuery
-    //     if (!input.contains("(") && input.contains(":")) {
-    //         int separatorIndex = input.lastIndexOf(":");
-    //         String value = input.substring(0, separatorIndex);
-    //         String field = input.substring(separatorIndex + 1);
-    //         return SearchQuery.term(value).field(field);
-    //     } else if (!input.contains("(") && !input.contains(":")) {
-    //         return SearchQuery.term(input).field(defaultField);
-    //     }
-
-    //     if (parts.size() == 1 && !parts.get(0).equals(input)) {
-    //         return parseRecursiveQueryStatic(parts.get(0), defaultField);
-    //     }
-
-    //     return SearchQuery.term(input).field(defaultField);
-    // }
