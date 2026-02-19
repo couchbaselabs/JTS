@@ -238,6 +238,8 @@ public class CouchbaseClient extends Client {
 				return buildVectorSearchQuery(terms, fieldName, 'C');
 			case TestProperties.CONSTANT_QUERY_TYPE_BASE64_VECTOR:
 				return buildVectorBase64SearchQuery(terms, fieldName, 'A');
+            case TestProperties.CONSTANT_QUERY_TYPE_NESTED_CONJUNCTS:
+                return buildNestedConjunctsQuery(terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -310,7 +312,7 @@ public class CouchbaseClient extends Client {
 		double topLeftLat = Double.parseDouble(terms[1]);
 		double bottomRightLon = topLeftLon + lonWidth;
 		double bottomRightLat = topLeftLat - latHeight;
-		return SearchQuery.geoBoundingBox​(topLeftLon, topLeftLat, bottomRightLon, bottomRightLat).field(fieldName);
+		return SearchQuery.geoBoundingBox(topLeftLon, topLeftLat, bottomRightLon, bottomRightLat).field(fieldName);
 	}
 
 	private SearchQuery buildGeoPolygonQuery(String[] terms, String fieldName) {
@@ -725,4 +727,119 @@ public class CouchbaseClient extends Client {
 	private void fileError(String err) {
 		System.out.println(err);
 	}
+
+	//  sample nestedConjuctsQuery (Engineering:company.departments.name,(Bob:company.departments.employees.name,completed:company.departments.projects.status))
+	// 1. Main Entry Point
+    private SearchQuery buildNestedConjunctsQuery(String[] terms, String defaultField) {
+        List<SearchQuery> rootConjuncts = new ArrayList<>();
+
+        // Iterate over the space-separated chunks from the text file
+        for (String term : terms) {
+            if (term != null && !term.isEmpty()) {
+                rootConjuncts.add(parseRecursiveQuery(term, defaultField));
+            }
+        }
+		// FIX: Only wrap in conjuncts if there are actually multiple space-separated terms
+		if (rootConjuncts.size() == 1) {
+			return rootConjuncts.get(0);
+		}
+        // Combine all parts into a generic SearchQuery
+        SearchQuery result = SearchQuery.conjuncts(rootConjuncts.toArray(new SearchQuery[0]));
+        //System.out.println("Built Nested Conjuncts Query: " + result.toString());
+        return result;
+    }
+
+    // 2. Recursive Parser
+    private SearchQuery parseRecursiveQuery(String input, String defaultField) {
+        // Remove outer parentheses if they exist: (A,B) -> A,B
+        // We loop to handle double wrapping like ((A,B))
+        while (input.startsWith("(") && input.endsWith(")")) {
+            // Ensure the matching closing parenthesis is actually the last character
+            // (e.g., "(A)(B)" should not be stripped, but "(A,B)" should)
+            if (isValidGroup(input)) {
+                input = input.substring(1, input.length() - 1);
+            } else {
+                break;
+            }
+        }
+
+        // Split by comma, but IGNORE commas inside nested parentheses
+        // e.g., "A:f1,(B:f2,C:f3)" splits into ["A:f1", "(B:f2,C:f3)"]
+        List<String> parts = splitRespectingParens(input);
+
+        // If we have multiple parts, this is a Conjunct (AND) Group
+        if (parts.size() > 1) {
+            List<SearchQuery> children = new ArrayList<>();
+            for (String part : parts) {
+                children.add(parseRecursiveQuery(part, defaultField));
+            }
+            return SearchQuery.conjuncts(children.toArray(new SearchQuery[0]));
+        } 
+        
+        // If we have 1 part, it's either a Leaf (Term) or a single Nested group
+        // Check if it's a leaf node "value:field"
+        if (!input.contains("(") && input.contains(":")) {
+            // Decode Leaf: "Value:Field"
+            // We use the last index of colon to allow colons in value text if needed
+            int separatorIndex = input.lastIndexOf(":");
+            String value = input.substring(0, separatorIndex);
+            String field = input.substring(separatorIndex + 1);
+            return SearchQuery.term(value).field(field);
+        } else if (!input.contains("(") && !input.contains(":")) {
+             // Handle case where no field is specified in string, use defaultField
+             return SearchQuery.term(input).field(defaultField);
+        }
+
+        // Fallback for single nested items that didn't get stripped or simple terms
+        // This handles recursion for single child items like "((A:f))"
+        if(parts.size() == 1 && !parts.get(0).equals(input)) {
+             return parseRecursiveQuery(parts.get(0), defaultField);
+        }
+
+        // Final fail-safe: treat as raw term on default field
+        return SearchQuery.term(input).field(defaultField);
+    }
+
+    // 3. Helper: Split string by comma, ignoring commas inside (...)
+    private List<String> splitRespectingParens(String input) {
+        List<String> tokens = new ArrayList<>();
+        int parensBalance = 0;
+        int lastStart = 0;
+
+        for (int i = 0; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == '(') {
+                parensBalance++;
+            } else if (c == ')') {
+                parensBalance--;
+            } else if (c == ',' && parensBalance == 0) {
+                // Found a top-level comma
+                tokens.add(input.substring(lastStart, i));
+                lastStart = i + 1;
+            }
+        }
+        // Add the last segment
+        if (lastStart < input.length()) {
+            tokens.add(input.substring(lastStart));
+        } else if (lastStart == input.length() && input.endsWith(",")) {
+            // Handle edge case of trailing comma if necessary, or ignore
+        }
+        return tokens;
+    }
+
+    // 4. Helper: Check if the string is wrapped in matching parentheses
+    private boolean isValidGroup(String input) {
+        if (!input.startsWith("(") || !input.endsWith(")")) return false;
+        
+        int balance = 0;
+        // Check if the first '(' matches the last ')'
+        // e.g. "(A),(B)" -> Starts/Ends with parens, but isn't a single group.
+        for(int i=0; i<input.length()-1; i++) { // stop before last char
+            char c = input.charAt(i);
+            if(c == '(') balance++;
+            if(c == ')') balance--;
+            if(balance == 0) return false; // The first group closed before the end
+        }
+        return true;
+    }
 }
