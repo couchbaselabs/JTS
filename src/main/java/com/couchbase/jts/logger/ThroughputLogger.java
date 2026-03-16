@@ -106,8 +106,7 @@ public class ThroughputLogger extends Logger{
         }
 
         if (totalValues != 0) {
-            float windowSizeSeconds = Integer.parseInt(settings.get(TestProperties.AGGREGATION_BUFFER_MS)) / 1000.0f;
-            return (sum / totalValues) / windowSizeSeconds;
+            return sum / totalValues;
         }
 
         return 0;

@@ -383,6 +383,18 @@ public class CouchbaseClient extends Client {
 			return geometry;
 		}
 
+		private JsonObject EnvelopeGeometry() {
+			JsonArray points = JsonArray.create();
+			// Envelope requires exactly 2 diagonal corner coordinates
+			points.add(JsonArray.from(coordinates.get(0).lon(), coordinates.get(0).lat())); // top-left
+			points.add(JsonArray.from(coordinates.get(1).lon(), coordinates.get(1).lat())); // bottom-right
+
+			return JsonObject.create().put("shape", JsonObject.create()
+					.put("coordinates", points)
+					.put("type", shape))
+					.put("relation", relation);
+		}
+
 		private JsonObject PolygonGeometry() {
 			JsonArray points = JsonArray.create();
 			for (int i=0; i < coordinates.size();i++){
@@ -425,6 +437,9 @@ public class CouchbaseClient extends Client {
 					break;
 				case "linestring":
 					geometry = LinestringGeometry();
+					break;
+				case "Envelope":
+					geometry = EnvelopeGeometry();
 					break;
 				default:
 					throw new IllegalArgumentException(
