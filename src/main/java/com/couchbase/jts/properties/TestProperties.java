@@ -116,6 +116,9 @@ public class TestProperties {
     public static final String TESTSPEC_FTS_INDEX_MAP ="test_fts_index_map";
     private static final String TESTSPEC_FTS_INDEX_MAP_DEFAULT = "";
 
+    public static final String TESTSPEC_FTS_INDEX_MAP_FILE ="test_fts_index_map_file";
+    private static final String TESTSPEC_FTS_INDEX_MAP_FILE_DEFAULT = "";
+
     // Couchbase-specific settings
     public static final String CBSPEC_INDEX_NAME = "couchbase_index_name";
     private static final String CBSPEC_INDEX_NAME_DEFAILT = "perf_fts_index";
@@ -198,6 +201,7 @@ public class TestProperties {
         options.addOption(Option.builder(TESTSPEC_COLLECTION_QUERY_MODE).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_COLLECTION_SPECIFIC_COUNT).hasArg().required(false).build());
         options.addOption(Option.builder(TESTSPEC_FTS_INDEX_MAP).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_FTS_INDEX_MAP_FILE).hasArg().required(false).build());
 
         // Couchbase authentication related parameters
         options.addOption(Option.builder(CBSPEC_INDEX_NAME).hasArg().required(false).build());
@@ -249,6 +253,7 @@ public class TestProperties {
         prop.put(TESTSPEC_COLLECTION_QUERY_MODE, cmd.getOptionValue(TESTSPEC_COLLECTION_QUERY_MODE, TESTSPEC_COLLECTION_QUERY_MODE_DEFAULT));
         prop.put(TESTSPEC_COLLECTION_SPECIFIC_COUNT, cmd.getOptionValue(TESTSPEC_COLLECTION_SPECIFIC_COUNT, TESTSPEC_COLLECTION_SPECIFIC_COUNT_DEFAULT));
         prop.put(TESTSPEC_FTS_INDEX_MAP, cmd.getOptionValue(TESTSPEC_FTS_INDEX_MAP, TESTSPEC_FTS_INDEX_MAP_DEFAULT));
+        prop.put(TESTSPEC_FTS_INDEX_MAP_FILE, cmd.getOptionValue(TESTSPEC_FTS_INDEX_MAP_FILE, TESTSPEC_FTS_INDEX_MAP_FILE_DEFAULT));
 
         // Additional Flex queries parameter
         prop.put(TESTSPEC_FLEX, cmd.getOptionValue(TESTSPEC_FLEX,TESTSPEC_FLEX_DEFAULT));
