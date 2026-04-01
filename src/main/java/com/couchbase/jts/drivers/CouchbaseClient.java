@@ -1,5 +1,7 @@
 package com.couchbase.jts.drivers;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +71,7 @@ public class CouchbaseClient extends Client {
 	private int collection_specific_count = Integer
 			.parseInt(settings.get(TestProperties.TESTSPEC_COLLECTION_SPECIFIC_COUNT));
 	private String fts_index_map_raw = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP);
+	private String fts_index_map_file = settings.get(TestProperties.TESTSPEC_FTS_INDEX_MAP_FILE);
 	private JSONObject fts_index_json;
 	private List<String> fts_index_list;
 	private List<String> collections_list;
@@ -94,7 +97,12 @@ public class CouchbaseClient extends Client {
 	}
 
 	private void setup() throws Exception {
-		if (!fts_index_map_raw.equals("")) {
+    if (fts_index_map_raw.equals("") && !fts_index_map_file.equals("")) {
+      Path path = Path.of(fts_index_map_file);
+      fts_index_map_raw = Files.readString(path);
+    }
+
+    if (!fts_index_map_raw.equals("")) {
 			index_map_provided = true;
 			JSONParser jsonParser = new JSONParser();
 			Object obj = jsonParser.parse(fts_index_map_raw);
@@ -114,14 +122,13 @@ public class CouchbaseClient extends Client {
 
 			collections_list = new ArrayList<String>(target_set);
 			numCollections = collections_list.size();
-
 		} else {
 			index_map_provided = false;
 			Set target_set = new HashSet();
 			target_set.add("_default._default");
 			collections_list = new ArrayList<String>(target_set);
 			numCollections = collections_list.size();
-		}
+    }
 
 		if (collectionsEnabled && !index_map_provided) {
 			throw new Exception("index map required when collections enabled");
