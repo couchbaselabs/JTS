@@ -97,12 +97,12 @@ public class CouchbaseClient extends Client {
 	}
 
 	private void setup() throws Exception {
-      if (fts_index_map_raw.equals("") && !fts_index_map_file.equals("")) {
-        Path path = Path.of(fts_index_map_file);
-        fts_index_map_raw = Files.readString(path);
-      }
+		if (fts_index_map_raw.equals("") && !fts_index_map_file.equals("")) {
+			Path path = Path.of(fts_index_map_file);
+			fts_index_map_raw = Files.readString(path);
+		}
 
-      if (!fts_index_map_raw.equals("")) {
+		if (!fts_index_map_raw.equals("")) {
 			index_map_provided = true;
 			JSONParser jsonParser = new JSONParser();
 			Object obj = jsonParser.parse(fts_index_map_raw);
@@ -128,7 +128,7 @@ public class CouchbaseClient extends Client {
 			target_set.add("_default._default");
 			collections_list = new ArrayList<String>(target_set);
 			numCollections = collections_list.size();
-        }
+		}
 
 		if (collectionsEnabled && !index_map_provided) {
 			throw new Exception("index map required when collections enabled");
