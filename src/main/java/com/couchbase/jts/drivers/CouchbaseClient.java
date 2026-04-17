@@ -89,6 +89,10 @@ public class CouchbaseClient extends Client {
 	private String RawJsonString = settings.get(TestProperties.TESTSPEC_FTS_RAW_QUERY_MAP);
 	private int k_nearest_neighbour = Integer.parseInt(settings.get(TestProperties.K_NEAREST_NEIGHBOUR));
 	private String secondfieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD2);
+	private String scoreMode = settings.get(TestProperties.FUSION_SCORE_MODE);
+	private int rankWindowSize = Integer.parseInt(settings.get(TestProperties.FUSION_RANK_WINDOW_SIZE));
+	private String scoreWeights = settings.get(TestProperties.FUSION_SCORE_WEIGHT_FTS);
+	private int rrfConstant = Integer.parseInt(settings.get(TestProperties.FUSION_RRF_RANKING_CONSTANT));
 	public CouchbaseClient(TestProperties workload) throws Exception {
 		super(workload);
 		setup();
@@ -238,6 +242,8 @@ public class CouchbaseClient extends Client {
 				return buildVectorSearchQuery(terms, fieldName, 'C');
 			case TestProperties.CONSTANT_QUERY_TYPE_BASE64_VECTOR:
 				return buildVectorBase64SearchQuery(terms, fieldName, 'A');
+			case TestProperties.CONSTANT_QUERY_TYPE_FUSION:
+				return buildFusionSearchQuery(terms, fieldName);
             case TestProperties.CONSTANT_QUERY_TYPE_NESTED_CONJUNCTS:
                 return buildNestedConjunctsQuery(terms, fieldName);
 		}
@@ -442,11 +448,11 @@ public class CouchbaseClient extends Client {
 
 	public class VectorSearchQuery extends SearchQuery {
 
-		private String field;
-		private JsonArray vectArray ;
-		private int k;
-		private JsonObject queryObject;
-		private String vectorBase64String;
+		protected String field;
+		protected JsonArray vectArray;
+		protected int k;
+		protected JsonObject queryObject;
+		protected String vectorBase64String;
 
 		public VectorSearchQuery(JsonArray vectors, int k) {
 			super();
@@ -475,7 +481,7 @@ public class CouchbaseClient extends Client {
 		public JsonObject export() {
 			JsonObject result = JsonObject.create();
 			injectParams(result);
-	
+
 			JsonObject queryJson = JsonObject.create();
 			injectParamsAndBoost(queryJson);
 			return queryJson;
@@ -529,6 +535,60 @@ public class CouchbaseClient extends Client {
 		}
 	}
 
+	public class FusionSearchQuery extends VectorSearchQuery {
+
+		public FusionSearchQuery(JsonArray vectors, int k) {
+			super(vectors, k);
+		}
+
+		@Override
+		public FusionSearchQuery field(final String field) {
+			super.field(field);
+			return this;
+		}
+
+		@Override
+		public FusionSearchQuery queryObject(final JsonObject queryObject) {
+			super.queryObject(queryObject);
+			return this;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			super.injectParams(input);
+
+			input.put("score", scoreMode);
+
+			// Build params object
+			JsonObject params = JsonObject.create();
+			if (rankWindowSize > 0) {
+				params.put("score_window_size", rankWindowSize);
+			}
+			if (rrfConstant > 0) {
+				params.put("score_rank_constant", rrfConstant);
+			}
+			if (!params.isEmpty()) {
+				input.put("params", params);
+			}
+
+			// Apply weights as boost on knn and query objects
+			String[] weights = scoreWeights.split(":");
+			double knnBoost = Double.parseDouble(weights[0]);
+			if (knnBoost != 1.0) {
+				JsonArray knn = input.getArray("knn");
+				for (int i = 0; i < knn.size(); i++) {
+					knn.getObject(i).put("boost", knnBoost);
+				}
+			}
+			if (weights.length > 1) {
+				double queryBoost = Double.parseDouble(weights[1]);
+				if (queryBoost != 1.0) {
+					input.getObject("query").put("boost", queryBoost);
+				}
+			}
+		}
+	}
+
 	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName) {
 
 		List<Coordinate> listOfPts = new ArrayList<Coordinate>();
@@ -559,7 +619,7 @@ public class CouchbaseClient extends Client {
 		// Cases definition
 		// A --> Pure KNN or multiKNN
 		// B --> Numeric
-		// C --> Text 
+		// C --> Text
 		JsonObject queryObject;
 		switch (caseType) {
 			case 'A':
@@ -592,11 +652,23 @@ public class CouchbaseClient extends Client {
 		}
 
 	private VectorSearchQuery buildVectorBase64SearchQuery(String[] terms, String fieldName, char caseType) {
-			
+
 			JsonObject queryObject = buildQueryObjectForVectorSearch(terms, fieldName, caseType);
 			String vectorBase64String = terms[2];
 			return new VectorSearchQuery(vectorBase64String, k_nearest_neighbour).field(fieldName).queryObject(queryObject);
 			}
+
+	private FusionSearchQuery buildFusionSearchQuery(String[] terms, String fieldName) {
+		JsonArray vectorArray = JsonArray.create();
+		JsonObject queryObject = SearchQuery.term(terms[0]).field(secondfieldName).export();
+		queryObject.removeKey("query");
+		for (int i = 2; i < terms.length; i = i + 1) {
+			BigDecimal vector = BigDecimal.valueOf(Double.parseDouble(terms[i]));
+			vectorArray.add(vector);
+		}
+		return new FusionSearchQuery(vectorArray, k_nearest_neighbour).field(fieldName)
+				.queryObject(queryObject);
+	}
 
 	public void mutateRandomDoc() {
 		long totalDocs = Long.parseLong(settings.get(TestProperties.TESTSPEC_TOTAL_DOCS));
@@ -774,8 +846,8 @@ public class CouchbaseClient extends Client {
                 children.add(parseRecursiveQuery(part, defaultField));
             }
             return SearchQuery.conjuncts(children.toArray(new SearchQuery[0]));
-        } 
-        
+		}
+
         // If we have 1 part, it's either a Leaf (Term) or a single Nested group
         // Check if it's a leaf node "value:field"
         if (!input.contains("(") && input.contains(":")) {
@@ -830,7 +902,7 @@ public class CouchbaseClient extends Client {
     // 4. Helper: Check if the string is wrapped in matching parentheses
     private boolean isValidGroup(String input) {
         if (!input.startsWith("(") || !input.endsWith(")")) return false;
-        
+
         int balance = 0;
         // Check if the first '(' matches the last ')'
         // e.g. "(A),(B)" -> Starts/Ends with parens, but isn't a single group.
