@@ -91,7 +91,8 @@ public class CouchbaseClient extends Client {
 	private String secondfieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD2);
 	private String scoreMode = settings.get(TestProperties.FUSION_SCORE_MODE);
 	private int rankWindowSize = Integer.parseInt(settings.get(TestProperties.FUSION_RANK_WINDOW_SIZE));
-	private String scoreWeights = settings.get(TestProperties.FUSION_SCORE_WEIGHT_FTS);
+	private double scoreFtsWeight = Double.parseDouble(settings.get(TestProperties.FUSION_SCORE_WEIGHT_FTS));
+	private double scoreKnnWeight = Double.parseDouble(settings.get(TestProperties.FUSION_SCORE_WEIGHT_KNN));
 	private int rrfConstant = Integer.parseInt(settings.get(TestProperties.FUSION_RRF_RANKING_CONSTANT));
 	public CouchbaseClient(TestProperties workload) throws Exception {
 		super(workload);
@@ -572,19 +573,14 @@ public class CouchbaseClient extends Client {
 			}
 
 			// Apply weights as boost on knn and query objects
-			String[] weights = scoreWeights.split(":");
-			double knnBoost = Double.parseDouble(weights[0]);
-			if (knnBoost != 1.0) {
+			if (scoreKnnWeight != 1.0) {
 				JsonArray knn = input.getArray("knn");
 				for (int i = 0; i < knn.size(); i++) {
-					knn.getObject(i).put("boost", knnBoost);
+					knn.getObject(i).put("boost", scoreKnnWeight);
 				}
 			}
-			if (weights.length > 1) {
-				double queryBoost = Double.parseDouble(weights[1]);
-				if (queryBoost != 1.0) {
-					input.getObject("query").put("boost", queryBoost);
-				}
+			if (scoreFtsWeight != 1.0) {
+				input.getObject("query").put("boost", scoreFtsWeight);
 			}
 		}
 	}

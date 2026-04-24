@@ -205,8 +205,11 @@ public class TestProperties {
     public static final String FUSION_RANK_WINDOW_SIZE = "fusion_rank_window_size";
     private static final String FUSION_RANK_WINDOW_SIZE_DEFAULT = "0";
 
-    public static final String FUSION_SCORE_WEIGHT_FTS = "fusion_score_weights";
+    public static final String FUSION_SCORE_WEIGHT_FTS = "fusion_score_weight_fts";
     private static final String FUSION_SCORE_WEIGHT_FTS_DEFAULT = "1.0";
+
+    public static final String FUSION_SCORE_WEIGHT_KNN = "fusion_score_weight_knn";
+    private static final String FUSION_SCORE_WEIGHT_KNN_DEFAULT = "1.0";
 
     public static final String FUSION_RRF_RANKING_CONSTANT = "fusion_rrf_ranking_constant";
     private static final String FUSION_RRF_RANKING_CONSTANT_DEFAULT = "0";
@@ -255,6 +258,7 @@ public class TestProperties {
         options.addOption(Option.builder(FUSION_SCORE_MODE).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_RANK_WINDOW_SIZE).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_SCORE_WEIGHT_FTS).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_SCORE_WEIGHT_KNN).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_RRF_RANKING_CONSTANT).hasArg().required(false).build());
 
         // Additional parameters for geo queries
@@ -336,6 +340,7 @@ public class TestProperties {
         prop.put(FUSION_SCORE_MODE, cmd.getOptionValue(FUSION_SCORE_MODE, FUSION_SCORE_MODE_DEFAULT));
         prop.put(FUSION_RANK_WINDOW_SIZE, cmd.getOptionValue(FUSION_RANK_WINDOW_SIZE, FUSION_RANK_WINDOW_SIZE_DEFAULT));
         prop.put(FUSION_SCORE_WEIGHT_FTS, cmd.getOptionValue(FUSION_SCORE_WEIGHT_FTS, FUSION_SCORE_WEIGHT_FTS_DEFAULT));
+        prop.put(FUSION_SCORE_WEIGHT_KNN, cmd.getOptionValue(FUSION_SCORE_WEIGHT_KNN, FUSION_SCORE_WEIGHT_KNN_DEFAULT));
         prop.put(FUSION_RRF_RANKING_CONSTANT,
                 cmd.getOptionValue(FUSION_RRF_RANKING_CONSTANT, FUSION_RRF_RANKING_CONSTANT_DEFAULT));
 
