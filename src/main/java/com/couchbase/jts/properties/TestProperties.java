@@ -198,6 +198,9 @@ public class TestProperties {
     public static final String IVF_NPROBE_PCT = "ivf_nprobe_pct";
     private static final String IVF_NPROBE_PCT_DEFAULT = "None";
 
+    public static final String TESTSPEC_SCAN_CONSISTENCY = "test_scan_consistency";
+    private static final String TESTSPEC_SCAN_CONSISTENCY_DEFAULT = "not_bounded";
+
     private HashMap<String, String> prop = new HashMap<>();
 
     private HashMap<String, String> driversMapping = new HashMap<>();
@@ -237,6 +240,7 @@ public class TestProperties {
         options.addOption(Option.builder(K_NEAREST_NEIGHBOUR).hasArg().required(false).build());
         options.addOption(Option.builder(PARTITION_SELECTION).hasArg().required(false).build());
         options.addOption(Option.builder(IVF_NPROBE_PCT).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_SCAN_CONSISTENCY).hasArg().required(false).build());
 
 
         // Additional parameters for geo queries
@@ -313,6 +317,7 @@ public class TestProperties {
         prop.put(K_NEAREST_NEIGHBOUR, cmd.getOptionValue(K_NEAREST_NEIGHBOUR, K_NEAREST_NEIGHBOUR_DEFAULT));
         prop.put(PARTITION_SELECTION, cmd.getOptionValue(PARTITION_SELECTION, PARTITION_SELECTION_DEFAULT));
         prop.put(IVF_NPROBE_PCT, cmd.getOptionValue(IVF_NPROBE_PCT, IVF_NPROBE_PCT_DEFAULT));
+        prop.put(TESTSPEC_SCAN_CONSISTENCY, cmd.getOptionValue(TESTSPEC_SCAN_CONSISTENCY, TESTSPEC_SCAN_CONSISTENCY_DEFAULT));
 
 
         // Additional Collection flags

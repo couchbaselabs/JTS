@@ -705,6 +705,11 @@ public class CouchbaseClient extends Client {
 		if (!"None".equals(settings.get(TestProperties.PARTITION_SELECTION))) {
 			ctl.put("partition_selection", settings.get(TestProperties.PARTITION_SELECTION));
 		}
+		String scanConsistency = settings.get(TestProperties.TESTSPEC_SCAN_CONSISTENCY);
+		if (scanConsistency != null && !scanConsistency.equals("not_bounded")) {
+			JsonObject consistency = JsonObject.create().put("level", scanConsistency);
+			ctl.put("consistency", consistency);
+		}
 		opt.raw("ctl", ctl);
 		if (collectionsEnabled && collection_query_mode.equals("collection_specific")) {
 			JSONObject index_targets = (JSONObject) fts_index_json.get(indexToQuery);
