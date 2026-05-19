@@ -657,7 +657,6 @@ public class CouchbaseClient extends Client {
 	private FusionSearchQuery buildFusionSearchQuery(String[] terms, String fieldName) {
 		JsonArray vectorArray = JsonArray.create();
 		JsonObject queryObject = SearchQuery.term(terms[0]).field(secondfieldName).export();
-		queryObject.removeKey("query");
 		for (int i = 2; i < terms.length; i = i + 1) {
 			BigDecimal vector = BigDecimal.valueOf(Double.parseDouble(terms[i]));
 			vectorArray.add(vector);
