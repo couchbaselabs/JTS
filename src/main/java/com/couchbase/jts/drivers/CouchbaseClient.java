@@ -94,6 +94,7 @@ public class CouchbaseClient extends Client {
 	private double scoreFtsWeight = Double.parseDouble(settings.get(TestProperties.FUSION_SCORE_WEIGHT_FTS));
 	private double scoreKnnWeight = Double.parseDouble(settings.get(TestProperties.FUSION_SCORE_WEIGHT_KNN));
 	private int rrfConstant = Integer.parseInt(settings.get(TestProperties.FUSION_RRF_RANKING_CONSTANT));
+	private String fusionFaultSource = settings.get(TestProperties.FUSION_FAULT_SOURCE);
 	public CouchbaseClient(TestProperties workload) throws Exception {
 		super(workload);
 		setup();
@@ -581,6 +582,19 @@ public class CouchbaseClient extends Client {
 			}
 			if (scoreFtsWeight != 1.0) {
 				input.getObject("query").put("boost", scoreFtsWeight);
+			}
+
+			// Partial-source fault injection: force one source to contribute no
+			// candidates (via a match_none filter/query) so we can verify fusion
+			// still returns the remaining source's results within latency bounds.
+			if ("vector".equalsIgnoreCase(fusionFaultSource)) {
+				JsonArray knn = input.getArray("knn");
+				for (int i = 0; i < knn.size(); i++) {
+					knn.getObject(i).put("filter", JsonObject.create().put("match_none", JsonObject.create()));
+				}
+			} else if ("fts".equalsIgnoreCase(fusionFaultSource)
+					|| "lexical".equalsIgnoreCase(fusionFaultSource)) {
+				input.put("query", JsonObject.create().put("match_none", JsonObject.create()));
 			}
 		}
 	}

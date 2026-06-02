@@ -214,6 +214,12 @@ public class TestProperties {
     public static final String FUSION_RRF_RANKING_CONSTANT = "fusion_rrf_ranking_constant";
     private static final String FUSION_RRF_RANKING_CONSTANT_DEFAULT = "0";
 
+    // Fault injection for partial-source fusion testing: name of the source to
+    // disable (e.g. "vector"). The disabled source contributes no candidates so
+    // we can verify fusion still returns the remaining source's results.
+    public static final String FUSION_FAULT_SOURCE = "fusion_fault_source";
+    private static final String FUSION_FAULT_SOURCE_DEFAULT = "None";
+
     private HashMap<String, String> prop = new HashMap<>();
 
     private HashMap<String, String> driversMapping = new HashMap<>();
@@ -260,6 +266,7 @@ public class TestProperties {
         options.addOption(Option.builder(FUSION_SCORE_WEIGHT_FTS).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_SCORE_WEIGHT_KNN).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_RRF_RANKING_CONSTANT).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_FAULT_SOURCE).hasArg().required(false).build());
 
         // Additional parameters for geo queries
         options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
@@ -343,6 +350,7 @@ public class TestProperties {
         prop.put(FUSION_SCORE_WEIGHT_KNN, cmd.getOptionValue(FUSION_SCORE_WEIGHT_KNN, FUSION_SCORE_WEIGHT_KNN_DEFAULT));
         prop.put(FUSION_RRF_RANKING_CONSTANT,
                 cmd.getOptionValue(FUSION_RRF_RANKING_CONSTANT, FUSION_RRF_RANKING_CONSTANT_DEFAULT));
+        prop.put(FUSION_FAULT_SOURCE, cmd.getOptionValue(FUSION_FAULT_SOURCE, FUSION_FAULT_SOURCE_DEFAULT));
 
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));
