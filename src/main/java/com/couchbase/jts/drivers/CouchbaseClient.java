@@ -584,17 +584,14 @@ public class CouchbaseClient extends Client {
 				input.getObject("query").put("boost", scoreFtsWeight);
 			}
 
-			// Partial-source fault injection: force one source to contribute no
-			// candidates (via a match_none filter/query) so we can verify fusion
-			// still returns the remaining source's results within latency bounds.
+			// Partial-source fault injection: force the vector source to contribute
+			// no candidates (via a match_none filter) so we can verify fusion still
+			// returns the remaining (lexical) source's results within latency bounds.
 			if ("vector".equalsIgnoreCase(fusionFaultSource)) {
 				JsonArray knn = input.getArray("knn");
 				for (int i = 0; i < knn.size(); i++) {
 					knn.getObject(i).put("filter", JsonObject.create().put("match_none", JsonObject.create()));
 				}
-			} else if ("fts".equalsIgnoreCase(fusionFaultSource)
-					|| "lexical".equalsIgnoreCase(fusionFaultSource)) {
-				input.put("query", JsonObject.create().put("match_none", JsonObject.create()));
 			}
 		}
 	}
@@ -670,7 +667,7 @@ public class CouchbaseClient extends Client {
 
 	private FusionSearchQuery buildFusionSearchQuery(String[] terms, String fieldName) {
 		JsonArray vectorArray = JsonArray.create();
-		JsonObject queryObject = SearchQuery.term(terms[0]).field(secondfieldName).export();
+		JsonObject queryObject = buildQueryObjectForVectorSearch(terms, fieldName, 'C');
 		for (int i = 2; i < terms.length; i = i + 1) {
 			BigDecimal vector = BigDecimal.valueOf(Double.parseDouble(terms[i]));
 			vectorArray.add(vector);
