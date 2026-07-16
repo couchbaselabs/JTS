@@ -39,6 +39,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_TEXT_VECTOR = "text_vector";
     public static final String CONSTANT_QUERY_TYPE_NUMERIC_VECTOR = "numeric_vector";
     public static final String CONSTANT_QUERY_TYPE_BASE64_VECTOR = "vector_base64";
+    public static final String CONSTANT_QUERY_TYPE_FUSION = "fusion";
 
 
     //Flex query types
@@ -188,15 +189,36 @@ public class TestProperties {
 
     public static final String TESTSPEC_FTS_RAW_QUERY_MAP = "fts_raw_query_map";
     private static final String TESTSPEC_FTS_RAW_QUERY_MAP_DEFAULT = "";
-    
+
     public static final String K_NEAREST_NEIGHBOUR = "k_nearest_neighbour";
     private static final String K_NEAREST_NEIGHBOUR_DEFAULT = "3";
 
     public static final String PARTITION_SELECTION = "partition_selection";
     private static final String PARTITION_SELECTION_DEFAULT = "None";
-    
+
     public static final String IVF_NPROBE_PCT = "ivf_nprobe_pct";
     private static final String IVF_NPROBE_PCT_DEFAULT = "None";
+
+    public static final String FUSION_SCORE_MODE = "fusion_score_mode";
+    private static final String FUSION_SCORE_MODE_DEFAULT = "None";
+
+    public static final String FUSION_RANK_WINDOW_SIZE = "fusion_rank_window_size";
+    private static final String FUSION_RANK_WINDOW_SIZE_DEFAULT = "0";
+
+    public static final String FUSION_SCORE_WEIGHT_FTS = "fusion_score_weight_fts";
+    private static final String FUSION_SCORE_WEIGHT_FTS_DEFAULT = "1.0";
+
+    public static final String FUSION_SCORE_WEIGHT_KNN = "fusion_score_weight_knn";
+    private static final String FUSION_SCORE_WEIGHT_KNN_DEFAULT = "1.0";
+
+    public static final String FUSION_RRF_RANKING_CONSTANT = "fusion_rrf_ranking_constant";
+    private static final String FUSION_RRF_RANKING_CONSTANT_DEFAULT = "0";
+
+    // Fault injection for partial-source fusion testing: name of the source to
+    // disable (e.g. "vector"). The disabled source contributes no candidates so
+    // we can verify fusion still returns the remaining source's results.
+    public static final String FUSION_FAULT_SOURCE = "fusion_fault_source";
+    private static final String FUSION_FAULT_SOURCE_DEFAULT = "None";
 
     private HashMap<String, String> prop = new HashMap<>();
 
@@ -238,6 +260,13 @@ public class TestProperties {
         options.addOption(Option.builder(PARTITION_SELECTION).hasArg().required(false).build());
         options.addOption(Option.builder(IVF_NPROBE_PCT).hasArg().required(false).build());
 
+        // Fusion search parameters
+        options.addOption(Option.builder(FUSION_SCORE_MODE).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_RANK_WINDOW_SIZE).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_SCORE_WEIGHT_FTS).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_SCORE_WEIGHT_KNN).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_RRF_RANKING_CONSTANT).hasArg().required(false).build());
+        options.addOption(Option.builder(FUSION_FAULT_SOURCE).hasArg().required(false).build());
 
         // Additional parameters for geo queries
         options.addOption(Option.builder(TESTSPEC_GEO_DISTANCE).hasArg().required(false).build());
@@ -314,6 +343,14 @@ public class TestProperties {
         prop.put(PARTITION_SELECTION, cmd.getOptionValue(PARTITION_SELECTION, PARTITION_SELECTION_DEFAULT));
         prop.put(IVF_NPROBE_PCT, cmd.getOptionValue(IVF_NPROBE_PCT, IVF_NPROBE_PCT_DEFAULT));
 
+        // Fusion search parameters
+        prop.put(FUSION_SCORE_MODE, cmd.getOptionValue(FUSION_SCORE_MODE, FUSION_SCORE_MODE_DEFAULT));
+        prop.put(FUSION_RANK_WINDOW_SIZE, cmd.getOptionValue(FUSION_RANK_WINDOW_SIZE, FUSION_RANK_WINDOW_SIZE_DEFAULT));
+        prop.put(FUSION_SCORE_WEIGHT_FTS, cmd.getOptionValue(FUSION_SCORE_WEIGHT_FTS, FUSION_SCORE_WEIGHT_FTS_DEFAULT));
+        prop.put(FUSION_SCORE_WEIGHT_KNN, cmd.getOptionValue(FUSION_SCORE_WEIGHT_KNN, FUSION_SCORE_WEIGHT_KNN_DEFAULT));
+        prop.put(FUSION_RRF_RANKING_CONSTANT,
+                cmd.getOptionValue(FUSION_RRF_RANKING_CONSTANT, FUSION_RRF_RANKING_CONSTANT_DEFAULT));
+        prop.put(FUSION_FAULT_SOURCE, cmd.getOptionValue(FUSION_FAULT_SOURCE, FUSION_FAULT_SOURCE_DEFAULT));
 
         // Additional Collection flags
         prop.put(TESTSPEC_COLLECTIONS_ENABLED, cmd.getOptionValue(TESTSPEC_COLLECTIONS_ENABLED, TESTSPEC_COLLECTIONS_ENABLED_DEFAULT));
