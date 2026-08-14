@@ -162,15 +162,59 @@ public class CouchbaseClient extends Client {
 	}
 
 	private void generateQueries() throws Exception {
-		String[][] terms = importTerms();
-		List<SearchQuery> queryList = null;
-		String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
-		queryList = generateTermQueries(terms, fieldName);
+		List<SearchQuery> queryList;
+		if (TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_V2.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {
+			queryList = generateRawGeoShapeV2Queries();
+		} else {
+			String[][] terms = importTerms();
+			String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
+			queryList = generateTermQueries(terms, fieldName);
+		}
 		if ((queryList == null) || (queryList.size() == 0)) {
 			throw new Exception("Query list is empty! ");
 		}
 		FTSQueries = queryList.stream().toArray(SearchQuery[]::new);
 		totalQueries = FTSQueries.length;
+	}
+
+	// Each line of the data file is a standalone JSON document shaped like:
+	// {"query": {"field": "shape", "geometry_v2": {"shape": {...}, "relation": "..."}}, "ctl": {...}}
+	// The "query" object is already a complete geo_shape_v2 FTS query body, so it is copied through
+	// as-is rather than reconstructed from flat coordinate lists like the other geo query types.
+	private List<SearchQuery> generateRawGeoShapeV2Queries() throws Exception {
+		List<SearchQuery> queryList = new ArrayList<>();
+		JSONParser parser = new JSONParser();
+		for (String line : importRawLines()) {
+			if (line == null || line.trim().isEmpty()) {
+				continue;
+			}
+			JSONObject root = (JSONObject) parser.parse(line);
+			JSONObject query = (JSONObject) root.get("query");
+			if (query == null) {
+				continue;
+			}
+			queryList.add(new RawPrebuiltQuery((JsonObject) convertJsonValue(query)));
+		}
+		return queryList;
+	}
+
+	private Object convertJsonValue(Object value) {
+		if (value instanceof JSONObject) {
+			JsonObject result = JsonObject.create();
+			JSONObject src = (JSONObject) value;
+			for (Object key : src.keySet()) {
+				result.put((String) key, convertJsonValue(src.get(key)));
+			}
+			return result;
+		}
+		if (value instanceof JSONArray) {
+			JsonArray result = JsonArray.create();
+			for (Object item : (JSONArray) value) {
+				result.add(convertJsonValue(item));
+			}
+			return result;
+		}
+		return value;
 	}
 
 	private List<SearchQuery> generateTermQueries(String[][] terms, String fieldName) throws IllegalArgumentException {
@@ -452,6 +496,25 @@ public class CouchbaseClient extends Client {
 			}
 			input.put("geometry", geometry);
 
+		}
+	}
+
+	// Wraps a fully pre-built query body (e.g. a geo_shape_v2 query read from a JSON data file)
+	// and injects it verbatim, without interpreting or reconstructing any of its fields.
+	public class RawPrebuiltQuery extends SearchQuery {
+
+		private final JsonObject queryBody;
+
+		public RawPrebuiltQuery(JsonObject queryBody) {
+			super();
+			this.queryBody = queryBody;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			for (String key : queryBody.getNames()) {
+				input.put(key, queryBody.get(key));
+			}
 		}
 	}
 

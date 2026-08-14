@@ -34,6 +34,17 @@ abstract public class Client {
         return response;
     }
 
+    // Unlike importTerms(), does not split each line on whitespace - used for data files where
+    // each line is a standalone JSON document (e.g. pre-built raw query bodies).
+    protected List<String> importRawLines() throws IOException {
+        List<String> lines = new ArrayList<>();
+        try (Stream<String> stream = Files.lines(Paths.get(settings.get(TestProperties.TESTSPEC_TESTDATA_FILE)))) {
+            stream.forEach(lines::add);
+        }
+        Collections.shuffle(lines);
+        return lines;
+    }
+
     abstract public float queryAndLatency();
     abstract public String queryDebug();
     abstract public void query();
