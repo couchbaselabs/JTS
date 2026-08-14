@@ -173,6 +173,8 @@ public class CouchbaseClient extends Client {
 		List<SearchQuery> queryList;
 		if (deepPaginationMode) {
 			queryList = generateDeepPaginationQueries();
+		} else if (TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_V2.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {
+			queryList = generateRawGeoShapeV2Queries();
 		} else {
 			String[][] terms = importTerms();
 			String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
@@ -206,6 +208,27 @@ public class CouchbaseClient extends Client {
 			}
 			root.remove("depth");
 			queryList.add(new DeepPaginationQuery((JsonObject) convertJsonValue(root)));
+		}
+		return queryList;
+	}
+
+	// Each line of the data file is a standalone JSON document shaped like:
+	// {"query": {"field": "shape", "geometry_v2": {"shape": {...}, "relation": "..."}}, "ctl": {...}}
+	// The "query" object is already a complete geo_shape_v2 FTS query body, so it is copied through
+	// as-is rather than reconstructed from flat coordinate lists like the other geo query types.
+	private List<SearchQuery> generateRawGeoShapeV2Queries() throws Exception {
+		List<SearchQuery> queryList = new ArrayList<>();
+		JSONParser parser = new JSONParser();
+		for (String line : importRawLines()) {
+			if (line == null || line.trim().isEmpty()) {
+				continue;
+			}
+			JSONObject root = (JSONObject) parser.parse(line);
+			JSONObject query = (JSONObject) root.get("query");
+			if (query == null) {
+				continue;
+			}
+			queryList.add(new RawPrebuiltQuery((JsonObject) convertJsonValue(query)));
 		}
 		return queryList;
 	}
@@ -540,6 +563,25 @@ public class CouchbaseClient extends Client {
 			JsonObject requestJson = JsonObject.create();
 			injectParamsAndBoost(requestJson);
 			return requestJson;
+		}
+	}
+
+	// Wraps a fully pre-built query body (e.g. a geo_shape_v2 query read from a JSON data file)
+	// and injects it verbatim, without interpreting or reconstructing any of its fields.
+	public class RawPrebuiltQuery extends SearchQuery {
+
+		private final JsonObject queryBody;
+
+		public RawPrebuiltQuery(JsonObject queryBody) {
+			super();
+			this.queryBody = queryBody;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			for (String key : queryBody.getNames()) {
+				input.put(key, queryBody.get(key));
+			}
 		}
 	}
 
