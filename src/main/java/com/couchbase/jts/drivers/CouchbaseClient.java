@@ -269,6 +269,8 @@ public class CouchbaseClient extends Client {
 				return buildMatchQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE:
 				return buildGeoJsonQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_V2_COORDS:
+				return buildGeoJsonQuery(terms, fieldName, true);
 			case TestProperties.CONSTANT_QUERY_TYPE_VECTOR:
 				return buildVectorSearchQuery(terms, fieldName,'A');
 			case TestProperties.CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR:
@@ -380,12 +382,25 @@ public class CouchbaseClient extends Client {
 		private String field;
 		private String relation;
 		private String shape;
+		private boolean useV2Key = false;
 
 		public RawGeoJsonQuery(List<Coordinate> coordinates, String shape, String relation) {
 			super();
 			this.coordinates = coordinates;
 			this.relation = relation;
 			this.shape = shape;
+		}
+
+		/**
+		 * Selects whether the geometry is injected under the "geometry" (v1) or
+		 * "geometry_v2" (v2) key, matching whichever type the target field's mapping uses.
+		 *
+		 * @param useV2Key true to use the "geometry_v2" key, false for "geometry".
+		 * @return this {@link RawGeoJsonQuery} for chaining purposes.
+		 */
+		public RawGeoJsonQuery v2Key(final boolean useV2Key) {
+			this.useV2Key = useV2Key;
+			return this;
 		}
 
 		/**
@@ -494,7 +509,7 @@ public class CouchbaseClient extends Client {
 			if (field != null) {
 				input.put("field", field);
 			}
-			input.put("geometry", geometry);
+			input.put(useV2Key ? "geometry_v2" : "geometry", geometry);
 
 		}
 	}
@@ -608,6 +623,10 @@ public class CouchbaseClient extends Client {
 	}
 
 	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName) {
+		return buildGeoJsonQuery(terms, fieldName, false);
+	}
+
+	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName, boolean useV2Key) {
 
 		List<Coordinate> listOfPts = new ArrayList<Coordinate>();
 		for (int i = 0; i < terms.length; i = i + 2) {
@@ -618,7 +637,7 @@ public class CouchbaseClient extends Client {
 		}
 		String shape = settings.get(settings.TESTSPEC_GEOJSON_QUERY_TYPE);
 		String relation = settings.get(settings.TESTSPEC_GEOJSON_QUERY_RELATION);
-		RawGeoJsonQuery rawjson = new RawGeoJsonQuery(listOfPts, shape, relation).field(fieldName);
+		RawGeoJsonQuery rawjson = new RawGeoJsonQuery(listOfPts, shape, relation).field(fieldName).v2Key(useV2Key);
 		return rawjson;
 		// "query": {
 		// "field": "<<fieldName>>",
