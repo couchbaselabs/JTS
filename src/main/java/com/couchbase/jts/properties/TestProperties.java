@@ -35,6 +35,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_MATCH = "match";
     public static final String CONSTANT_QUERY_TYPE_GEOSHAPE = "geo_shape";
     public static final String CONSTANT_QUERY_TYPE_GEOSHAPE_V2 = "geo_shape_v2";
+    public static final String CONSTANT_QUERY_TYPE_GEOSHAPE_V2_COORDS = "geo_shape_v2_coords";
     public static final String CONSTANT_QUERY_TYPE_VECTOR = "vector";
     public static final String CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR = "multi_vector";
     public static final String CONSTANT_QUERY_TYPE_TEXT_VECTOR = "text_vector";
