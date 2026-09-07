@@ -75,6 +75,8 @@ public class CouchbaseClient extends Client {
 	private int numCollections;
 
 	int limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
+	private final boolean deepPaginationMode = TestProperties.CONSTANT_QUERY_TYPE_DEEP_PAGE
+			.equals(settings.get(TestProperties.TESTSPEC_QUERY_TYPE));
 	private String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
 	private Cluster cluster;
 	private volatile ClusterOptions clusterOptions;
@@ -165,6 +167,8 @@ public class CouchbaseClient extends Client {
 		List<SearchQuery> queryList;
 		if (TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_V2.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {
 			queryList = generateRawGeoShapeV2Queries();
+		} else if (deepPaginationMode) {
+			queryList = generateDeepPaginationQueries();
 		} else {
 			String[][] terms = importTerms();
 			String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
@@ -194,6 +198,31 @@ public class CouchbaseClient extends Client {
 				continue;
 			}
 			queryList.add(new RawPrebuiltQuery((JsonObject) convertJsonValue(query)));
+		}
+		return queryList;
+	}
+
+	// Each line of the data file is a complete FTS search request body, pre-built by
+	// perfrunner's scripts/generate_fts_deep_pagination_cursors.py:
+	//   {"query": {...}, "sort": [...], "search_after": [...], "depth": 9980}
+	// The cursor arm carries "search_after", lifted verbatim from the previous page's
+	// decoded_sort; the offset arm carries "from" instead. Both arms therefore run through
+	// this one query type, and which arm a run measures is decided purely by the data file.
+	// "depth" records which page the body targets so the harvested file can be split into
+	// depth bands; it is not part of the FTS request and is stripped before sending.
+	private List<SearchQuery> generateDeepPaginationQueries() throws Exception {
+		List<SearchQuery> queryList = new ArrayList<>();
+		JSONParser parser = new JSONParser();
+		for (String line : importRawLines()) {
+			if (line == null || line.trim().isEmpty()) {
+				continue;
+			}
+			JSONObject root = (JSONObject) parser.parse(line);
+			if (root.get("query") == null) {
+				continue;
+			}
+			root.remove("depth");
+			queryList.add(new DeepPaginationQuery((JsonObject) convertJsonValue(root)));
 		}
 		return queryList;
 	}
@@ -555,6 +584,36 @@ public class CouchbaseClient extends Client {
 		}
 	}
 
+	// Like RawPrebuiltQuery, but export() is overridden so the body lands at the top level of
+	// the request instead of being nested under "query". Deep pagination needs the top-level
+	// "sort" and "search_after"/"search_before" keys, and SDK 3.4.0's SearchOptions has no
+	// typed setter for either. Note that SearchOptions still applies "size" from
+	// test_query_limit afterwards, so a config's test_query_limit must match the page size the
+	// cursor file was generated with, or the cursors and the pages will disagree.
+	public class DeepPaginationQuery extends SearchQuery {
+
+		private final JsonObject requestBody;
+
+		public DeepPaginationQuery(JsonObject requestBody) {
+			super();
+			this.requestBody = requestBody;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			for (String key : requestBody.getNames()) {
+				input.put(key, requestBody.get(key));
+			}
+		}
+
+		@Override
+		public JsonObject export() {
+			JsonObject requestJson = JsonObject.create();
+			injectParamsAndBoost(requestJson);
+			return requestJson;
+		}
+	}
+
 	public class VectorSearchQuery extends SearchQuery {
 
 		private String field;
@@ -776,6 +835,14 @@ public class CouchbaseClient extends Client {
 		float latency = (float) (en - st) / 1000000;
 		int res_size = res.rows().size();
 		SearchMetrics metrics = res.metaData().metrics();
+		if (deepPaginationMode) {
+			// A deep-paged request is valid as long as the query still matched a result set.
+			// The page itself may be partial (the last page) or even empty (a cursor at the very
+			// end), and maxScore carries no meaning when sorting by a field, so the usual guard
+			// would discard legitimate samples. validatedLatency workers drop zeros silently, so
+			// applying it here would bias the distribution rather than surface an error.
+			return metrics.totalRows() != 0 ? latency : 0;
+		}
 		if (res_size > 0 && metrics.maxScore() != 0 && metrics.totalRows() != 0) {
 			return latency;
 		}
