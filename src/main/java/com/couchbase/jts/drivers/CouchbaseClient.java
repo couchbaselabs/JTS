@@ -243,6 +243,8 @@ public class CouchbaseClient extends Client {
 				return buildAndQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_OR:
 				return buildOrQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_N_DISJUNCTS:
+				return buildNDisjunctsQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_AND_OR_OR:
 				return buildAndOrOrQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_FUZZY:
@@ -306,6 +308,26 @@ public class CouchbaseClient extends Client {
 		TermQuery lt = SearchQuery.term(terms[0]).field(fieldName);
 		TermQuery rt = SearchQuery.term(terms[1]).field(fieldName);
 		return SearchQuery.disjuncts(lt, rt);
+	}
+
+	// (term1 OR term2 OR ... OR termN) over a single field, where N is however many
+	// space-separated terms the data-file line holds. Unlike buildOrQuery, which is fixed at
+	// two terms, this lets one data file mix disjunction widths (e.g. 3-8 terms per line).
+	private SearchQuery buildNDisjunctsQuery(String[] terms, String fieldName) {
+		List<SearchQuery> disjuncts = new ArrayList<>();
+		for (String term : terms) {
+			if (term != null && !term.isEmpty()) {
+				disjuncts.add(SearchQuery.term(term).field(fieldName));
+			}
+		}
+		if (disjuncts.isEmpty()) {
+			throw new IndexOutOfBoundsException("n_disjuncts: no usable terms on line");
+		}
+		// A 1-term line is a plain term query; disjuncts() of one child is not valid FTS.
+		if (disjuncts.size() == 1) {
+			return disjuncts.get(0);
+		}
+		return SearchQuery.disjuncts(disjuncts.toArray(new SearchQuery[0]));
 	}
 
 	private SearchQuery buildAndOrOrQuery(String[] terms, String fieldName) {

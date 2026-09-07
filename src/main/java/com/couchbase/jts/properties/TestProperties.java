@@ -21,6 +21,7 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_AND = "2_conjuncts"; //(term1 AND term2)
     public static final String CONSTANT_QUERY_TYPE_OR = "2_disjuncts"; // (term1 OR term2)
     public static final String CONSTANT_QUERY_TYPE_AND_OR_OR = "1_conjuncts_2_disjuncts"; //(term1 AND (term2 OR term3))
+    public static final String CONSTANT_QUERY_TYPE_N_DISJUNCTS = "n_disjuncts"; // (term1 OR term2 OR ... OR termN), N = terms on the data-file line
     public static final String CONSTANT_QUERY_TYPE_NESTED_CONJUNCTS = "nested_conjuncts"; // nested conjuncts
     public static final String CONSTANT_QUERY_TYPE_FUZZY = "fuzzy";
     public static final String CONSTANT_QUERY_TYPE_PHRASE = "match_phrase";
