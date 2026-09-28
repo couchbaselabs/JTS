@@ -40,6 +40,8 @@ public class TestProperties {
     public static final String CONSTANT_QUERY_TYPE_NUMERIC_VECTOR = "numeric_vector";
     public static final String CONSTANT_QUERY_TYPE_BASE64_VECTOR = "vector_base64";
     public static final String CONSTANT_QUERY_TYPE_FUSION = "fusion";
+    public static final String CONSTANT_QUERY_TYPE_CUSTOM_FILTER = "custom_filter";
+    public static final String CONSTANT_QUERY_TYPE_CUSTOM_SCORE = "custom_score";
 
 
     //Flex query types
@@ -202,6 +204,19 @@ public class TestProperties {
     public static final String FUSION_SCORE_MODE = "fusion_score_mode";
     private static final String FUSION_SCORE_MODE_DEFAULT = "None";
 
+    // Script-based queries (MB-65018). The UDF source lives in its own file rather than
+    // being repeated on every data-file line, because a single run reuses one script and
+    // varies only the inner query. INNER_QUERY_TYPE reuses the existing query builders, so
+    // the baseline arm is the same inner query with no wrapper.
+    public static final String TESTSPEC_SCRIPT_SOURCE_FILE = "script_source_file";
+    private static final String TESTSPEC_SCRIPT_SOURCE_FILE_DEFAULT = "";
+    public static final String TESTSPEC_SCRIPT_FIELDS = "script_fields";
+    private static final String TESTSPEC_SCRIPT_FIELDS_DEFAULT = "";
+    public static final String TESTSPEC_SCRIPT_PARAMS = "script_params";
+    private static final String TESTSPEC_SCRIPT_PARAMS_DEFAULT = "";
+    public static final String TESTSPEC_INNER_QUERY_TYPE = "inner_query_type";
+    private static final String TESTSPEC_INNER_QUERY_TYPE_DEFAULT = "term";
+
     public static final String FUSION_RANK_WINDOW_SIZE = "fusion_rank_window_size";
     private static final String FUSION_RANK_WINDOW_SIZE_DEFAULT = "0";
 
@@ -262,6 +277,10 @@ public class TestProperties {
 
         // Fusion search parameters
         options.addOption(Option.builder(FUSION_SCORE_MODE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_SCRIPT_SOURCE_FILE).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_SCRIPT_FIELDS).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_SCRIPT_PARAMS).hasArg().required(false).build());
+        options.addOption(Option.builder(TESTSPEC_INNER_QUERY_TYPE).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_RANK_WINDOW_SIZE).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_SCORE_WEIGHT_FTS).hasArg().required(false).build());
         options.addOption(Option.builder(FUSION_SCORE_WEIGHT_KNN).hasArg().required(false).build());
@@ -345,6 +364,10 @@ public class TestProperties {
 
         // Fusion search parameters
         prop.put(FUSION_SCORE_MODE, cmd.getOptionValue(FUSION_SCORE_MODE, FUSION_SCORE_MODE_DEFAULT));
+        prop.put(TESTSPEC_SCRIPT_SOURCE_FILE, cmd.getOptionValue(TESTSPEC_SCRIPT_SOURCE_FILE, TESTSPEC_SCRIPT_SOURCE_FILE_DEFAULT));
+        prop.put(TESTSPEC_SCRIPT_FIELDS, cmd.getOptionValue(TESTSPEC_SCRIPT_FIELDS, TESTSPEC_SCRIPT_FIELDS_DEFAULT));
+        prop.put(TESTSPEC_SCRIPT_PARAMS, cmd.getOptionValue(TESTSPEC_SCRIPT_PARAMS, TESTSPEC_SCRIPT_PARAMS_DEFAULT));
+        prop.put(TESTSPEC_INNER_QUERY_TYPE, cmd.getOptionValue(TESTSPEC_INNER_QUERY_TYPE, TESTSPEC_INNER_QUERY_TYPE_DEFAULT));
         prop.put(FUSION_RANK_WINDOW_SIZE, cmd.getOptionValue(FUSION_RANK_WINDOW_SIZE, FUSION_RANK_WINDOW_SIZE_DEFAULT));
         prop.put(FUSION_SCORE_WEIGHT_FTS, cmd.getOptionValue(FUSION_SCORE_WEIGHT_FTS, FUSION_SCORE_WEIGHT_FTS_DEFAULT));
         prop.put(FUSION_SCORE_WEIGHT_KNN, cmd.getOptionValue(FUSION_SCORE_WEIGHT_KNN, FUSION_SCORE_WEIGHT_KNN_DEFAULT));

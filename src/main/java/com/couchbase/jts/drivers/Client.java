@@ -24,6 +24,13 @@ abstract public class Client {
         return settings;
     }
 
+    // Reads a UDF script file whole. Unlike importTerms(), which splits a data file into
+    // per-query terms, one script is shared by every query in a run - only the inner query
+    // varies - so the source is read once and reused.
+    protected String importScriptSource(String path) throws IOException {
+        return String.join("\n", Files.readAllLines(Paths.get(path))).trim();
+    }
+
     protected String[][] importTerms() throws IOException{
         List<String[]> lines = new ArrayList<>();
         try (Stream<String> stream = Files.lines(Paths.get(settings.get(TestProperties.TESTSPEC_TESTDATA_FILE)))) {

@@ -1,5 +1,6 @@
 package com.couchbase.jts.drivers;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Dictionary;
@@ -75,6 +76,9 @@ public class CouchbaseClient extends Client {
 	private int numCollections;
 
 	int limit = Integer.parseInt(settings.get(TestProperties.TESTSPEC_QUERY_LIMIT));
+	private String scriptSource = null;
+	private JsonObject scriptParams = null;
+	private JsonArray scriptFields = null;
 	private String indexName = settings.get(TestProperties.CBSPEC_INDEX_NAME);
 	private Cluster cluster;
 	private volatile ClusterOptions clusterOptions;
@@ -198,7 +202,12 @@ public class CouchbaseClient extends Client {
 
 	private SearchQuery buildQuery(String[] terms, String fieldName)
 			throws IllegalArgumentException, IndexOutOfBoundsException {
-		switch (settings.get(settings.TESTSPEC_QUERY_TYPE)) {
+		return buildQuery(settings.get(settings.TESTSPEC_QUERY_TYPE), terms, fieldName);
+	}
+
+	private SearchQuery buildQuery(String queryType, String[] terms, String fieldName)
+			throws IllegalArgumentException, IndexOutOfBoundsException {
+		switch (queryType) {
 			case TestProperties.CONSTANT_QUERY_TYPE_TERM:
 				return buildTermQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_AND:
@@ -248,6 +257,9 @@ public class CouchbaseClient extends Client {
 				return buildFusionSearchQuery(terms, fieldName);
             case TestProperties.CONSTANT_QUERY_TYPE_NESTED_CONJUNCTS:
                 return buildNestedConjunctsQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_CUSTOM_FILTER:
+			case TestProperties.CONSTANT_QUERY_TYPE_CUSTOM_SCORE:
+				return buildCustomScriptQuery(queryType, terms, fieldName);
 		}
 		throw new IllegalArgumentException(
 				"Couchbase query builder: unexpected query type - " +
@@ -445,6 +457,129 @@ public class CouchbaseClient extends Client {
 			}
 			input.put("geometry", geometry);
 
+		}
+	}
+
+	// Script-based queries (MB-65018). The UDF wraps an inner query, so the inner query is
+	// built by the same builders every other query type uses - which is what makes the
+	// no-script baseline arm a like-for-like comparison rather than an approximation.
+	private SearchQuery buildCustomScriptQuery(String queryType, String[] terms, String fieldName)
+			throws IllegalArgumentException, IndexOutOfBoundsException {
+		String innerType = settings.get(TestProperties.TESTSPEC_INNER_QUERY_TYPE);
+		if (innerType.equals(TestProperties.CONSTANT_QUERY_TYPE_CUSTOM_FILTER)
+				|| innerType.equals(TestProperties.CONSTANT_QUERY_TYPE_CUSTOM_SCORE)) {
+			throw new IllegalArgumentException(
+					"inner_query_type must not itself be a script query: " + innerType);
+		}
+		SearchQuery inner = buildQuery(innerType, terms, fieldName);
+		loadScriptConfig();
+		return new CustomScriptQuery(queryType, inner, scriptSource, scriptParams, scriptFields);
+	}
+
+	// Read once per process: the source, params and field list are the same for every query
+	// in a run, and only the inner query varies.
+	private void loadScriptConfig() {
+		if (scriptSource != null) {
+			return;
+		}
+		String path = settings.get(TestProperties.TESTSPEC_SCRIPT_SOURCE_FILE);
+		if (path == null || path.isEmpty()) {
+			throw new IllegalArgumentException(
+					"script_source_file is required for custom_filter/custom_score queries");
+		}
+		try {
+			scriptSource = importScriptSource(path);
+		} catch (IOException ex) {
+			throw new IllegalArgumentException("Could not read script_source_file " + path, ex);
+		}
+		if (scriptSource.isEmpty()) {
+			throw new IllegalArgumentException("script_source_file is empty: " + path);
+		}
+
+		String rawParams = settings.get(TestProperties.TESTSPEC_SCRIPT_PARAMS);
+		if (rawParams != null && !rawParams.trim().isEmpty()) {
+			try {
+				JSONObject parsed = (JSONObject) new JSONParser().parse(rawParams);
+				scriptParams = (JsonObject) convertJsonValue(parsed);
+			} catch (Exception ex) {
+				throw new IllegalArgumentException("script_params is not valid JSON: " + rawParams, ex);
+			}
+		}
+
+		// An empty field list is meaningful: it is the cheapest case, where the UDF sees no
+		// stored fields at all. Only a non-empty list emits a "fields" key.
+		String rawFields = settings.get(TestProperties.TESTSPEC_SCRIPT_FIELDS);
+		if (rawFields != null && !rawFields.trim().isEmpty()) {
+			scriptFields = JsonArray.create();
+			for (String field : rawFields.split(",")) {
+				if (!field.trim().isEmpty()) {
+					scriptFields.add(field.trim());
+				}
+			}
+		}
+	}
+
+	private Object convertJsonValue(Object value) {
+		if (value instanceof JSONObject) {
+			JsonObject result = JsonObject.create();
+			JSONObject src = (JSONObject) value;
+			for (Object key : src.keySet()) {
+				result.put((String) key, convertJsonValue(src.get(key)));
+			}
+			return result;
+		}
+		if (value instanceof JSONArray) {
+			JsonArray result = JsonArray.create();
+			for (Object item : (JSONArray) value) {
+				result.add(convertJsonValue(item));
+			}
+			return result;
+		}
+		return value;
+	}
+
+	// Emits {"query": {"custom_filter"|"custom_score": {query, source, params, fields}}}.
+	// export() is overridden so the wrapper is not also duplicated at the top level of the
+	// request, which is what the default SearchQuery.export() would do.
+	public class CustomScriptQuery extends SearchQuery {
+
+		private final String nodeName;
+		private final SearchQuery inner;
+		private final String source;
+		private final JsonObject params;
+		private final JsonArray fields;
+
+		public CustomScriptQuery(String nodeName, SearchQuery inner, String source,
+				JsonObject params, JsonArray fields) {
+			super();
+			this.nodeName = nodeName;
+			this.inner = inner;
+			this.source = source;
+			this.params = params;
+			this.fields = fields;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			JsonObject node = JsonObject.create();
+			// export() wraps a query body under "query"; the wrapper supplies its own "query"
+			// key, so take the inner body back out rather than nesting it twice.
+			node.put("query", inner.export().getObject("query"));
+			node.put("source", source);
+			if (params != null) {
+				node.put("params", params);
+			}
+			if (fields != null && !fields.isEmpty()) {
+				node.put("fields", fields);
+			}
+			input.put(nodeName, node);
+		}
+
+		@Override
+		public JsonObject export() {
+			JsonObject queryJson = JsonObject.create();
+			injectParamsAndBoost(queryJson);
+			return JsonObject.create().put("query", queryJson);
 		}
 	}
 
