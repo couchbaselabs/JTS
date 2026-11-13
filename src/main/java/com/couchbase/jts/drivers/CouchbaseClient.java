@@ -173,6 +173,8 @@ public class CouchbaseClient extends Client {
 		List<SearchQuery> queryList;
 		if (deepPaginationMode) {
 			queryList = generateDeepPaginationQueries();
+		} else if (TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_V2.equals(settings.get(settings.TESTSPEC_QUERY_TYPE))) {
+			queryList = generateRawGeoShapeV2Queries();
 		} else {
 			String[][] terms = importTerms();
 			String fieldName = settings.get(TestProperties.TESTSPEC_QUERY_FIELD);
@@ -206,6 +208,27 @@ public class CouchbaseClient extends Client {
 			}
 			root.remove("depth");
 			queryList.add(new DeepPaginationQuery((JsonObject) convertJsonValue(root)));
+		}
+		return queryList;
+	}
+
+	// Each line of the data file is a standalone JSON document shaped like:
+	// {"query": {"field": "shape", "geometry_v2": {"shape": {...}, "relation": "..."}}, "ctl": {...}}
+	// The "query" object is already a complete geo_shape_v2 FTS query body, so it is copied through
+	// as-is rather than reconstructed from flat coordinate lists like the other geo query types.
+	private List<SearchQuery> generateRawGeoShapeV2Queries() throws Exception {
+		List<SearchQuery> queryList = new ArrayList<>();
+		JSONParser parser = new JSONParser();
+		for (String line : importRawLines()) {
+			if (line == null || line.trim().isEmpty()) {
+				continue;
+			}
+			JSONObject root = (JSONObject) parser.parse(line);
+			JSONObject query = (JSONObject) root.get("query");
+			if (query == null) {
+				continue;
+			}
+			queryList.add(new RawPrebuiltQuery((JsonObject) convertJsonValue(query)));
 		}
 		return queryList;
 	}
@@ -281,6 +304,8 @@ public class CouchbaseClient extends Client {
 				return buildMatchQuery(terms, fieldName);
 			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE:
 				return buildGeoJsonQuery(terms, fieldName);
+			case TestProperties.CONSTANT_QUERY_TYPE_GEOSHAPE_V2_COORDS:
+				return buildGeoJsonQuery(terms, fieldName, true);
 			case TestProperties.CONSTANT_QUERY_TYPE_VECTOR:
 				return buildVectorSearchQuery(terms, fieldName,'A');
 			case TestProperties.CONSTANT_QUERY_TYPE_MULTIPLE_VECTOR:
@@ -394,12 +419,25 @@ public class CouchbaseClient extends Client {
 		private String field;
 		private String relation;
 		private String shape;
+		private boolean useV2Key = false;
 
 		public RawGeoJsonQuery(List<Coordinate> coordinates, String shape, String relation) {
 			super();
 			this.coordinates = coordinates;
 			this.relation = relation;
 			this.shape = shape;
+		}
+
+		/**
+		 * Selects whether the geometry is injected under the "geometry" (v1) or
+		 * "geometry_v2" (v2) key, matching whichever type the target field's mapping uses.
+		 *
+		 * @param useV2Key true to use the "geometry_v2" key, false for "geometry".
+		 * @return this {@link RawGeoJsonQuery} for chaining purposes.
+		 */
+		public RawGeoJsonQuery v2Key(final boolean useV2Key) {
+			this.useV2Key = useV2Key;
+			return this;
 		}
 
 		/**
@@ -439,6 +477,18 @@ public class CouchbaseClient extends Client {
 					.put("radius", settings.get(settings.TESTSPEC_GEO_DISTANCE)))
 					.put("relation", relation);
 			return geometry;
+		}
+
+		private JsonObject EnvelopeGeometry() {
+			JsonArray points = JsonArray.create();
+			// Envelope requires exactly 2 diagonal corner coordinates
+			points.add(JsonArray.from(coordinates.get(0).lon(), coordinates.get(0).lat())); // top-left
+			points.add(JsonArray.from(coordinates.get(1).lon(), coordinates.get(1).lat())); // bottom-right
+
+			return JsonObject.create().put("shape", JsonObject.create()
+					.put("coordinates", points)
+					.put("type", shape))
+					.put("relation", relation);
 		}
 
 		private JsonObject PolygonGeometry() {
@@ -484,6 +534,9 @@ public class CouchbaseClient extends Client {
 				case "linestring":
 					geometry = LinestringGeometry();
 					break;
+				case "Envelope":
+					geometry = EnvelopeGeometry();
+					break;
 				default:
 					throw new IllegalArgumentException(
 							"Couchbase query builder: unsupportedGeoJson Query Shape" +
@@ -493,7 +546,7 @@ public class CouchbaseClient extends Client {
 			if (field != null) {
 				input.put("field", field);
 			}
-			input.put("geometry", geometry);
+			input.put(useV2Key ? "geometry_v2" : "geometry", geometry);
 
 		}
 	}
@@ -525,6 +578,25 @@ public class CouchbaseClient extends Client {
 			JsonObject requestJson = JsonObject.create();
 			injectParamsAndBoost(requestJson);
 			return requestJson;
+		}
+	}
+
+	// Wraps a fully pre-built query body (e.g. a geo_shape_v2 query read from a JSON data file)
+	// and injects it verbatim, without interpreting or reconstructing any of its fields.
+	public class RawPrebuiltQuery extends SearchQuery {
+
+		private final JsonObject queryBody;
+
+		public RawPrebuiltQuery(JsonObject queryBody) {
+			super();
+			this.queryBody = queryBody;
+		}
+
+		@Override
+		protected void injectParams(final JsonObject input) {
+			for (String key : queryBody.getNames()) {
+				input.put(key, queryBody.get(key));
+			}
 		}
 	}
 
@@ -677,6 +749,10 @@ public class CouchbaseClient extends Client {
 	}
 
 	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName) {
+		return buildGeoJsonQuery(terms, fieldName, false);
+	}
+
+	private RawGeoJsonQuery buildGeoJsonQuery(String[] terms, String fieldName, boolean useV2Key) {
 
 		List<Coordinate> listOfPts = new ArrayList<Coordinate>();
 		for (int i = 0; i < terms.length; i = i + 2) {
@@ -687,7 +763,7 @@ public class CouchbaseClient extends Client {
 		}
 		String shape = settings.get(settings.TESTSPEC_GEOJSON_QUERY_TYPE);
 		String relation = settings.get(settings.TESTSPEC_GEOJSON_QUERY_RELATION);
-		RawGeoJsonQuery rawjson = new RawGeoJsonQuery(listOfPts, shape, relation).field(fieldName);
+		RawGeoJsonQuery rawjson = new RawGeoJsonQuery(listOfPts, shape, relation).field(fieldName).v2Key(useV2Key);
 		return rawjson;
 		// "query": {
 		// "field": "<<fieldName>>",
